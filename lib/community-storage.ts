@@ -1,0 +1,85 @@
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { db } from "./firebase";
+
+export type CommunityRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  tagline?: string;
+  category?: string;
+  type?: "public" | "private" | "restricted";
+  avatarUrl?: string;
+  bannerUrl?: string;
+  ownerId: string;
+  memberCount: number;
+  createdAt?: unknown;
+};
+
+const communities = collection(db, "communities");
+
+export async function createCommunity(
+  ownerId: string,
+  input: Omit<CommunityRecord, "id" | "ownerId" | "memberCount">,
+) {
+  if (!ownerId || !input.name.trim()) throw new Error("Community name is required");
+  const community = await addDoc(communities, {
+    ...input,
+    name: input.name.trim(),
+    ownerId,
+    memberCount: 1,
+    createdAt: serverTimestamp(),
+  });
+  await setDoc(doc(db, "communities", community.id, "members", ownerId), {
+    role: "owner",
+    joinedAt: serverTimestamp(),
+  });
+  return community.id;
+}
+
+export async function listCommunities(category = "All", maxResults = 30) {
+  const base = category !== "All"
+    ? query(communities, where("category", "==", category), orderBy("createdAt", "desc"), limit(maxResults))
+    : query(communities, orderBy("createdAt", "desc"), limit(maxResults));
+  const snap = await getDocs(base);
+  return snap.docs.map((item) => ({ id: item.id, ...item.data() })) as CommunityRecord[];
+}
+
+export async function joinCommunity(communityId: string, userId: string) {
+  const member = doc(db, "communities", communityId, "members", userId);
+  if ((await getDoc(member)).exists()) return;
+  const community = await getDoc(doc(db, "communities", communityId));
+  const current = Number(community.data()?.memberCount ?? 0);
+  await setDoc(member, { role: "member", joinedAt: serverTimestamp() });
+  await updateDoc(doc(db, "communities", communityId), { memberCount: current + 1 });
+}
+
+export async function leaveCommunity(communityId: string, userId: string) {
+  const member = doc(db, "communities", communityId, "members", userId);
+  if (!(await getDoc(member)).exists()) return;
+  const community = await getDoc(doc(db, "communities", communityId));
+  const current = Number(community.data()?.memberCount ?? 0);
+  await deleteDoc(member);
+  await updateDoc(doc(db, "communities", communityId), { memberCount: Math.max(0, current - 1) });
+}
+
+export function subscribeToCommunity(communityId: string, callback: (value: CommunityRecord | null) => void) {
+  return onSnapshot(doc(db, "communities", communityId), (snap) =>
+    callback(snap.exists() ? ({ id: snap.id, ...snap.data() } as CommunityRecord) : null),
+  );
+}
