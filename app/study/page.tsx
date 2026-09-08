@@ -1,38 +1,96 @@
 "use client";
-import Link from "next/link";
-import { useMemo, useState } from "react";
 
-const subjects={
- Physics:{icon:"PHY",tone:"violet",chapters:["Electric Charges & Fields","Electrostatic Potential & Capacitance","Current Electricity","Moving Charges & Magnetism","Electromagnetic Induction","Alternating Current","Ray Optics","Wave Optics","Dual Nature of Matter","Atoms","Nuclei","Semiconductor Electronics"]},
- Chemistry:{icon:"CHE",tone:"cyan",chapters:["Solutions","Electrochemistry","Chemical Kinetics","d- and f-Block Elements","Coordination Compounds","Haloalkanes & Haloarenes","Alcohols, Phenols & Ethers","Aldehydes, Ketones & Carboxylic Acids","Amines","Biomolecules","Polymers","Chemistry in Everyday Life"]},
- Mathematics:{icon:"MAT",tone:"pink",chapters:["Relations & Functions","Inverse Trigonometric Functions","Matrices","Determinants","Continuity & Differentiability","Applications of Derivatives","Integrals","Applications of Integrals","Differential Equations","Vector Algebra","Three Dimensional Geometry","Probability"]}
-};
-const quickNotes=[
- ["Physics","Electrostatics","Coulomb law, electric field, potential and Gauss law — revise formulas first, then solve numericals."],
- ["Chemistry","Solutions","Molarity, molality, mole fraction, Raoult law and colligative properties — keep units consistent."],
- ["Mathematics","Integrals","Standard integrals, substitution, parts and partial fractions are the core toolkit."],
- ["Physics","Current Electricity","Ohm law, drift velocity, resistivity and Kirchhoff laws are high-value revision points."],
- ["Chemistry","Electrochemistry","Cell potential, Nernst equation, conductance and Faraday laws form the revision set."],
- ["Mathematics","Matrices & Determinants","Check matrix order and use determinant properties before lengthy expansion."]
-];
-const plan=[["08:30","Physics","Electrostatics + short notes","90 min"],["10:15","Practice","JEE mixed quiz","60 min"],["13:00","Chemistry","Solutions revision","45 min"],["21:00","Mathematics","Integrals","90 min"]];
-const revision=["Weak chapters","Formula revision","2-minute summaries","Mistake revision","Bookmarked questions","Quick quiz"];
+import { useState } from "react";
 
-export default function StudyPage(){
- const [subject,setSubject]=useState<keyof typeof subjects>("Physics"); const [showAll,setShowAll]=useState(false); const [query,setQuery]=useState(""); const [completed,setCompleted]=useState<string[]>([]);
- const chapters=subjects[subject].chapters; const filtered=useMemo(()=>chapters.filter(c=>c.toLowerCase().includes(query.toLowerCase())),[chapters,query]);
- const toggle=(c:string)=>setCompleted(v=>v.includes(c)?v.filter(x=>x!==c):[...v,c]);
- return <main className="study-page">
-  <section className="study-hero"><div><p className="eyebrow">YOUR LEARNING SPACE</p><h1>Study smarter, every day.</h1><p className="muted">Complete Intermediate syllabus, short notes, revision, your plan and practice — one focused workspace.</p></div><div className="study-hero-actions"><Link className="primary" href="/practice">✓ Start Practice</Link><Link className="secondary study-link" href="/notes">▤ My Notes</Link></div></section>
-  <section className="study-progress"><div><span>Overall learning progress</span><strong>38%</strong></div><div className="study-progress-bar"><i style={{width:"38%"}}/></div><small>Keep going · 14 chapters touched this week</small></section>
-  <section className="continue-card"><div className="continue-icon">▶</div><div><p className="eyebrow">CONTINUE LEARNING</p><h2>Electrostatic Potential & Capacitance</h2><p className="muted">Physics · Short notes + examples · 42% complete</p></div><Link className="primary" href="/practice">Continue →</Link></section>
-  <div className="study-tabs"><button className={subject==="Physics"?"selected":""} onClick={()=>setSubject("Physics")}>⚡ Physics</button><button className={subject==="Chemistry"?"selected":""} onClick={()=>setSubject("Chemistry")}>◈ Chemistry</button><button className={subject==="Mathematics"?"selected":""} onClick={()=>setSubject("Mathematics")}>∑ Mathematics</button></div>
-  <div className="study-search"><span>⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={`Search ${subject} chapters...`}/><small>{filtered.length} results</small></div>
-  <div className="study-grid"><section className="study-main"><div className="study-section-head"><div><p className="eyebrow">INTERMEDIATE SYLLABUS</p><h2>{subject} chapters</h2></div><span className="study-count">{chapters.length} chapters</span></div><div className="chapter-grid">{filtered.slice(0,showAll?filtered.length:8).map((chapter,i)=><article className={`chapter-card ${completed.includes(chapter)?"chapter-done":""}`} key={chapter}><span className={`chapter-number ${subjects[subject].tone}`}>{String(i+1).padStart(2,"0")}</span><div><h3>{chapter}</h3><p>{completed.includes(chapter)?"Completed · Ready for revision":"Concepts · Short notes · Practice · Quiz"}</p></div><button onClick={()=>toggle(chapter)} aria-label={`Mark ${chapter} complete`}>{completed.includes(chapter)?"✓":"→"}</button></article>)}</div><button className="outline-wide" onClick={()=>setShowAll(!showAll)}>{showAll?"Show fewer chapters":"View complete syllabus →"}</button></section>
-  <aside className="study-plan"><div className="study-section-head"><div><p className="eyebrow">TODAY</p><h2>Study plan</h2></div><span className="plan-badge">{plan.length} tasks</span></div><div className="plan-list">{plan.map(([time,sub,title,duration])=><div className="plan-item" key={title}><span className="plan-time">{time}</span><div className="plan-dot"/><div><b>{title}</b><small>{sub} · {duration}</small></div></div>)}</div><Link className="primary full-btn" href="/focus">Start focus session</Link><Link className="plan-text-link" href="/planner">Manage full plan →</Link></aside></div>
-  <section className="short-notes"><div className="study-section-head"><div><p className="eyebrow">FAST REVISION</p><h2>Short notes</h2></div><Link href="/notes">See all notes →</Link></div><div className="note-grid">{quickNotes.map(([sub,title,text])=><article className="note-card" key={sub+title}><div className="note-top"><span>{sub}</span><small>2 min</small></div><h3>{title}</h3><p>{text}</p><Link href="/practice">Open summary →</Link></article>)}</div></section>
-  <section className="study-tools"><div className="study-section-head"><div><p className="eyebrow">REVISION HUB</p><h2>Everything you need to revise</h2></div></div><div className="tool-grid">{revision.map((x,i)=><Link href={i===5?"/practice":"/notes"} className="tool-card" key={x}><span>{["◌","∑","◈","✓","◆","⚡"][i]}</span><div><b>{x}</b><small>{i===0?"Focus on your weak areas":"Open your revision workspace"}</small></div><strong>→</strong></Link>)}</div></section>
-  <section className="study-bottom"><div><span className="mini-icon">✦</span><div><b>Learn → revise → practice</b><p>Read a short note, test yourself, then mark the chapter complete.</p></div></div><Link className="primary" href="/practice">Quiz + Summary →</Link></section>
-  <style jsx>{`.study-page{max-width:1240px;margin:0 auto;padding:30px 34px 50px;animation:riseIn .45s ease both}.study-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:28px;border-radius:24px;background:linear-gradient(135deg,rgba(99,91,255,.10),rgba(236,72,153,.05) 48%,rgba(255,255,255,.95));border:1px solid #e4e5f0;box-shadow:0 14px 40px rgba(38,44,90,.07)}.study-hero h1{margin:0;font-size:36px;letter-spacing:-1.5px;background:linear-gradient(100deg,#171a2b,#635bff 55%,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}.study-hero .muted{max-width:650px;margin-bottom:0}.study-hero-actions{display:flex;gap:9px;flex-shrink:0}.study-progress,.continue-card,.study-main,.study-plan,.short-notes,.study-tools{background:rgba(255,255,255,.92);border:1px solid #e5e7ef;border-radius:20px;box-shadow:0 8px 28px rgba(38,44,90,.055)}.study-progress{margin-top:14px;padding:15px 18px}.study-progress>div:first-child{display:flex;justify-content:space-between;font-size:10px;color:#777f90}.study-progress strong{color:#635bff;font-size:13px}.study-progress-bar{height:7px;background:#eceef5;border-radius:99px;overflow:hidden;margin:9px 0 6px}.study-progress-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#635bff,#ec4899);transition:width .7s ease}.study-progress small{font-size:8px;color:#9298a6}.continue-card{margin-top:14px;padding:18px;display:flex;align-items:center;gap:14px}.continue-icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#635bff,#8b5cf6);box-shadow:0 8px 20px rgba(99,91,255,.22);animation:floatSoft 4s ease-in-out infinite}.continue-card>div:nth-child(2){flex:1}.continue-card .eyebrow{margin-bottom:4px}.continue-card h2{font-size:16px;margin:0 0 4px}.continue-card .muted{font-size:10px}.study-tabs{display:flex;gap:8px;margin:18px 0 10px}.study-tabs button{border:1px solid #e2e4ec;background:#fff;color:#747b8b;padding:11px 17px;border-radius:12px;font-weight:800;font-size:11px;transition:.22s}.study-tabs button:hover{transform:translateY(-2px);border-color:#c9c5ff}.study-tabs button.selected{background:linear-gradient(135deg,#635bff,#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 9px 22px rgba(99,91,255,.2)}.study-search{height:42px;display:flex;align-items:center;gap:9px;padding:0 13px;margin-bottom:14px;background:#fff;border:1px solid #e4e6ed;border-radius:12px;color:#8b91a0}.study-search input{flex:1;border:0;outline:0;background:transparent;font-size:11px;color:#252a3a}.study-search small{font-size:8px}.study-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(290px,.8fr);gap:16px}.study-main,.study-plan,.short-notes,.study-tools{padding:20px}.study-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.study-section-head h2{margin:0;font-size:19px;letter-spacing:-.3px}.study-section-head>a{font-size:10px;color:#635bff;font-weight:800}.study-count,.plan-badge{font-size:9px;font-weight:800;color:#635bff;background:#f0efff;padding:6px 9px;border-radius:999px}.chapter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}.chapter-card{display:grid;grid-template-columns:38px 1fr 26px;align-items:center;gap:10px;border:1px solid #e9eaf0;border-radius:14px;padding:12px;background:#fff;transition:.22s;animation:riseIn .35s ease both}.chapter-card:hover{transform:translateY(-3px);border-color:#cbc7ff;box-shadow:0 10px 24px rgba(38,44,90,.08)}.chapter-card.chapter-done{background:#f5fffb;border-color:#bcebd9}.chapter-number{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:9px;font-weight:900;background:#eeecff;color:#635bff}.chapter-number.cyan{background:#e7f9fc;color:#0891b2}.chapter-number.pink{background:#fcecf5;color:#db2777}.chapter-card h3{font-size:11px;margin:0 0 4px}.chapter-card p{font-size:8px;color:#9298a6;margin:0}.chapter-card button{border:0;background:#f4f5f9;color:#635bff;width:26px;height:26px;border-radius:8px;transition:.2s}.chapter-card:hover button{background:#635bff;color:#fff}.outline-wide{width:100%;margin-top:12px;border:1px dashed #cfd1dc;background:#fafbfe;border-radius:11px;padding:10px;color:#635bff;font-size:10px;font-weight:800;transition:.2s}.outline-wide:hover{background:#f2f1ff;transform:translateY(-1px)}.plan-list{margin:18px 0}.plan-item{display:grid;grid-template-columns:42px 9px 1fr;gap:9px;padding:12px 0;border-top:1px solid #edf0f4;align-items:start}.plan-time{font-size:9px;color:#8a90a0;font-weight:700}.plan-dot{width:8px;height:8px;border-radius:50%;background:#635bff;margin-top:4px;box-shadow:0 0 0 5px rgba(99,91,255,.08)}.plan-item b,.plan-item small{display:block}.plan-item b{font-size:10px}.plan-item small{font-size:8px;color:#9298a6;margin-top:3px}.full-btn{display:block;text-align:center}.plan-text-link{display:block;text-align:center;color:#635bff;font-size:9px;font-weight:800;margin-top:11px}.short-notes,.study-tools{margin-top:16px}.note-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:17px}.note-card{border:1px solid #e7e9f0;border-radius:15px;padding:15px;background:linear-gradient(145deg,#fff,#fafaff);transition:.22s}.note-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(38,44,90,.07);border-color:#d2cffd}.note-top{display:flex;justify-content:space-between}.note-top span{font-size:9px;font-weight:900;color:#635bff}.note-top small{font-size:8px;color:#9aa0ad}.note-card h3{font-size:13px;margin:12px 0 7px}.note-card p{font-size:9px;line-height:1.6;color:#727a8b;min-height:43px}.note-card a{color:#635bff;font-size:9px;font-weight:800}.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.tool-card{display:flex;align-items:center;gap:10px;border:1px solid #e8eaf0;border-radius:14px;padding:13px;background:#fff;transition:.22s}.tool-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(38,44,90,.07);border-color:#d1cdfd}.tool-card>span{width:32px;height:32px;border-radius:9px;background:#f0efff;color:#635bff;display:grid;place-items:center;font-weight:900}.tool-card div{flex:1}.tool-card b,.tool-card small{display:block}.tool-card b{font-size:10px}.tool-card small{font-size:8px;color:#9298a6;margin-top:3px}.tool-card>strong{color:#635bff}.study-bottom{margin-top:16px;border-radius:18px;padding:17px 20px;background:linear-gradient(135deg,#17162f,#27224f);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px;box-shadow:0 14px 35px rgba(24,22,55,.16)}.study-bottom>div{display:flex;align-items:center;gap:12px}.study-bottom b{font-size:12px}.study-bottom p{font-size:9px;color:#bfc2d0;margin:4px 0 0}.mini-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#635bff,#ec4899);display:grid;place-items:center;font-weight:900}@media(max-width:950px){.study-page{padding:22px 16px 90px}.study-hero{padding:20px;align-items:flex-start;flex-direction:column}.study-hero h1{font-size:29px}.study-hero-actions{width:100%}.study-hero-actions>*{flex:1;text-align:center}.continue-card{align-items:flex-start;flex-wrap:wrap}.continue-card .primary{width:100%;text-align:center}.study-grid{grid-template-columns:1fr}.chapter-grid{grid-template-columns:1fr}.note-grid,.tool-grid{grid-template-columns:1fr}.study-bottom{align-items:flex-start;flex-direction:column}.study-bottom .primary{width:100%;text-align:center}}@media(max-width:520px){.study-tabs{overflow:auto}.study-tabs button{white-space:nowrap}.study-main,.study-plan,.short-notes,.study-tools{padding:16px}.study-hero{border-radius:18px}.study-section-head h2{font-size:17px}.continue-card h2{font-size:14px}}`}</style>
- </main>
+const subjects = {
+  Physics: ["Electric Charges & Fields", "Electrostatic Potential & Capacitance", "Current Electricity", "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction", "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments", "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms", "Nuclei", "Semiconductor Electronics"],
+  Chemistry: ["Solutions", "Electrochemistry", "Chemical Kinetics", "d- and f-Block Elements", "Coordination Compounds", "Haloalkanes & Haloarenes", "Alcohols, Phenols & Ethers", "Aldehydes, Ketones & Carboxylic Acids", "Amines", "Biomolecules", "Polymers", "Chemistry in Everyday Life"],
+  Mathematics: ["Relations & Functions", "Inverse Trigonometric Functions", "Matrices", "Determinants", "Continuity & Differentiability", "Applications of Derivatives", "Integrals", "Applications of Integrals", "Differential Equations", "Vector Algebra", "Three Dimensional Geometry", "Probability"]
+} as const;
+
+type Subject = keyof typeof subjects;
+const folders = [
+  { key: "quiz", icon: "🧠", title: "Quiz", desc: "Chapter-wise MCQs & timed tests" },
+  { key: "notes", icon: "📝", title: "Notes", desc: "Detailed study notes" },
+  { key: "summary", icon: "📄", title: "Summary", desc: "Quick chapter summaries" },
+  { key: "flashcards", icon: "🗂️", title: "Flashcards", desc: "Fast active-recall revision" },
+  { key: "practice", icon: "✍️", title: "Practice", desc: "Concept & JEE-level questions" },
+  { key: "pyq", icon: "📚", title: "PYQ", desc: "Previous-year questions" },
+  { key: "tricky", icon: "⚡", title: "Tricky Questions", desc: "High-thinking & common traps" }
+] as const;
+
+export default function StudyPage() {
+  const [openFolder, setOpenFolder] = useState<string | null>(null);
+  const [openSubject, setOpenSubject] = useState<Subject | null>(null);
+  const [search, setSearch] = useState("");
+
+  const toggleFolder = (key: string) => setOpenFolder(openFolder === key ? null : key);
+  const toggleSubject = (subject: Subject) => setOpenSubject(openSubject === subject ? null : subject);
+
+  return (
+    <main className="study-explorer">
+      <section className="study-explorer-head">
+        <div>
+          <p className="eyebrow">LAKSHYA • STUDY LIBRARY</p>
+          <h1>Study</h1>
+          <p className="muted">Choose a study folder, then open Physics, Chemistry or Mathematics and explore every chapter.</p>
+        </div>
+        <div className="study-stats"><b>3</b><span>Subjects</span><b>38+</b><span>Chapters</span></div>
+      </section>
+
+      <div className="study-explorer-search"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search folders or chapters..." /></div>
+
+      <section className="folder-list">
+        {folders.map(folder => {
+          const isOpen = openFolder === folder.key;
+          return (
+            <div className={`study-folder ${isOpen ? "folder-open" : ""}`} key={folder.key}>
+              <button className="folder-row" onClick={() => toggleFolder(folder.key)}>
+                <span className="folder-icon">{folder.icon}</span>
+                <span className="folder-copy"><b>{folder.title}</b><small>{folder.desc}</small></span>
+                <span className="folder-arrow">{isOpen ? "⌄" : "›"}</span>
+              </button>
+              {isOpen && (
+                <div className="subject-tree">
+                  {(Object.keys(subjects) as Subject[]).map(subject => {
+                    const visible = subjects[subject].filter(ch => ch.toLowerCase().includes(search.toLowerCase()));
+                    const subjectOpen = openSubject === subject;
+                    return (
+                      <div className="subject-folder" key={subject}>
+                        <button className="subject-row" onClick={() => toggleSubject(subject)}>
+                          <span className={`subject-folder-icon ${subject.toLowerCase()}`}>📁</span>
+                          <b>{subject}</b><small>{subjects[subject].length} chapters</small><span>{subjectOpen ? "⌄" : "›"}</span>
+                        </button>
+                        {subjectOpen && (
+                          <div className="chapter-tree">
+                            {visible.map((chapter, index) => (
+                              <button className="chapter-file" key={chapter} onClick={() => undefined}>
+                                <span>📄</span><span>{chapter}</span><em>{folder.title === "Quiz" ? "Start" : "Open"} ›</em>
+                              </button>
+                            ))}
+                            {visible.length === 0 && <div className="empty-tree">No matching chapters.</div>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="study-info-card">
+        <div className="info-icon">✦</div>
+        <div><b>One library, every chapter</b><p>Each folder follows the same structure: Physics → Chemistry → Mathematics → Chapter files. Content can be expanded later with full notes, quizzes, flashcards, PYQs and tricky questions.</p></div>
+      </section>
+
+      <style jsx>{`
+        .study-explorer{max-width:1080px;margin:0 auto;padding:32px 34px 60px;animation:riseIn .4s ease both}.study-explorer-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:18px}.study-explorer-head h1{font-size:36px;letter-spacing:-1.5px;margin:0;background:linear-gradient(100deg,#171a2b,#635bff 58%,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}.study-explorer-head .muted{max-width:680px;margin:7px 0 0}.study-stats{display:grid;grid-template-columns:auto auto;gap:2px 9px;min-width:135px;padding:12px 15px;border:1px solid #e5e7ef;border-radius:16px;background:#fff;box-shadow:0 8px 24px rgba(38,44,90,.06)}.study-stats b{font-size:17px;color:#635bff}.study-stats span{font-size:9px;color:#8a91a0;align-self:center}.study-explorer-search{height:46px;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e3e6ee;border-radius:13px;padding:0 14px;margin-bottom:14px;transition:.2s}.study-explorer-search:focus-within{border-color:#bbb6ff;box-shadow:0 0 0 4px rgba(99,91,255,.08)}.study-explorer-search input{flex:1;border:0;outline:0;background:transparent;font-size:12px}.folder-list{display:grid;gap:9px}.study-folder{border:1px solid #e3e6ed;border-radius:16px;background:rgba(255,255,255,.94);overflow:hidden;box-shadow:0 6px 22px rgba(38,44,90,.045);transition:.25s}.study-folder:hover{border-color:#d3cffd;box-shadow:0 10px 28px rgba(38,44,90,.07)}.folder-open{border-color:#cfcaff}.folder-row,.subject-row,.chapter-file{font:inherit}.folder-row{width:100%;display:flex;align-items:center;gap:13px;text-align:left;border:0;background:transparent;padding:15px 17px;cursor:pointer}.folder-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#eeecff,#f8f4ff);font-size:20px}.folder-copy{flex:1}.folder-copy b,.folder-copy small{display:block}.folder-copy b{font-size:13px}.folder-copy small{font-size:9px;color:#8b92a1;margin-top:3px}.folder-arrow{font-size:22px;color:#635bff;transition:.2s}.folder-open .folder-arrow{transform:rotate(0)}.subject-tree{padding:0 12px 12px 70px;background:linear-gradient(180deg,#fbfbff,#fff)}.subject-folder{border-top:1px solid #edf0f4}.subject-row{width:100%;display:flex;align-items:center;gap:9px;border:0;background:transparent;padding:11px 7px;text-align:left;color:#22283a;cursor:pointer}.subject-row b{font-size:11px;flex:1}.subject-row small{font-size:8px;color:#9298a6}.subject-row>span:last-child{font-size:18px;color:#635bff}.subject-folder-icon{width:29px;height:29px;border-radius:8px;display:grid;place-items:center;background:#eeecff;font-size:14px}.subject-folder-icon.chemistry{background:#e9fbfd}.subject-folder-icon.mathematics{background:#fcecf6}.chapter-tree{display:grid;gap:5px;padding:0 0 10px 38px}.chapter-file{width:100%;display:flex;align-items:center;gap:9px;border:1px solid #eceef3;background:#fff;border-radius:10px;padding:9px 10px;text-align:left;cursor:pointer;transition:.2s}.chapter-file:hover{transform:translateX(3px);border-color:#cfcaff;background:#faf9ff}.chapter-file>span{font-size:13px}.chapter-file>span:nth-child(2){flex:1;font-size:10px;color:#343a4a}.chapter-file em{font-style:normal;font-size:8px;font-weight:800;color:#635bff}.empty-tree{font-size:10px;color:#9298a6;padding:10px}.study-info-card{margin-top:16px;display:flex;gap:12px;padding:17px 18px;border-radius:16px;background:linear-gradient(135deg,#19172f,#29234d);color:#fff}.info-icon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center}.study-info-card b{font-size:11px}.study-info-card p{font-size:9px;color:#c4c5d2;line-height:1.6;margin:4px 0 0}
+        @media(max-width:700px){.study-explorer{padding:22px 14px 92px}.study-explorer-head{align-items:flex-start;flex-direction:column}.study-explorer-head h1{font-size:30px}.study-stats{width:100%;grid-template-columns:1fr 1fr 1fr 1fr}.study-stats b{font-size:15px}.study-stats span{font-size:8px}.subject-tree{padding-left:48px}.chapter-tree{padding-left:26px}.chapter-file{padding:10px 8px}.chapter-file>span:nth-child(2){font-size:9px}.chapter-file em{font-size:7px}.folder-row{padding:14px}.folder-icon{width:38px;height:38px}.folder-copy b{font-size:12px}}
+        @media(prefers-reduced-motion:reduce){.study-explorer *{animation:none!important;transition:none!important}}
+      `}</style>
+    </main>
+  );
 }
