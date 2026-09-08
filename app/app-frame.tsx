@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const primary = [["⌂", "Dashboard", "/"], ["◫", "Study Planner", "/planner"], ["◈", "Subjects", "/subjects"], ["◷", "Focus Mode", "/focus"], ["▤", "Notes", "/notes"], ["✓", "Practice", "/practice"], ["↗", "Analytics", "/analytics"]];
+const primary = [["⌂", "Dashboard", "/"], ["◫", "Study", "/planner"], ["◈", "Subjects", "/subjects"], ["◷", "Focus Mode", "/focus"], ["▤", "Notes", "/notes"], ["✓", "Practice", "/practice"], ["↗", "Analytics", "/analytics"]];
 const social = [["◉", "Community", "/community"], ["♙", "Friends", "/friends"], ["▣", "Messages", "/messages"], ["◆", "Study Groups", "/groups"]];
 const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["★", "Achievements", "/achievements"], ["♢", "Notifications", "/notifications"]];
 
@@ -20,7 +20,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
     </aside>
     <div className="frame-content"><header className="frame-topbar"><Link href="/" className="frame-mobile-brand"><span>L</span><b>Lakshya</b></Link><div className="frame-search">⌕ <span>Search chapters, notes, questions...</span></div><div className="frame-actions"><Link href="/premium" className="frame-premium-top">✦ Premium</Link><Link href="/notifications" className="frame-icon" aria-label="Notifications">♢</Link><Link href="/profile" className="frame-avatar">K</Link></div></header>{children}</div>
     <nav className="frame-mobile-nav" aria-label="Mobile navigation">
-      {[["⌂","Home","/"],["◫","Plan","/planner"],["✓","Practice","/practice"],["◉","Community","/community"],["✦","Premium","/premium"]].map(([icon,label,href])=><Link key={href} href={href} className={active(href) ? "active premium-tab" : href === "/premium" ? "premium-tab" : ""}><b>{icon}</b><small>{label}</small></Link>)}
+      {[["⌂","Home","/"],["◫","Study","/planner"],["✓","Practice","/practice"],["◉","Community","/community"],["✦","Premium","/premium"]].map(([icon,label,href])=><Link key={href} href={href} className={active(href) ? "active premium-tab" : href === "/premium" ? "premium-tab" : ""}><b>{icon}</b><small>{label}</small></Link>)}
     </nav>
   </div>;
 }
