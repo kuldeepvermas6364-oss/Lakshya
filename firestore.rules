@@ -3,72 +3,59 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function self(uid) { return signedIn() && request.auth.uid == uid; }
-    function blocked(uid) {
-      return signedIn() && exists(/databases/$(database)/documents/blocks/$(request.auth.uid + '_' + uid));
-    }
+    function blocked(uid) { return signedIn() && exists(/databases/$(database)/documents/blocks/$(request.auth.uid + '_' + uid)); }
 
     match /users/{uid} {
       allow read: if signedIn() && !blocked(uid);
       allow create, update: if self(uid);
       allow delete: if false;
     }
-
     match /posts/{postId} {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
       allow update, delete: if signedIn() && resource.data.authorId == request.auth.uid;
     }
-
     match /posts/{postId}/comments/{commentId} {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
       allow update, delete: if signedIn() && resource.data.authorId == request.auth.uid;
     }
-
     match /friendRequests/{requestId} {
       allow read: if signedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
       allow create: if signedIn() && request.resource.data.fromId == request.auth.uid && request.resource.data.toId != request.auth.uid;
       allow update: if signedIn() && resource.data.toId == request.auth.uid;
       allow delete: if signedIn() && (resource.data.fromId == request.auth.uid || resource.data.toId == request.auth.uid);
     }
-
     match /friendships/{friendshipId} {
       allow read, delete: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn() && request.auth.uid in request.resource.data.memberIds;
       allow update: if false;
     }
-
     match /conversations/{conversationId} {
       allow read, update: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn() && request.auth.uid in request.resource.data.memberIds;
       allow delete: if false;
       match /messages/{messageId} {
         allow read: if signedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.memberIds;
-        allow create: if signedIn()
-          && request.auth.uid == request.resource.data.senderId
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.memberIds;
+        allow create: if signedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.memberIds;
         allow update, delete: if false;
       }
     }
-
     match /notifications/{notificationId} {
       allow read, update: if signedIn() && resource.data.userId == request.auth.uid;
       allow create: if signedIn();
       allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
-
     match /reports/{reportId} {
       allow create: if signedIn() && request.resource.data.reporterId == request.auth.uid;
       allow read, update, delete: if false;
     }
-
     match /blocks/{blockId} {
       allow read: if signedIn() && (resource.data.blockerId == request.auth.uid || resource.data.blockedId == request.auth.uid);
       allow create: if signedIn() && request.resource.data.blockerId == request.auth.uid;
       allow delete: if signedIn() && resource.data.blockerId == request.auth.uid;
       allow update: if false;
     }
-
     match /communities/{communityId} {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
@@ -76,19 +63,17 @@ service cloud.firestore {
       allow delete: if false;
       match /members/{uid} {
         allow read: if signedIn();
-        allow create: if signedIn() && (uid == request.auth.uid || resource.data.role == 'owner');
+        allow create: if signedIn() && uid == request.auth.uid;
         allow delete: if signedIn() && uid == request.auth.uid;
         allow update: if false;
       }
     }
-
     match /calls/{callId} {
       allow read: if signedIn() && (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid);
       allow create: if signedIn() && request.resource.data.callerId == request.auth.uid;
       allow update: if signedIn() && (resource.data.callerId == request.auth.uid || resource.data.receiverId == request.auth.uid);
       allow delete: if false;
     }
-
     match /{document=**} { allow read, write: if false; }
   }
 }
