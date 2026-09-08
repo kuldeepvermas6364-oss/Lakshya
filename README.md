@@ -31,3 +31,6 @@ Lakshya is a professional India-first study platform for web and mobile/PWA use.
 
 ## Quality principles
 Performance, accessibility, mobile usability, secure API boundaries, educational accuracy, and maintainable code are treated as first-class requirements.
+
+## Deployment
+Vercel production deployment is connected to the main branch.
