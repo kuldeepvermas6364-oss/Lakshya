@@ -1,0 +1,3 @@
+import Link from "next/link";
+const badges=[['🔥','12 Day Streak','Study consistently for 12 days'],['⚡','Fast Solver','Solve 100 practice questions'],['📚','Chapter Closer','Finish 10 chapters'],['🎯','Goal Setter','Create your first exam goal']];
+export default function Achievements(){return <main className="simple-page"><div className="simple-head"><div><p className="eyebrow">KEEP MOVING</p><h1>Achievements</h1><p className="muted">Milestones that celebrate progress, not perfection.</p></div><Link className="primary" href="/">Back to dashboard</Link></div><div className="subject-grid">{badges.map(([icon,title,text])=><section className="panel" key={title}><div className="subject-icon">{icon}</div><h2>{title}</h2><p className="muted">{text}</p></section>)}</div></main>}
