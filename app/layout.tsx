@@ -3,6 +3,7 @@ import "./globals.css";
 import "./lakshya-polish.css";
 import "./premium-motion.css";
 import "./auth-premium.css";
+import "./premium-brand.css";
 import AppFrame from "./app-frame";
 
 export const metadata: Metadata = {
