@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./lakshya-polish.css";
 import "./premium-motion.css";
+import "./auth-premium.css";
 import AppFrame from "./app-frame";
 
 export const metadata: Metadata = {
   title: "Lakshya — Study Smarter",
-  description: "A professional study platform for focused learning, planning and progress.",
+  description: "A premium study platform for focused learning, planning and progress.",
   applicationName: "Lakshya",
 };
 
