@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LakshyaAI from "./components/lakshya-ai";
 
 const primary = [["⌂", "Dashboard", "/"], ["◫", "Study", "/study"], ["✓", "Practice", "/practice"], ["◷", "Focus Mode", "/focus"], ["▤", "Notes", "/notes"], ["↗", "Analytics", "/analytics"]];
 const social = [["◉", "Community", "/community"], ["♙", "Friends", "/friends"], ["▣", "Messages", "/messages"], ["◆", "Study Groups", "/groups"]];
@@ -22,5 +23,6 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
     <nav className="frame-mobile-nav" aria-label="Mobile navigation">
       {[["⌂","Home","/"],["◫","Study","/study"],["✓","Practice","/practice"],["◉","Community","/community"],["✦","Premium","/premium"]].map(([icon,label,href])=><Link key={href} href={href} className={active(href) ? (href === "/premium" ? "active premium-tab" : "active") : href === "/premium" ? "premium-tab" : ""}><b>{icon}</b><small>{label}</small></Link>)}
     </nav>
+    <LakshyaAI />
   </div>;
 }
