@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./lakshya-polish.css";
 import AppFrame from "./app-frame";
 
 export const metadata: Metadata = {
