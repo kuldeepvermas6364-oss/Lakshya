@@ -13,7 +13,8 @@
     "react": "latest",
     "react-dom": "latest",
     "firebase": "latest",
-    "livekit-server-sdk": "latest"
+    "livekit-server-sdk": "latest",
+    "@google/generative-ai": "latest"
   },
   "devDependencies": {
     "typescript": "latest",
