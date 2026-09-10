@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -13,62 +13,34 @@ const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["�
 
 export default function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [authReady, setAuthReady] = useState(pathname === "/auth");
+  const [firebaseReady, setFirebaseReady] = useState(pathname === "/auth");
 
   useEffect(() => {
     if (pathname === "/auth") {
-      setAuthReady(true);
+      setFirebaseReady(true);
       return;
     }
 
     let mounted = true;
-    let unsubscribe: (() => void) | undefined;
-    let redirectTimer: number | undefined;
-
-    const goToAuth = () => {
-      if (!mounted) return;
-      setAuthReady(true);
-      // Avoid replacing the current route repeatedly during Firebase startup.
-      if (window.location.pathname !== "/auth") router.replace("/auth");
-    };
-
     try {
-      // If a session is already restored, render immediately and let the observer
-      // confirm it in the background. This prevents the splash -> error/404 flash.
-      if (auth.currentUser) {
-        setAuthReady(true);
-      } else {
-        setAuthReady(false);
-      }
-
-      unsubscribe = onAuthStateChanged(
+      const unsubscribe = onAuthStateChanged(
         auth,
-        user => {
-          if (!mounted) return;
-          if (user) {
-            if (redirectTimer) window.clearTimeout(redirectTimer);
-            setAuthReady(true);
-          } else {
-            // Give Firebase a short, bounded window to restore persisted auth.
-            redirectTimer = window.setTimeout(goToAuth, 1500);
-          }
-        },
-        () => goToAuth(),
+        () => { if (mounted) setFirebaseReady(true); },
+        () => { if (mounted) setFirebaseReady(true); },
       );
+      return () => { mounted = false; unsubscribe(); };
     } catch {
-      goToAuth();
+      setFirebaseReady(true);
+      return () => { mounted = false; };
     }
+  }, [pathname]);
 
-    return () => {
-      mounted = false;
-      if (redirectTimer) window.clearTimeout(redirectTimer);
-      unsubscribe?.();
-    };
-  }, [pathname, router]);
-
+  // Do not redirect from the global layout. Firebase restoration and Next.js
+  // client navigation can finish in different orders; a router.replace here
+  // was causing intermittent client-side Not Found states on mobile.
   if (pathname === "/auth") return <>{children}</>;
-  if (!authReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
+  if (!firebaseReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
+
   const active = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
   const nav = [...primary, ...extra, ...social];
   return <div className="app-frame">
