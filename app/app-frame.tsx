@@ -16,23 +16,38 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
   const [authReady, setAuthReady] = useState(false);
   useEffect(() => {
     let mounted = true;
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      user => {
-        if (!mounted) return;
-        setAuthReady(true);
-        if (!user && pathname !== "/auth") router.replace("/auth");
-      },
-      () => {
-        // Never leave the whole app stuck on the loading splash when Firebase
-        // cannot initialize/authenticate. The auth page can show a usable
-        // sign-in surface and its own error state instead.
-        if (!mounted) return;
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      if (!mounted) return;
+      timedOut = true;
+      setAuthReady(true);
+      if (pathname !== "/auth") router.replace("/auth");
+    }, 4000);
+    try {
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        user => {
+          if (!mounted || timedOut) return;
+          window.clearTimeout(timeout);
+          setAuthReady(true);
+          if (!user && pathname !== "/auth") router.replace("/auth");
+        },
+        () => {
+          if (!mounted || timedOut) return;
+          window.clearTimeout(timeout);
+          setAuthReady(true);
+          if (pathname !== "/auth") router.replace("/auth");
+        },
+      );
+      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); unsubscribe(); };
+    } catch {
+      window.clearTimeout(timeout);
+      if (mounted) {
         setAuthReady(true);
         if (pathname !== "/auth") router.replace("/auth");
-      },
-    );
-    return () => { mounted = false; unsubscribe(); };
+      }
+      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); };
+    }
   }, [pathname, router]);
   if (pathname === "/auth") return <>{children}</>;
   if (!authReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
