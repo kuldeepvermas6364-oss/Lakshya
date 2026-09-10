@@ -1,9 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../lib/firebase";
 import { loginUser, registerUser } from "../../lib/auth";
 
 export default function AuthPage() {
@@ -14,44 +12,6 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    let timedOut = false;
-    const timeout = window.setTimeout(() => {
-      if (!mounted) return;
-      timedOut = true;
-      setReady(true);
-      setError("Firebase authentication is taking too long to respond. You can still try signing in.");
-    }, 4000);
-    try {
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        user => {
-          if (!mounted || timedOut) return;
-          window.clearTimeout(timeout);
-          if (user) router.replace("/");
-          else setReady(true);
-        },
-        err => {
-          if (!mounted || timedOut) return;
-          window.clearTimeout(timeout);
-          setReady(true);
-          const message = err instanceof Error ? err.message : "Authentication service is unavailable.";
-          setError(message.replace("Firebase: ", "").replace(/\s*\(auth\/[^)]+\)\.?$/, ""));
-        },
-      );
-      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); unsubscribe(); };
-    } catch (err) {
-      window.clearTimeout(timeout);
-      if (mounted) {
-        setReady(true);
-        setError(err instanceof Error ? err.message : "Authentication service is unavailable.");
-      }
-      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); };
-    }
-  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError("");
@@ -67,8 +27,6 @@ export default function AuthPage() {
       setError(code.replace("Firebase: ", "").replace(/\s*\(auth\/[^)]+\)\.?$/, ""));
     } finally { setBusy(false); }
   }
-
-  if (!ready) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Preparing your study space…</span></main>;
 
   return (
     <main className="auth-page-premium">
