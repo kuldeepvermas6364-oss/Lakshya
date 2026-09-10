@@ -14,7 +14,26 @@ const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["�
 export default function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); const router = useRouter();
   const [authReady, setAuthReady] = useState(false);
-  useEffect(() => onAuthStateChanged(auth, user => { setAuthReady(true); if (!user && pathname !== "/auth") router.replace("/auth"); }), [pathname, router]);
+  useEffect(() => {
+    let mounted = true;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      user => {
+        if (!mounted) return;
+        setAuthReady(true);
+        if (!user && pathname !== "/auth") router.replace("/auth");
+      },
+      () => {
+        // Never leave the whole app stuck on the loading splash when Firebase
+        // cannot initialize/authenticate. The auth page can show a usable
+        // sign-in surface and its own error state instead.
+        if (!mounted) return;
+        setAuthReady(true);
+        if (pathname !== "/auth") router.replace("/auth");
+      },
+    );
+    return () => { mounted = false; unsubscribe(); };
+  }, [pathname, router]);
   if (pathname === "/auth") return <>{children}</>;
   if (!authReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
   const active = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
