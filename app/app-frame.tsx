@@ -12,45 +12,59 @@ const social = [["◉", "Community", "/community"], ["♙", "Friends", "/friends
 const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["★", "Achievements", "/achievements"], ["♢", "Notifications", "/notifications"]];
 
 export default function AppFrame({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname(); const router = useRouter();
-  const [authReady, setAuthReady] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const [authReady, setAuthReady] = useState(pathname === "/auth");
 
   useEffect(() => {
-    if (pathname === "/auth") return;
-    let mounted = true;
-    let observerStarted = false;
+    if (pathname === "/auth") {
+      setAuthReady(true);
+      return;
+    }
 
-    // Fast path: Firebase can restore a persisted session synchronously.
-    if (auth.currentUser) setAuthReady(true);
+    let mounted = true;
+    let unsubscribe: (() => void) | undefined;
+    let redirectTimer: number | undefined;
+
+    const goToAuth = () => {
+      if (!mounted) return;
+      setAuthReady(true);
+      // Avoid replacing the current route repeatedly during Firebase startup.
+      if (window.location.pathname !== "/auth") router.replace("/auth");
+    };
 
     try {
-      const unsubscribe = onAuthStateChanged(auth, user => {
-        if (!mounted) return;
-        observerStarted = true;
+      // If a session is already restored, render immediately and let the observer
+      // confirm it in the background. This prevents the splash -> error/404 flash.
+      if (auth.currentUser) {
         setAuthReady(true);
-        if (!user) router.replace("/auth");
-      }, () => {
-        if (!mounted) return;
-        setAuthReady(true);
-        router.replace("/auth");
-      });
+      } else {
+        setAuthReady(false);
+      }
 
-      // Safety net only for the initial Firebase bootstrap; never show a Firebase error here.
-      const fallback = window.setTimeout(() => {
-        if (!mounted || observerStarted || auth.currentUser) return;
-        setAuthReady(true);
-        router.replace("/auth");
-      }, 2500);
-
-      return () => {
-        mounted = false;
-        window.clearTimeout(fallback);
-        unsubscribe();
-      };
+      unsubscribe = onAuthStateChanged(
+        auth,
+        user => {
+          if (!mounted) return;
+          if (user) {
+            if (redirectTimer) window.clearTimeout(redirectTimer);
+            setAuthReady(true);
+          } else {
+            // Give Firebase a short, bounded window to restore persisted auth.
+            redirectTimer = window.setTimeout(goToAuth, 1500);
+          }
+        },
+        () => goToAuth(),
+      );
     } catch {
-      if (mounted) router.replace("/auth");
-      return () => { mounted = false; };
+      goToAuth();
     }
+
+    return () => {
+      mounted = false;
+      if (redirectTimer) window.clearTimeout(redirectTimer);
+      unsubscribe?.();
+    };
   }, [pathname, router]);
 
   if (pathname === "/auth") return <>{children}</>;
