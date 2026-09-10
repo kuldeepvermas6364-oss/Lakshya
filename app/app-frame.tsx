@@ -14,41 +14,45 @@ const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["�
 export default function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname(); const router = useRouter();
   const [authReady, setAuthReady] = useState(false);
+
   useEffect(() => {
+    if (pathname === "/auth") return;
     let mounted = true;
-    let timedOut = false;
-    const timeout = window.setTimeout(() => {
-      if (!mounted) return;
-      timedOut = true;
-      setAuthReady(true);
-      if (pathname !== "/auth") router.replace("/auth");
-    }, 4000);
+    let observerStarted = false;
+
+    // Fast path: Firebase can restore a persisted session synchronously.
+    if (auth.currentUser) setAuthReady(true);
+
     try {
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        user => {
-          if (!mounted || timedOut) return;
-          window.clearTimeout(timeout);
-          setAuthReady(true);
-          if (!user && pathname !== "/auth") router.replace("/auth");
-        },
-        () => {
-          if (!mounted || timedOut) return;
-          window.clearTimeout(timeout);
-          setAuthReady(true);
-          if (pathname !== "/auth") router.replace("/auth");
-        },
-      );
-      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); unsubscribe(); };
-    } catch {
-      window.clearTimeout(timeout);
-      if (mounted) {
+      const unsubscribe = onAuthStateChanged(auth, user => {
+        if (!mounted) return;
+        observerStarted = true;
         setAuthReady(true);
-        if (pathname !== "/auth") router.replace("/auth");
-      }
-      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); };
+        if (!user) router.replace("/auth");
+      }, () => {
+        if (!mounted) return;
+        setAuthReady(true);
+        router.replace("/auth");
+      });
+
+      // Safety net only for the initial Firebase bootstrap; never show a Firebase error here.
+      const fallback = window.setTimeout(() => {
+        if (!mounted || observerStarted || auth.currentUser) return;
+        setAuthReady(true);
+        router.replace("/auth");
+      }, 2500);
+
+      return () => {
+        mounted = false;
+        window.clearTimeout(fallback);
+        unsubscribe();
+      };
+    } catch {
+      if (mounted) router.replace("/auth");
+      return () => { mounted = false; };
     }
   }, [pathname, router]);
+
   if (pathname === "/auth") return <>{children}</>;
   if (!authReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
   const active = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
