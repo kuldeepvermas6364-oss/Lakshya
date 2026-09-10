@@ -18,21 +18,39 @@ export default function AuthPage() {
 
   useEffect(() => {
     let mounted = true;
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      user => {
-        if (!mounted) return;
-        if (user) router.replace("/");
-        else setReady(true);
-      },
-      err => {
-        if (!mounted) return;
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      if (!mounted) return;
+      timedOut = true;
+      setReady(true);
+      setError("Firebase authentication is taking too long to respond. You can still try signing in.");
+    }, 4000);
+    try {
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        user => {
+          if (!mounted || timedOut) return;
+          window.clearTimeout(timeout);
+          if (user) router.replace("/");
+          else setReady(true);
+        },
+        err => {
+          if (!mounted || timedOut) return;
+          window.clearTimeout(timeout);
+          setReady(true);
+          const message = err instanceof Error ? err.message : "Authentication service is unavailable.";
+          setError(message.replace("Firebase: ", "").replace(/\s*\(auth\/[^)]+\)\.?$/, ""));
+        },
+      );
+      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); unsubscribe(); };
+    } catch (err) {
+      window.clearTimeout(timeout);
+      if (mounted) {
         setReady(true);
-        const message = err instanceof Error ? err.message : "Authentication service is unavailable.";
-        setError(message.replace("Firebase: ", "").replace(/\s*\(auth\/[^)]+\)\.?$/, ""));
-      },
-    );
-    return () => { mounted = false; unsubscribe(); };
+        setError(err instanceof Error ? err.message : "Authentication service is unavailable.");
+      }
+      return () => { mounted = false; timedOut = true; window.clearTimeout(timeout); };
+    }
   }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -80,4 +98,3 @@ export default function AuthPage() {
     </main>
   );
 }
-
