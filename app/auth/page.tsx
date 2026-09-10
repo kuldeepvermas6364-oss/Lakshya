@@ -16,10 +16,24 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
 
-  useEffect(() => onAuthStateChanged(auth, (user) => {
-    if (user) router.replace("/");
-    else setReady(true);
-  }), [router]);
+  useEffect(() => {
+    let mounted = true;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      user => {
+        if (!mounted) return;
+        if (user) router.replace("/");
+        else setReady(true);
+      },
+      err => {
+        if (!mounted) return;
+        setReady(true);
+        const message = err instanceof Error ? err.message : "Authentication service is unavailable.";
+        setError(message.replace("Firebase: ", "").replace(/\s*\(auth\/[^)]+\)\.?$/, ""));
+      },
+    );
+    return () => { mounted = false; unsubscribe(); };
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError("");
