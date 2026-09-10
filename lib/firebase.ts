@@ -1,5 +1,5 @@
 import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { getDatabase, type Database } from "firebase/database";
@@ -17,8 +17,18 @@ const firebaseConfig = {
 export const firebaseApp: FirebaseApp =
   getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+function createBrowserAuth(): Auth {
+  try {
+    return initializeAuth(firebaseApp, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    });
+  } catch {
+    return getAuth(firebaseApp);
+  }
+}
+
 export const auth: Auth =
-  typeof window !== "undefined" ? getAuth(firebaseApp) : (null as unknown as Auth);
+  typeof window !== "undefined" ? createBrowserAuth() : (null as unknown as Auth);
 
 export const db: Firestore =
   typeof window !== "undefined" ? getFirestore(firebaseApp) : (null as unknown as Firestore);
