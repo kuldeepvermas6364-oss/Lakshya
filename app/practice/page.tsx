@@ -1,9 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { savePracticeAttempt } from "@/lib/study-storage";
 
 const curriculum = {
   Physics: ["Electric Charges & Fields", "Electrostatic Potential & Capacitance", "Current Electricity", "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction", "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments", "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms", "Nuclei", "Semiconductor Electronics"],
@@ -20,10 +17,23 @@ export default function PracticePage(){
   const [q,setQ]=useState(0); const [selected,setSelected]=useState<number|null>(null);
   const [uid,setUid]=useState<string|null>(null); const [saved,setSaved]=useState(false);
   const [loading,setLoading]=useState(false); const [error,setError]=useState("");
-  useEffect(()=>onAuthStateChanged(auth,u=>setUid(u?.uid??null)),[]);
+
+  useEffect(()=>{
+    let active=true;
+    (async()=>{
+      try{
+        const [{auth},{onAuthStateChanged}] = await Promise.all([import("@/lib/firebase"),import("firebase/auth")]);
+        if(!active)return;
+        const unsubscribe=onAuthStateChanged(auth,u=>active&&setUid(u?.uid??null),()=>active&&setUid(null));
+        (window as Window & {_lakshyaPracticeUnsub?:()=>void})._lakshyaPracticeUnsub=unsubscribe;
+      }catch{if(active)setUid(null)}
+    })();
+    return()=>{active=false; const w=window as Window & {_lakshyaPracticeUnsub?:()=>void}; w._lakshyaPracticeUnsub?.(); delete w._lakshyaPracticeUnsub;};
+  },[]);
+
   function changeSubject(value:Subject){setSubject(value);setChapter(curriculum[value][0]);setQuestions([]);setSelected(null);setQ(0);}
   async function generate(){setLoading(true);setError("");setQuestions([]);setSelected(null);setQ(0);try{const r=await fetch("/api/ai/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject,chapter})});const data=await r.json();if(!r.ok)throw new Error(data.error||"Quiz generation failed");setQuestions(data.questions||[]);}catch(e){setError(e instanceof Error?e.message:"Could not generate quiz.")}finally{setLoading(false)}}
-  async function answer(i:number){setSelected(i);if(uid&&!saved&&questions[q]){try{await savePracticeAttempt(uid,{subject,chapter,correct:i===questions[q].answer});setSaved(true)}catch(e){setError(e instanceof Error?e.message:"Could not save attempt")}}}
+  async function answer(i:number){setSelected(i);if(uid&&!saved&&questions[q]){try{const {savePracticeAttempt}=await import("@/lib/study-storage");await savePracticeAttempt(uid,{subject,chapter,correct:i===questions[q].answer});setSaved(true)}catch(e){setError(e instanceof Error?e.message:"Could not save attempt")}}}
   function next(){setQ(x=>x+1);setSelected(null);setSaved(false)}
   const current=questions[q];
   return <main className="page practice-page"><div className="hero-row"><div><p className="eyebrow">PRACTICE ARENA</p><h1>Practice from your real syllabus.</h1><p className="muted">Questions are generated for the chapter you choose and your attempts are saved to Firebase when signed in.</p></div><Link className="primary" href="/study">Study hub →</Link></div>
