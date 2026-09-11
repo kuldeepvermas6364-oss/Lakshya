@@ -2,9 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import LakshyaAI from "./components/lakshya-ai";
 
 const primary = [["⌂", "Dashboard", "/"], ["◫", "Study", "/study"], ["✓", "Practice", "/practice"], ["◷", "Focus Mode", "/focus"], ["▤", "Notes", "/notes"], ["↗", "Analytics", "/analytics"]];
@@ -13,33 +10,13 @@ const extra = [["◎", "Goals", "/goals"], ["↻", "Revision", "/revision"], ["�
 
 export default function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [firebaseReady, setFirebaseReady] = useState(pathname === "/auth");
 
-  useEffect(() => {
-    if (pathname === "/auth") {
-      setFirebaseReady(true);
-      return;
-    }
-
-    let mounted = true;
-    try {
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        () => { if (mounted) setFirebaseReady(true); },
-        () => { if (mounted) setFirebaseReady(true); },
-      );
-      return () => { mounted = false; unsubscribe(); };
-    } catch {
-      setFirebaseReady(true);
-      return () => { mounted = false; };
-    }
-  }, [pathname]);
-
-  // Do not redirect from the global layout. Firebase restoration and Next.js
-  // client navigation can finish in different orders; a router.replace here
-  // was causing intermittent client-side Not Found states on mobile.
+  // Firebase authentication is intentionally NOT used as a global render gate.
+  // The dashboard and individual features already handle signed-out users.
+  // Blocking the entire layout on Firebase restoration could leave the app
+  // stuck on the splash screen or trigger an intermittent client navigation
+  // failure on slower/mobile browsers.
   if (pathname === "/auth") return <>{children}</>;
-  if (!firebaseReady) return <main className="auth-splash"><div className="auth-orbit"><img src="/lakshya-mark.svg" alt="Lakshya" /></div><b>Lakshya</b><span>Loading your study space…</span></main>;
 
   const active = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
   const nav = [...primary, ...extra, ...social];
