@@ -1,10 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, onSnapshot } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
-import { updateChapterProgress } from "@/lib/study-storage";
 
 const subjects = {
   Physics: ["Electric Charges & Fields", "Electrostatic Potential & Capacitance", "Current Electricity", "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction", "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments", "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms", "Nuclei", "Semiconductor Electronics"],
@@ -33,15 +29,50 @@ export default function StudyPage() {
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [message, setMessage] = useState("");
 
-  useEffect(() => onAuthStateChanged(auth, user => setUid(user?.uid ?? null)), []);
+  useEffect(() => {
+    let active = true;
+    let unsubscribe = () => {};
+    (async () => {
+      try {
+        const [{ auth }, { onAuthStateChanged }] = await Promise.all([
+          import("@/lib/firebase"),
+          import("firebase/auth"),
+        ]);
+        if (!active) return;
+        unsubscribe = onAuthStateChanged(auth, user => {
+          if (active) setUid(user?.uid ?? null);
+        }, () => {
+          if (active) setUid(null);
+        });
+      } catch {
+        if (active) setUid(null);
+      }
+    })();
+    return () => { active = false; unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     if (!uid) { setProgress({}); return; }
-    return onSnapshot(collection(db, "users", uid, "chapterProgress"), snap => {
-      const next: Record<string, number> = {};
-      snap.forEach(d => { next[d.id] = Math.max(0, Math.min(100, Number(d.data().progress) || 0)); });
-      setProgress(next);
-    }, e => setMessage(e.message));
+    let active = true;
+    let unsubscribe = () => {};
+    (async () => {
+      try {
+        const [{ db }, { collection, onSnapshot }] = await Promise.all([
+          import("@/lib/firebase"),
+          import("firebase/firestore"),
+        ]);
+        if (!active) return;
+        unsubscribe = onSnapshot(collection(db, "users", uid, "chapterProgress"), snap => {
+          if (!active) return;
+          const next: Record<string, number> = {};
+          snap.forEach(d => { next[d.id] = Math.max(0, Math.min(100, Number(d.data().progress) || 0)); });
+          setProgress(next);
+        }, e => { if (active) setMessage(e.message); });
+      } catch (e) {
+        if (active) setMessage(e instanceof Error ? e.message : "Firebase is temporarily unavailable.");
+      }
+    })();
+    return () => { active = false; unsubscribe(); };
   }, [uid]);
 
   const totalChapters = useMemo(() => Object.values(subjects).reduce((n, list) => n + list.length, 0), []);
@@ -54,8 +85,11 @@ export default function StudyPage() {
     if (!uid) { setMessage("Sign in to save your chapter progress."); return; }
     const id = chapterId(subject, chapter);
     const next = progress[id] >= 100 ? 0 : 100;
-    try { await updateChapterProgress(uid, id, next); setMessage(next ? `${chapter} marked complete.` : `${chapter} reopened.`); }
-    catch (e) { setMessage(e instanceof Error ? e.message : "Could not save progress."); }
+    try {
+      const { updateChapterProgress } = await import("@/lib/study-storage");
+      await updateChapterProgress(uid, id, next);
+      setMessage(next ? `${chapter} marked complete.` : `${chapter} reopened.`);
+    } catch (e) { setMessage(e instanceof Error ? e.message : "Could not save progress."); }
   }
 
   return (
