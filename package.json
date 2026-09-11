@@ -9,17 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "firebase": "latest",
-    "livekit-server-sdk": "latest",
-    "@google/generative-ai": "latest"
+    "next": "^15.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "firebase": "^11.0.0",
+    "livekit-server-sdk": "^2.0.0",
+    "@google/generative-ai": "^0.21.0"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "@types/node": "latest"
+    "typescript": "^5.6.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/node": "^22.0.0"
   }
 }
