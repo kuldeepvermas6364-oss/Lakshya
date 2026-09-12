@@ -7,16 +7,13 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
+import { get, ref, serverTimestamp, set, update } from "firebase/database";
+import { auth, realtimeDb } from "./firebase";
 import { validateEmail, validateUsername } from "./validation";
 
 async function syncUserProfile(uid: string, data: Record<string, unknown>) {
-  try {
-    await setDoc(doc(db, "users", uid), data, { merge: true });
-  } catch (error) {
-    console.warn("Lakshya profile sync skipped:", error);
-  }
+  try { await update(ref(realtimeDb, `users/${uid}`), data); }
+  catch (error) { console.warn("Lakshya profile sync skipped:", error); }
 }
 
 function assertCredentials(name: string | undefined, email: string, password: string, registering: boolean) {
@@ -33,20 +30,13 @@ function assertCredentials(name: string | undefined, email: string, password: st
 
 export async function registerUser(name: string, email: string, password: string) {
   assertCredentials(name, email, password, true);
-  const credential = await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-  try {
-    await updateProfile(credential.user, { displayName: name.trim() });
-  } catch (error) {
-    console.warn("Lakshya display-name sync skipped:", error);
-  }
-  await syncUserProfile(credential.user.uid, {
-    uid: credential.user.uid,
-    displayName: name.trim(),
-    email: email.trim().toLowerCase(),
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    role: "student",
-    isOnline: true,
+  const normalizedEmail = email.trim().toLowerCase();
+  const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+  await updateProfile(credential.user, { displayName: name.trim() });
+  await set(ref(realtimeDb, `users/${credential.user.uid}`), {
+    uid: credential.user.uid, displayName: name.trim(), email: normalizedEmail,
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp(), role: "student", isOnline: true,
+    onboardingComplete: false,
   });
   return credential.user;
 }
@@ -70,6 +60,9 @@ export async function logoutUser() {
   await signOut(auth);
 }
 
-export function subscribeToAuth(callback: (user: User | null) => void) {
-  return onAuthStateChanged(auth, callback);
+export async function getUserProfile(uid: string) {
+  const snapshot = await get(ref(realtimeDb, `users/${uid}`));
+  return snapshot.exists() ? (snapshot.val() as Record<string, unknown>) : null;
 }
+
+export function subscribeToAuth(callback: (user: User | null) => void) { return onAuthStateChanged(auth, callback); }
