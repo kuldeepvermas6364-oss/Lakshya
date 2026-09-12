@@ -18,7 +18,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
       <Link href="/" className="frame-brand"><img src="/lakshya-mark.svg" alt="" /><div><strong>Lakshya</strong><small>STUDY OS</small></div></Link>
       <nav aria-label="Main navigation">{nav.map(([icon, label, href]) => <Link key={href} href={href} className={active(href) ? "frame-nav active" : "frame-nav"}><b>{icon}</b><span>{label}</span></Link>)}</nav>
       <div className="frame-bottom">
-        <Link href="/settings" className={active("/settings") ? "frame-nav active" : "frame-nav">⚙ <span>Settings</span></Link>
+        <Link href="/settings" className={active("/settings") ? "frame-nav active" : "frame-nav"}>⚙ <span>Settings</span></Link>
         <div className="frame-streak">✦ <span><b>Your progress</b><small>Built from your activity.</small></span></div>
       </div>
     </aside>
