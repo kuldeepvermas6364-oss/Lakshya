@@ -4,12 +4,14 @@ import "./lakshya-polish.css";
 import "./premium-motion.css";
 import "./auth-premium.css";
 import "./premium-brand.css";
+import "./premium-dashboard.css";
 import AppFrame from "./app-frame";
 
 export const metadata: Metadata = {
   title: "Lakshya — Study Smarter",
-  description: "A premium study platform for focused learning, planning and progress.",
+  description: "Lakshya is a premium India-first study platform for focused learning, practice, AI assistance, planning and progress.",
   applicationName: "Lakshya",
+  keywords: ["Lakshya", "study app", "JEE", "NEET", "students", "AI study assistant"],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
