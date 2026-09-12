@@ -1,15 +1,29 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 
-type DashboardStats = { dailyGoalMinutes?: number; currentStreak?: number; bestStreak?: number; progressPercent?: number };
-type PlannerItem = { id: string; title: string; subjectId?: string; date: string; durationMinutes: number; completed?: boolean };
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
+type DashboardStats = {
+  dailyGoalMinutes?: number;
+  currentStreak?: number;
+  bestStreak?: number;
+  progressPercent?: number;
+};
+type PlannerItem = {
+  id: string;
+  title: string;
+  subjectId?: string;
+  date: string;
+  durationMinutes: number;
+  completed?: boolean;
+};
 
 const subjects = [
-  { name: "Physics", code: "PHY", id: "physics" },
-  { name: "Chemistry", code: "CHE", id: "chemistry" },
-  { name: "Mathematics", code: "MAT", id: "mathematics" },
+  { name: "Physics", code: "PHY", id: "physics", tone: "Concepts & problem solving", href: "/study/physics" },
+  { name: "Chemistry", code: "CHE", id: "chemistry", tone: "Concepts, reactions & revision", href: "/study/chemistry" },
+  { name: "Mathematics", code: "MAT", id: "mathematics", tone: "Practice & problem solving", href: "/study/mathematics" },
 ];
+
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const fmt = (seconds: number) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 
@@ -24,13 +38,9 @@ export default function Home() {
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Firebase must not be part of the first browser render. If Firebase config,
-  // IndexedDB, or auth restoration fails on a mobile browser, the dashboard
-  // should remain usable instead of crashing with a client-side exception.
   useEffect(() => {
     let mounted = true;
     let unsubscribe = () => {};
-
     (async () => {
       try {
         const [{ auth }, { onAuthStateChanged }] = await Promise.all([
@@ -38,17 +48,11 @@ export default function Home() {
           import("firebase/auth"),
         ]);
         if (!mounted) return;
-        unsubscribe = onAuthStateChanged(
-          auth,
-          (user) => {
-            if (!mounted) return;
-            setUid(user?.uid ?? null);
-            setName(user?.displayName || user?.email?.split("@")[0] || "Student");
-          },
-          () => {
-            if (mounted) setUid(null);
-          },
-        );
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (!mounted) return;
+          setUid(user?.uid ?? null);
+          setName(user?.displayName || user?.email?.split("@")[0] || "Student");
+        }, () => mounted && setUid(null));
       } catch {
         if (mounted) {
           setUid(null);
@@ -56,11 +60,7 @@ export default function Home() {
         }
       }
     })();
-
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
+    return () => { mounted = false; unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -68,7 +68,6 @@ export default function Home() {
     let active = true;
     let stopDashboard = () => {};
     let stopPlanner = () => {};
-
     (async () => {
       try {
         const data = await import("@/lib/dashboard-data");
@@ -82,12 +81,7 @@ export default function Home() {
         if (active) setMessage("Your progress data is temporarily unavailable.");
       }
     })();
-
-    return () => {
-      active = false;
-      stopDashboard();
-      stopPlanner();
-    };
+    return () => { active = false; stopDashboard(); stopPlanner(); };
   }, [uid]);
 
   useEffect(() => {
@@ -116,25 +110,106 @@ export default function Home() {
   const goalProgress = goalMinutes ? Math.min(100, Math.round((studySeconds / 60 / goalMinutes) * 100)) : 0;
   const streak = Number(stats.currentStreak) || 0;
   const best = Number(stats.bestStreak) || 0;
-  const progress = Number(stats.progressPercent) || 0;
+  const progress = Math.min(100, Math.max(0, Number(stats.progressPercent) || 0));
+  const remainingTasks = useMemo(() => tasks.filter((task) => !task.completed).length, [tasks]);
   const m = String(Math.floor(seconds / 60)).padStart(2, "0");
   const s = String(seconds % 60).padStart(2, "0");
   const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 
-  return <main className="page">
-    <div className="hero-row"><div><p className="eyebrow">{today.toUpperCase()}</p><h1>Good day, <span>{name}.</span></h1><p className="muted">Your dashboard is connected to your Firebase account. Activity appears here as you study.</p></div><Link className="primary" href="/study">Open Study →</Link></div>
-    {!uid && <section className="panel" style={{ marginBottom: 14 }}><b>Sign in to see your real progress.</b><p className="muted">Lakshya does not show sample progress or fake schedules.</p><Link className="primary" href="/auth">Sign in</Link></section>}
-    <div className="stats-grid">
-      <div className="stat-card main-stat"><div><p>Today&apos;s progress</p><strong>{progress}<span>%</span></strong><small>{progress ? "Recorded from your activity" : "No activity recorded yet"}</small></div><div className="ring"><div><b>{progress}%</b><small>complete</small></div></div></div>
-      <div className="stat-card"><p>Study time today</p><strong>{fmt(studySeconds)}</strong>{goalMinutes > 0 ? <><div className="bar"><i style={{ width: `${goalProgress}%` }} /></div><small>Goal {Math.round(goalMinutes / 60)}h · {goalProgress}%</small></> : <small>Set a daily goal in Planner</small>}</div>
-      <div className="stat-card"><p>Questions solved today</p><strong>{questions}</strong><small>{questions ? "Recorded practice attempts" : "No attempts recorded yet"}</small></div>
-      <div className="stat-card"><p>Current streak</p><strong>{streak} <em>days</em></strong><small>{best ? `Best: ${best} days` : "No streak recorded yet"}</small><div className="week">M T W T F S S</div></div>
-    </div>
-    <div className="section-grid">
-      <section className="panel"><div className="panel-head"><div><p className="eyebrow">YOUR DAY</p><h2>Today&apos;s schedule</h2></div><Link href="/planner">Planner →</Link></div><div className="timeline">{tasks.length ? tasks.map((task, i) => <div className="timeline-item" key={task.id}><div className="time">{task.durationMinutes}m</div><div className="dot"/><div className="session"><span className={i === 0 ? "tag active-tag" : "tag"}>{task.completed ? "Done" : "Planned"}</span><h3>{task.title}</h3><small>{task.subjectId || "Study task"}</small></div></div>) : <div style={{ padding: 16 }}><p className="muted">No tasks planned for today.</p><Link className="secondary" href="/planner">Create today&apos;s first task</Link></div>}</div></section>
-      <section className="panel focus-panel"><div className="panel-head"><div><p className="eyebrow">FOCUS MODE</p><h2>25 minute session</h2></div><span className="live-dot">● {running ? "FOCUSING" : "READY"}</span></div><div className="timer"><div className="timer-circle"><span>{m}:{s}</span><small>FOCUS</small></div></div><div className="timer-controls"><button onClick={() => setRunning(!running)} className="primary" disabled={!uid}>{running ? "Pause" : "Start focus"}</button><button className="secondary" onClick={() => { setRunning(false); setSeconds(1500); }}>Reset</button></div><p className="muted center">Completed sessions are saved to your Firebase study history.</p></section>
-    </div>
-    <section className="panel subjects-panel"><div className="panel-head"><div><p className="eyebrow">YOUR LEARNING DATA</p><h2>Subjects</h2></div><Link href="/study">Study library →</Link></div><div className="subject-grid">{subjects.map((subject) => <div className="subject" key={subject.id}><div className="subject-top"><div className="subject-icon">{subject.code}</div><span>Live</span></div><h3>{subject.name}</h3><small>Progress comes from your completed chapter records.</small><div className="bar"><i style={{ width: "0%" }} /></div></div>)}</div></section>
-    {message && <p className="muted center">{message}</p>}
-  </main>;
+  return (
+    <main className="page lakshya-dashboard">
+      <section className="dashboard-hero">
+        <div className="hero-copy">
+          <div className="hero-kicker"><span className="status-pulse" /> {today.toUpperCase()}</div>
+          <h1>Good day, <span>{name}.</span></h1>
+          <p>One focused session at a time. Keep your momentum, practise what matters and let Lakshya guide your next step.</p>
+          <div className="hero-actions">
+            <Link className="primary hero-cta" href="/study">Start learning <span>→</span></Link>
+            <Link className="ghost-cta" href="/planner">View today&apos;s plan</Link>
+          </div>
+        </div>
+        <div className="hero-orbit" aria-hidden="true">
+          <div className="orbit-ring ring-one" />
+          <div className="orbit-ring ring-two" />
+          <div className="orbit-core"><b>L</b><span>LAKSHYA</span></div>
+        </div>
+      </section>
+
+      {!uid && (
+        <section className="notice-card">
+          <div><strong>Make this dashboard yours.</strong><p>Sign in to sync your real study time, progress, plans and practice history.</p></div>
+          <Link className="primary" href="/auth">Sign in</Link>
+        </section>
+      )}
+
+      <section className="section-heading">
+        <div><span className="section-eyebrow">YOUR MOMENTUM</span><h2>Today at a glance</h2></div>
+        <Link href="/analytics">View analytics →</Link>
+      </section>
+
+      <div className="stats-grid premium-stats">
+        <article className="stat-card featured-stat">
+          <div className="stat-label"><span className="metric-icon">↗</span><span>Overall progress</span></div>
+          <div className="metric-row"><strong>{progress}<small>%</small></strong><div className="ring progress-ring" style={{ "--progress": `${progress * 3.6}deg` } as React.CSSProperties}><span>{progress}%</span></div></div>
+          <small className="stat-foot">Based on your recorded learning activity</small>
+        </article>
+        <article className="stat-card">
+          <div className="stat-label"><span className="metric-icon">◷</span><span>Study time</span></div>
+          <strong>{fmt(studySeconds)}</strong>
+          {goalMinutes > 0 ? <><div className="bar"><i style={{ width: `${goalProgress}%` }} /></div><small className="stat-foot">Daily goal · {goalProgress}% complete</small></> : <small className="stat-foot">Set a daily goal in Planner</small>}
+        </article>
+        <article className="stat-card">
+          <div className="stat-label"><span className="metric-icon">✓</span><span>Questions</span></div>
+          <strong>{questions}</strong><small className="stat-foot">Questions solved today</small>
+          <Link className="mini-link" href="/practice">Practise now →</Link>
+        </article>
+        <article className="stat-card streak-stat">
+          <div className="stat-label"><span className="metric-icon">✦</span><span>Study streak</span></div>
+          <strong>{streak}<small> days</small></strong><small className="stat-foot">{best ? `Best streak: ${best} days` : "Start building your streak"}</small>
+          <div className="week-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        </article>
+      </div>
+
+      <div className="section-grid premium-grid">
+        <section className="panel schedule-panel">
+          <div className="panel-head"><div><span className="section-eyebrow">PLAN</span><h2>Today&apos;s schedule</h2></div><Link href="/planner">Open planner →</Link></div>
+          <div className="schedule-summary"><span>{remainingTasks} remaining</span><span>{tasks.length} planned today</span></div>
+          <div className="timeline">
+            {tasks.length ? tasks.slice(0, 5).map((task, i) => (
+              <div className={`timeline-item ${task.completed ? "is-done" : ""}`} key={task.id}>
+                <div className="time">{task.durationMinutes}m</div><div className="dot" /><div className="session"><span className={`tag ${i === 0 && !task.completed ? "active-tag" : ""}`}>{task.completed ? "Completed" : i === 0 ? "Next up" : "Planned"}</span><h3>{task.title}</h3><small>{task.subjectId || "Study task"}</small></div>
+              </div>
+            )) : <div className="empty-state"><div className="empty-icon">＋</div><div><h3>No plan for today</h3><p>Turn your goal into a simple, realistic study session.</p><Link className="secondary" href="/planner">Create today&apos;s plan</Link></div></div>}
+          </div>
+        </section>
+
+        <section className="panel focus-panel premium-focus">
+          <div className="panel-head"><div><span className="section-eyebrow">FOCUS MODE</span><h2>Deep work, distraction-free</h2></div><span className="live-dot">● {running ? "FOCUSING" : "READY"}</span></div>
+          <div className="timer"><div className="timer-circle premium-timer"><span>{m}:{s}</span><small>FOCUS</small></div></div>
+          <div className="timer-controls"><button onClick={() => setRunning(!running)} className="primary" disabled={!uid}>{running ? "Pause session" : "Start 25 min"}</button><button className="secondary" onClick={() => { setRunning(false); setSeconds(1500); }}>Reset</button></div>
+          <p className="muted center">Your completed session is saved to your study history.</p>
+        </section>
+      </div>
+
+      <section className="ai-spotlight">
+        <div className="ai-glow" aria-hidden="true" />
+        <div className="ai-copy"><span className="ai-badge">✦ LAKSHYA AI</span><h2>Your study copilot, whenever you need it.</h2><p>Get concepts explained simply, create practice questions, revise a chapter or build a realistic plan with Gemini-powered Lakshya AI.</p><div className="ai-chips"><span>Explain concepts</span><span>Generate a quiz</span><span>Make a study plan</span></div></div>
+        <Link className="ai-cta" href="/ai">Open Lakshya AI <span>→</span></Link>
+      </section>
+
+      <section className="subjects-section">
+        <div className="section-heading"><div><span className="section-eyebrow">LEARNING LIBRARY</span><h2>Keep building your foundation</h2></div><Link href="/study">Explore all →</Link></div>
+        <div className="subject-grid premium-subjects">
+          {subjects.map((subject) => <Link href={subject.href} className="subject premium-subject" key={subject.id}><div className="subject-top"><div className="subject-icon">{subject.code}</div><span>Explore</span></div><h3>{subject.name}</h3><small>{subject.tone}</small><div className="bar"><i style={{ width: "0%" }} /></div><span className="subject-link">Open subject →</span></Link>)}
+        </div>
+      </section>
+
+      <section className="quick-actions">
+        <div><span className="section-eyebrow">QUICK ACCESS</span><h2>Everything you need, one tap away.</h2></div>
+        <div className="quick-grid"><Link href="/practice"><b>✓</b><span>Practice</span><small>Sharpen your concepts</small></Link><Link href="/focus"><b>◷</b><span>Focus</span><small>Start a study session</small></Link><Link href="/community"><b>◎</b><span>Community</span><small>Learn with other students</small></Link><Link href="/messages"><b>◌</b><span>Friends</span><small>Discuss &amp; learn together</small></Link></div>
+      </section>
+
+      {message && <p className="muted center">{message}</p>}
+    </main>
+  );
 }
