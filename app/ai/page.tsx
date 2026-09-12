@@ -2,15 +2,16 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
+import type { AIAction } from "@/lib/ai/types";
 
 type Message = { id: number; role: "user" | "ai"; text: string };
 
-const prompts = [
-  ["Explain", "Explain a difficult concept in simple language with an example."],
-  ["Quiz me", "Create 5 JEE-level MCQs on a topic I choose. Ask me one at a time."],
-  ["Revise", "Make a concise revision sheet for my next study session."],
-  ["Plan", "Make a realistic study plan for today based on my priorities."],
-] as const;
+const prompts: { label: string; prompt: string; action: AIAction }[] = [
+  { label: "Explain", prompt: "Explain a difficult concept in simple language with an example.", action: "explain" },
+  { label: "Quiz me", prompt: "Create 5 practice MCQs on a topic I choose. Keep them clear and exam-oriented.", action: "quiz" },
+  { label: "Revise", prompt: "Make a concise revision sheet for my next study session.", action: "revision" },
+  { label: "Plan", prompt: "Make a realistic study plan for today based on the priorities I provide.", action: "study_plan" },
+];
 
 export default function AIPage() {
   const [input, setInput] = useState("");
@@ -19,9 +20,12 @@ export default function AIPage() {
   const [subject, setSubject] = useState("General");
   const [error, setError] = useState("");
 
-  const context = useMemo(() => `Current study context: ${subject}. Keep explanations student-friendly and exam-oriented.`, [subject]);
+  const context = useMemo(() => ({
+    subject,
+    language: "english" as const,
+  }), [subject]);
 
-  async function ask(text = input) {
+  async function ask(text = input, action: AIAction = "doubt_help") {
     const value = text.trim();
     if (!value || loading) return;
     const id = Date.now();
@@ -33,11 +37,11 @@ export default function AIPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: value, context }),
+        body: JSON.stringify({ message: value, action, context }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "AI request failed");
-      setMessages((prev) => [...prev, { id: id + 1, role: "ai", text: data.text || "No response was returned." }]);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data?.error?.message || data?.error || "AI request failed");
+      setMessages((prev) => [...prev, { id: id + 1, role: "ai", text: data.text }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "AI service is temporarily unavailable. Please try again.");
     } finally {
@@ -64,10 +68,10 @@ export default function AIPage() {
       <section className="panel ai-workspace" style={{ marginTop: 14, padding: 0, overflow: "hidden" }}>
         <div className="ai-workspace-head">
           <div><span className="section-eyebrow">STUDY CONTEXT</span><h2>What are you working on?</h2></div>
-          <label><span className="sr-only">Subject</span><select value={subject} onChange={(e) => setSubject(e.target.value)}><option>General</option><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Biology</option><option>English</option></select></label>
+          <label><span className="sr-only">Subject</span><select value={subject} onChange={(e) => setSubject(e.target.value)} disabled={loading}><option>General</option><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Biology</option><option>English</option></select></label>
         </div>
 
-        <div className="ai-chips ai-prompt-row">{prompts.map(([label, prompt]) => <button key={label} className="secondary" onClick={() => void ask(prompt)} disabled={loading}>{label}</button>)}</div>
+        <div className="ai-chips ai-prompt-row">{prompts.map(({ label, prompt, action }) => <button key={label} className="secondary" onClick={() => void ask(prompt, action)} disabled={loading}>{label}</button>)}</div>
 
         <div className="ai-conversation" aria-live="polite">
           {messages.length === 0 && !loading ? <div className="ai-empty"><div className="ai-empty-icon">✦</div><h3>Ready when you are.</h3><p>Ask a question, paste a concept you do not understand, or choose a prompt above.</p></div> : messages.map((message) => <article key={message.id} className={`ai-message ${message.role}`}><span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span><p>{message.text}</p></article>)}
@@ -77,7 +81,7 @@ export default function AIPage() {
         {error && <div className="ai-error" role="alert">{error} <button onClick={() => setError("")}>Dismiss</button></div>}
 
         <form onSubmit={submit} className="ai-composer">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask Lakshya AI about a topic, question, revision or study plan…" rows={2} maxLength={4000} disabled={loading} />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask Lakshya AI about a topic, question, revision or study plan…" rows={2} maxLength={4000} disabled={loading} aria-label="Ask Lakshya AI" />
           <div className="ai-composer-foot"><span>{input.length}/4000 · {subject}</span><button className="primary" disabled={!input.trim() || loading}>{loading ? "Thinking…" : "Ask AI →"}</button></div>
         </form>
       </section>
