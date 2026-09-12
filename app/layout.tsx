@@ -6,6 +6,7 @@ import "./auth-premium.css";
 import "./premium-brand.css";
 import "./premium-dashboard.css";
 import AppFrame from "./app-frame";
+import { AuthProvider } from "../lib/auth-context";
 
 export const metadata: Metadata = {
   title: "Lakshya — Study Smarter",
@@ -15,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><AppFrame>{children}</AppFrame></body></html>;
+  return <html lang="en"><body><AuthProvider><AppFrame>{children}</AppFrame></AuthProvider></body></html>;
 }
