@@ -1,0 +1,21 @@
+import Link from "next/link";
+
+const curriculum = {
+  physics: { name: "Physics", chapters: ["Electric Charges & Fields", "Electrostatic Potential & Capacitance", "Current Electricity", "Moving Charges & Magnetism", "Magnetism & Matter", "Electromagnetic Induction", "Alternating Current", "Electromagnetic Waves", "Ray Optics & Optical Instruments", "Wave Optics", "Dual Nature of Radiation & Matter", "Atoms", "Nuclei", "Semiconductor Electronics"] },
+  chemistry: { name: "Chemistry", chapters: ["Solutions", "Electrochemistry", "Chemical Kinetics", "d- and f-Block Elements", "Coordination Compounds", "Haloalkanes & Haloarenes", "Alcohols, Phenols & Ethers", "Aldehydes, Ketones & Carboxylic Acids", "Amines", "Biomolecules", "Polymers", "Chemistry in Everyday Life"] },
+  mathematics: { name: "Mathematics", chapters: ["Relations & Functions", "Inverse Trigonometric Functions", "Matrices", "Determinants", "Continuity & Differentiability", "Applications of Derivatives", "Integrals", "Applications of Integrals", "Differential Equations", "Vector Algebra", "Three Dimensional Geometry", "Probability"] },
+} as const;
+
+type SubjectKey = keyof typeof curriculum;
+
+export default async function SubjectPage({ params }: { params: Promise<{ subject: string }> }) {
+  const { subject } = await params;
+  const data = curriculum[subject.toLowerCase() as SubjectKey];
+  if (!data) return <main className="page"><h1>Subject not found</h1><p className="muted">Choose a valid Lakshya subject.</p><Link className="primary" href="/study">Back to Study</Link></main>;
+  return <main className="page subject-detail-page">
+    <div className="hero-row"><div><p className="eyebrow">LAKSHYA • CLASS 12 PCM</p><h1>{data.name}</h1><p className="muted">A focused chapter hub for concepts, practice, revision and AI-powered learning.</p></div><Link className="secondary" href="/study">← Study library</Link></div>
+    <section className="subject-detail-hero"><div><span>CHAPTER LIBRARY</span><h2>{data.chapters.length} chapters ready</h2><p>Choose a chapter to practise it with Lakshya AI or mark your progress in the main Study library.</p></div><Link className="primary" href="/practice">Practice with AI →</Link></section>
+    <section className="chapter-grid">{data.chapters.map((chapter, index) => <article className="chapter-card" key={chapter}><span>{String(index + 1).padStart(2, "0")}</span><div><b>{chapter}</b><small>Concepts · Practice · Revision</small></div><Link href={`/practice?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}`} aria-label={`Practice ${chapter}`}>→</Link></article>)}</section>
+    <style jsx>{`.subject-detail-page{padding-bottom:70px}.subject-detail-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px;border-radius:22px;background:linear-gradient(135deg,#18162f,#30265b);color:#fff;box-shadow:0 20px 55px rgba(40,35,90,.15);margin-bottom:18px}.subject-detail-hero span{font-size:9px;letter-spacing:1.5px;font-weight:900;color:#c9c5ff}.subject-detail-hero h2{font-size:24px;margin:7px 0 5px}.subject-detail-hero p{font-size:11px;line-height:1.6;color:#c9cad8;max-width:620px;margin:0}.chapter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.chapter-card{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid #e6e8ef;border-radius:15px;background:rgba(255,255,255,.92);box-shadow:0 7px 24px rgba(38,44,90,.05);transition:.2s}.chapter-card:hover{transform:translateY(-3px);border-color:#cec9ff;box-shadow:0 14px 35px rgba(99,91,255,.10)}.chapter-card>span{font-size:9px;font-weight:900;color:#635bff;background:#f1efff;border-radius:8px;padding:7px}.chapter-card div{flex:1;min-width:0}.chapter-card b,.chapter-card small{display:block}.chapter-card b{font-size:11px;line-height:1.35}.chapter-card small{font-size:8px;color:#9298a6;margin-top:4px}.chapter-card a{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#f5f3ff;color:#635bff;font-weight:900}@media(max-width:700px){.subject-detail-hero{align-items:flex-start;flex-direction:column}.chapter-grid{grid-template-columns:1fr}.subject-detail-hero .primary{width:100%;text-align:center}}`}</style>
+  </main>;
+}
