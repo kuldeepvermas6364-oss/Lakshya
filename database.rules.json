@@ -2,6 +2,13 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['uid', 'email', 'displayName', 'createdAt']) && newData.child('uid').val() === auth.uid && newData.child('email').isString() && newData.child('displayName').isString()"
+      }
+    },
     "conversations": {
       "$conversationId": {
         "members": {
