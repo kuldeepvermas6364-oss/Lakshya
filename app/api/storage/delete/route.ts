@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertOwnedPublicId, verifyFirebaseIdToken } from "../../../../../lib/storage-server";
+import { assertOwnedPublicId, createCloudinarySignature, getCloudinaryConfig, verifyFirebaseIdToken } from "../../../../lib/storage-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,25 +14,14 @@ export async function POST(request: Request) {
     assertOwnedPublicId(uid, publicId);
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const resourceType = body.resourceType === "image" || body.resourceType === "video" || body.resourceType === "raw"
-      ? body.resourceType
-      : "image";
-    const { createCloudinarySignature, getCloudinaryConfig } = await import("../../../../../lib/storage-server");
+    const resourceType = body.resourceType === "image" || body.resourceType === "video" || body.resourceType === "raw" ? body.resourceType : "image";
     const signature = createCloudinarySignature({ public_id: publicId, timestamp });
     const { cloudName, apiKey } = getCloudinaryConfig();
-
     const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${resourceType}/destroy`;
-    const form = new URLSearchParams({
-      public_id: publicId,
-      timestamp: String(timestamp),
-      api_key: apiKey,
-      signature,
-    });
+    const form = new URLSearchParams({ public_id: publicId, timestamp: String(timestamp), api_key: apiKey, signature });
     const response = await fetch(endpoint, { method: "POST", body: form, cache: "no-store" });
     const result = (await response.json().catch(() => ({}))) as { result?: string; error?: { message?: string } };
-    if (!response.ok || (result.result !== "ok" && result.result !== "not found")) {
-      throw new Error(result.error?.message ?? "Cloudinary deletion failed.");
-    }
+    if (!response.ok || (result.result !== "ok" && result.result !== "not found")) throw new Error(result.error?.message ?? "Cloudinary deletion failed.");
     return NextResponse.json({ ok: true, result: result.result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not delete media.";
