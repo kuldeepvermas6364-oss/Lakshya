@@ -1,8 +1,10 @@
-import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "./firebase";
 
 export async function saveStudySession(uid:string,subjectId:string,minutes:number){if(!uid||minutes<=0)throw new Error("Invalid study session");return addDoc(collection(db,"users",uid,"studySessions"),{subjectId,minutes,createdAt:serverTimestamp()})}
-export async function savePracticeAttempt(uid:string,data:{subject:string;chapter:string;correct:boolean}){if(!uid)throw new Error("Sign in required");return addDoc(collection(db,"users",uid,"practiceAttempts"),{...data,createdAt:serverTimestamp()})}
+export async function savePracticeAttempt(uid:string,data:{subject:string;chapter:string;topic?:string;correct:boolean}){if(!uid)throw new Error("Sign in required");return addDoc(collection(db,"users",uid,"practiceAttempts"),{...data,createdAt:serverTimestamp()})}
+export async function saveSavedQuiz(uid:string,quiz:{id:string;subject:string;chapter:string;topic:string;language:string;difficulty:string;questions:unknown[];durationMinutes:number;createdAt:number}){if(!uid||!quiz.id)throw new Error("Sign in required");return setDoc(doc(db,"users",uid,"savedQuizzes",quiz.id),{...quiz,savedAt:serverTimestamp()})}
+export async function listSavedQuizzes(uid:string){if(!uid)throw new Error("Sign in required");const snap=await getDocs(query(collection(db,"users",uid,"savedQuizzes"),orderBy("createdAt","desc")));return snap.docs.map(item=>({id:item.id,...item.data()}))}
 export async function savePlannerTask(uid:string,task:{title:string;subjectId?:string;date:string;time?:string;durationMinutes:number;completed?:boolean}){if(!uid||!task.title.trim())throw new Error("Invalid planner task");return addDoc(collection(db,"users",uid,"plannerTasks"),{...task,completed:Boolean(task.completed),createdAt:serverTimestamp(),updatedAt:serverTimestamp()})}
 export async function updatePlannerTask(uid:string,taskId:string,data:{completed?:boolean;title?:string;subjectId?:string;date?:string;time?:string;durationMinutes?:number}){if(!uid||!taskId)throw new Error("Invalid planner task");return updateDoc(doc(db,"users",uid,"plannerTasks",taskId),{...data,updatedAt:serverTimestamp()})}
 export async function deletePlannerTask(uid:string,taskId:string){if(!uid||!taskId)throw new Error("Invalid planner task");return deleteDoc(doc(db,"users",uid,"plannerTasks",taskId))}
