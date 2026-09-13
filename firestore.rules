@@ -12,6 +12,7 @@ service cloud.firestore {
       match /plannerTasks/{taskId} { allow read, create, update, delete: if self(uid); }
       match /chapterProgress/{chapterId} { allow read, create, update: if self(uid); allow delete: if false; }
       match /practiceAttempts/{attemptId} { allow read, create: if self(uid); allow update, delete: if false; }
+      match /savedQuizzes/{quizId} { allow read, create, update: if self(uid); allow delete: if self(uid); }
     }
     match /projects/{projectId} {
       allow read: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.visibility == 'public');
