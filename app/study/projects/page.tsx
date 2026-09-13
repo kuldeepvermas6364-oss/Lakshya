@@ -1,0 +1,74 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
+type FileName = "index.html" | "style.css" | "script.js";
+type Files = Record<FileName, string>;
+
+const templates: Record<string, { name: string; icon: string; files: Files }> = {
+  starter: { name: "Starter Website", icon: "✦", files: {
+    "index.html": "<!doctype html>\n<html>\n<head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>My Project</title></head>\n<body><main><p class=\"eyebrow\">MY PROJECT</p><h1>Build something great.</h1><p>Edit the files and see the result instantly.</p><button id=\"hello\">Try it</button></main></body>\n</html>",
+    "style.css": "*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:linear-gradient(135deg,#111326,#29245b);color:white;display:grid;place-items:center}main{width:min(680px,90%);padding:42px;border:1px solid rgba(255,255,255,.15);border-radius:28px;background:rgba(255,255,255,.08);backdrop-filter:blur(18px);box-shadow:0 30px 80px rgba(0,0,0,.3)}h1{font-size:clamp(36px,7vw,72px);line-height:.95;letter-spacing:-.06em;margin:10px 0 18px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;opacity:.65}p{line-height:1.7;opacity:.78}button{border:0;border-radius:12px;padding:12px 18px;background:#fff;color:#17182b;font-weight:800;cursor:pointer}",
+    "script.js": "document.getElementById('hello')?.addEventListener('click',()=>alert('Your project is running!'));"
+  }},
+  portfolio: { name: "Student Portfolio", icon: "◈", files: {
+    "index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Student Portfolio</title></head><body><main><span>STUDENT PORTFOLIO</span><h1>Hi, I'm a student building things.</h1><p>I learn, experiment and turn ideas into projects.</p><div><a href=\"#projects\">View projects</a><a href=\"#contact\">Contact</a></div></main></body></html>",
+    "style.css": "*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#f5f3ff;color:#1e2030}main{max-width:900px;margin:0 auto;padding:100px 28px}span{font-size:11px;font-weight:900;color:#635bff;letter-spacing:.16em}h1{font-size:clamp(42px,8vw,84px);line-height:.95;letter-spacing:-.06em;max-width:780px;margin:14px 0}p{font-size:18px;color:#717789;max-width:620px;line-height:1.7}a{display:inline-block;margin:15px 8px 0 0;padding:12px 16px;border-radius:12px;background:#1f2030;color:white;text-decoration:none;font-weight:800}",
+    "script.js": "console.log('Portfolio ready');"
+  }},
+  landing: { name: "Animated Landing", icon: "⚡", files: {
+    "index.html": "<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Launch</title></head><body><div class=\"orb\"></div><main><small>NEW PROJECT</small><h1>Make your idea impossible to ignore.</h1><p>A polished animated landing page starter for your next idea.</p><button>Get started</button></main></body></html>",
+    "style.css": "*{box-sizing:border-box}body{margin:0;min-height:100vh;overflow:hidden;font-family:system-ui,sans-serif;background:#090a13;color:#fff;display:grid;place-items:center}.orb{position:fixed;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#8b5cf6,transparent 65%);filter:blur(20px);animation:float 5s ease-in-out infinite;opacity:.7}main{position:relative;width:min(760px,90%);text-align:center;padding:54px;border:1px solid rgba(255,255,255,.12);border-radius:30px;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);animation:rise .8s ease both}small{letter-spacing:.2em;font-weight:900;color:#c4b5fd}h1{font-size:clamp(40px,7vw,78px);line-height:.96;letter-spacing:-.06em;margin:15px 0}p{color:#b6bacb;line-height:1.7}button{margin-top:12px;border:0;border-radius:14px;padding:13px 20px;font-weight:900;cursor:pointer}@keyframes float{50%{transform:translate(70px,-35px) scale(1.12)}}@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}",
+    "script.js": "document.querySelector('button')?.addEventListener('click',()=>document.querySelector('h1').textContent='Now build your own version!');"
+  }}
+};
+
+const defaultTemplate = () => templates.starter.files;
+
+export default function ProjectLabPage(){
+  const [files,setFiles]=useState<Files>(defaultTemplate());
+  const [active,setActive]=useState<FileName>("index.html");
+  const [projectName,setProjectName]=useState("My Project");
+  const [saved,setSaved]=useState(false);
+  const [aiPrompt,setAiPrompt]=useState("");
+  const [aiAnswer,setAiAnswer]=useState("");
+  const [aiLoading,setAiLoading]=useState(false);
+  const [mobilePreview,setMobilePreview]=useState(false);
+
+  useEffect(()=>{
+    try{const raw=localStorage.getItem("lakshya-project-lab");if(raw){const data=JSON.parse(raw);if(data.files)setFiles(data.files);if(data.name)setProjectName(data.name)}}catch{}
+  },[]);
+
+  const preview = useMemo(()=>{
+    const html=files["index.html"].replace(/<link[^>]*href=["']style\.css["'][^>]*>/i,"").replace(/<script[^>]*src=["']script\.js["'][^>]*><\/script>/i,"");
+    return html.replace("</head>",`<style>${files["style.css"]}</style></head>`).replace("</body>",`<script>${files["script.js"]}</script></body>`);
+  },[files]);
+
+  function update(value:string){setFiles(prev=>({...prev,[active]:value}));setSaved(false)}
+  function save(){try{localStorage.setItem("lakshya-project-lab",JSON.stringify({name:projectName,files}));setSaved(true)}catch{setSaved(false)}}
+  function loadTemplate(key:string){setFiles(templates[key].files);setProjectName(templates[key].name);setActive("index.html");setSaved(false)}
+  function downloadFile(){const blob=new Blob([files[active]],{type:active.endsWith("html")?"text/html":active.endsWith("css")?"text/css":"text/javascript"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=active;a.click();URL.revokeObjectURL(a.href)}
+  async function askAI(){if(!aiPrompt.trim()||aiLoading)return;setAiLoading(true);setAiAnswer("");try{const res=await fetch("/api/ai/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:`I am building a student web project. Give concise coding guidance for this request: ${aiPrompt}. Do not replace my whole project; explain the exact change and mention which file it belongs in.`})});const data=await res.json();setAiAnswer(data.text||data.error||"No response.")}catch{setAiAnswer("AI is temporarily unavailable.")}finally{setAiLoading(false)}}
+
+  return <main className="lab">
+    <header className="lab-head"><div><Link href="/study" className="back">← Study</Link><span className="eyebrow">LAKSHYA • PROJECT LAB</span><h1>Build your project.</h1><p>Code, preview, save and learn in one place. No installation required.</p></div><div className="head-actions"><input value={projectName} onChange={e=>{setProjectName(e.target.value);setSaved(false)}} aria-label="Project name"/><button onClick={save}>{saved?"✓ Saved":"Save"}</button></div></header>
+
+    <section className="template-strip"><div><b>Start faster</b><small>Choose a starter and customize it.</small></div>{Object.entries(templates).map(([key,t])=><button key={key} onClick={()=>loadTemplate(key)}><span>{t.icon}</span><strong>{t.name}</strong><small>Use template</small></button>)}</section>
+
+    <section className="workspace">
+      <aside className="explorer"><div className="pane-title"><b>Explorer</b><span>3 files</span></div>{(["index.html","style.css","script.js"] as FileName[]).map(file=><button key={file} className={active===file?"file active":"file"} onClick={()=>setActive(file)}><span>{file.endsWith("html")?"◇":file.endsWith("css")?"#":"JS"}</span>{file}</button>)}<div className="tip">💡 Tip<br/><small>Keep HTML for structure, CSS for design and JS for interaction.</small></div></aside>
+      <section className="editor-pane"><div className="editor-head"><span>{active}</span><button onClick={downloadFile}>↓ Download</button></div><textarea spellCheck={false} value={files[active]} onChange={e=>update(e.target.value)} aria-label={`Edit ${active}`} /></section>
+      <section className={`preview-pane ${mobilePreview?"phone": ""}`}><div className="preview-head"><span>Live Preview</span><div><button onClick={()=>setMobilePreview(v=>!v)}>{mobilePreview?"Desktop":"Mobile"}</button><button onClick={()=>{const w=window.open();if(w){w.document.write(preview);w.document.close()}}}>↗ Open</button></div></div><iframe title="Project live preview" srcDoc={preview} sandbox="allow-scripts" /></section>
+    </section>
+
+    <section className="ai-box"><div><span className="ai-badge">✦ AI COPILOT</span><h2>Stuck? Ask Lakshya AI.</h2><p>Get explanations, debugging hints and focused improvements without losing control of your code.</p></div><div className="ai-controls"><div className="ai-input"><input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="e.g. Why isn't my button centered?" onKeyDown={e=>{if(e.key==="Enter")void askAI()}}/><button disabled={!aiPrompt.trim()||aiLoading} onClick={()=>void askAI()}>{aiLoading?"Thinking…":"Ask AI →"}</button></div>{aiAnswer&&<div className="ai-answer">{aiAnswer}</div>}</div></section>
+
+    <style jsx>{`
+      .lab{min-height:100vh;background:#f7f7fb;color:#202336;padding:28px 28px 60px}.lab-head{max-width:1280px;margin:0 auto 18px;display:flex;justify-content:space-between;gap:22px;align-items:flex-end}.back{display:inline-block;color:#635bff;text-decoration:none;font-weight:800;font-size:11px;margin-bottom:12px}.eyebrow{display:block;font-size:9px;font-weight:900;letter-spacing:.16em;color:#858b9a}.lab h1{font-size:clamp(32px,5vw,52px);letter-spacing:-.06em;line-height:1;margin:7px 0}.lab-head p{margin:0;color:#7c8291;font-size:11px}.head-actions{display:flex;gap:8px}.head-actions input{width:150px;border:1px solid #dedfe8;border-radius:11px;padding:10px 12px;background:#fff;font-weight:700;outline:none}.lab button{border:1px solid #ddddea;background:#fff;border-radius:10px;padding:9px 12px;font-weight:800;font-size:10px;color:#414457;cursor:pointer;transition:.2s}.lab button:hover{transform:translateY(-1px);border-color:#bbb6ff}.head-actions button{background:#635bff;color:#fff;border-color:#635bff}.template-strip{max-width:1280px;margin:0 auto 12px;display:flex;gap:8px;align-items:stretch;overflow:auto;padding-bottom:3px}.template-strip>div{min-width:150px;padding:10px 12px}.template-strip>div b,.template-strip>div small{display:block}.template-strip>div small{font-size:8px;color:#8b91a0;margin-top:3px}.template-strip>button{min-width:150px;text-align:left;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}.template-strip button span{grid-row:span 2;font-size:17px}.template-strip button strong{font-size:9px}.template-strip button small{font-size:7px;color:#9196a4}.workspace{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:170px minmax(280px,1fr) minmax(340px,1.05fr);min-height:610px;border:1px solid #dddfea;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 18px 50px rgba(38,44,90,.09)}.explorer{background:#fafaff;border-right:1px solid #e6e6ef;padding:12px}.pane-title,.editor-head,.preview-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.pane-title{padding:4px 5px 10px}.pane-title b{font-size:10px}.pane-title span{font-size:7px;color:#999eac}.file{display:flex!important;width:100%;align-items:center;gap:8px;text-align:left!important;border:0!important;background:transparent!important;padding:9px 7px!important;font-size:9px!important}.file span{width:18px;color:#635bff;font-weight:900}.file.active{background:#eceaff!important;color:#4f46d8!important}.tip{margin-top:22px;padding:10px;border-radius:10px;background:#f0efff;color:#635bff;font-size:9px;line-height:1.5}.tip small{color:#777d8d}.editor-pane{display:flex;flex-direction:column;min-width:0;border-right:1px solid #e6e6ef}.editor-head,.preview-head{height:42px;padding:0 12px;border-bottom:1px solid #e6e6ef;background:#fbfbfe}.editor-head span,.preview-head span{font:700 9px ui-monospace,SFMono-Regular,Menlo,monospace}.editor-head button,.preview-head button{padding:5px 8px;font-size:8px}.editor-pane textarea{flex:1;width:100%;resize:none;border:0;outline:0;padding:18px;background:#171827;color:#e9e7ff;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2}.preview-pane{display:flex;flex-direction:column;min-width:0;background:#f0f1f6}.preview-pane iframe{flex:1;border:0;background:white;width:100%;min-height:568px}.preview-pane.phone iframe{width:390px;max-width:90%;align-self:center;margin:18px auto;border:8px solid #1b1c28;border-radius:26px;min-height:530px;box-shadow:0 12px 30px rgba(0,0,0,.15)}.ai-box{max-width:1280px;margin:14px auto 0;display:grid;grid-template-columns:300px 1fr;gap:20px;padding:20px;border-radius:18px;background:linear-gradient(125deg,#17162d,#28224d);color:#fff}.ai-badge{font-size:8px;font-weight:900;letter-spacing:.14em;color:#c4b5fd}.ai-box h2{font-size:20px;margin:6px 0}.ai-box p{font-size:9px;color:#c7c8d4;line-height:1.6;margin:0}.ai-controls{min-width:0}.ai-input{display:flex;gap:7px}.ai-input input{flex:1;min-width:0;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;border-radius:11px;padding:11px 12px;outline:none;font-size:10px}.ai-input input::placeholder{color:#a6a6b5}.ai-input button{background:#fff!important;color:#29233f!important;border:0!important;white-space:nowrap}.ai-input button:disabled{opacity:.5;cursor:not-allowed}.ai-answer{margin-top:8px;padding:11px 12px;border-radius:11px;background:rgba(255,255,255,.08);color:#e4e4ef;font-size:9px;line-height:1.7;white-space:pre-wrap;max-height:180px;overflow:auto}
+      @media(max-width:900px){.lab{padding:18px 12px 70px}.lab-head{align-items:flex-start;flex-direction:column}.workspace{grid-template-columns:120px 1fr;min-height:650px}.preview-pane{grid-column:1/-1;border-top:1px solid #e6e6ef;border-right:0;min-height:480px}.preview-pane iframe{min-height:430px}.ai-box{grid-template-columns:1fr}.template-strip>div{display:none}}
+      @media(max-width:600px){.workspace{grid-template-columns:1fr;min-height:auto}.explorer{display:flex;gap:5px;overflow:auto;border-right:0;border-bottom:1px solid #e6e6ef}.pane-title{display:none}.file{width:auto!important;white-space:nowrap}.tip{display:none}.editor-pane{min-height:440px;border-right:0}.preview-pane{min-height:450px}.preview-pane iframe{min-height:390px}.preview-pane.phone iframe{width:280px;min-height:390px}.head-actions{width:100%}.head-actions input{flex:1}.ai-input{flex-direction:column}.ai-input button{width:100%}}
+      @media(prefers-reduced-motion:reduce){.lab *{transition:none!important}}
+    `}</style>
+  </main>
+}
