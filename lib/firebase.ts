@@ -1,6 +1,5 @@
 import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, initializeAuth, browserLocalPersistence, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { getDatabase, type Database } from "firebase/database";
 
@@ -21,12 +20,6 @@ const hasRequiredConfig = [
   firebaseConfig.appId,
 ].every(Boolean);
 
-/**
- * Firebase must be initialized at module level as well as in the browser.
- * The old implementation returned null during SSR and exported that null as
- * FirebaseApp, which could later reach Firebase Auth and cause the runtime
- * error: "Cannot read properties of null (reading 'app')".
- */
 function createFirebaseApp(): FirebaseApp {
   if (!hasRequiredConfig) {
     throw new Error(
@@ -45,13 +38,10 @@ function createFirebaseApp(): FirebaseApp {
 export const firebaseApp = createFirebaseApp();
 
 function createAuth(): Auth {
-  // On the browser, prefer explicit local persistence. On SSR, getAuth is
-  // enough and avoids browser-only persistence initialization.
   if (typeof window !== "undefined") {
     try {
       return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
     } catch {
-      // Auth may already have been initialized by another module/HMR cycle.
       return getAuth(firebaseApp);
     }
   }
@@ -59,6 +49,5 @@ function createAuth(): Auth {
 }
 
 export const auth: Auth = createAuth();
-export const db: Firestore = getFirestore(firebaseApp);
 export const storage: FirebaseStorage = getStorage(firebaseApp);
 export const realtimeDb: Database = getDatabase(firebaseApp);
