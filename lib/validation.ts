@@ -4,10 +4,11 @@ export type ValidationResult =
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[a-zA-Z0-9._-]+$/;
+const FULL_NAME_RE = /^[\p{L}\p{M}][\p{L}\p{M} .'-]*$/u;
 
 function text(value: unknown, min: number, max: number, label: string): ValidationResult {
   if (typeof value !== "string") return { ok: false, error: `${label} is required.` };
-  const normalized = value.trim();
+  const normalized = value.trim().replace(/\s+/g, " ");
   if (normalized.length < min) return { ok: false, error: `${label} is too short.` };
   if (normalized.length > max) return { ok: false, error: `${label} is too long.` };
   return { ok: true, value: normalized };
@@ -27,6 +28,14 @@ export const validateUsername = (value: unknown): ValidationResult => {
   return USERNAME_RE.test(result.value)
     ? result
     : { ok: false, error: "Username may contain letters, numbers, dots, underscores and hyphens only." };
+};
+
+export const validateFullName = (value: unknown): ValidationResult => {
+  const result = text(value, 3, 60, "Name");
+  if (!result.ok) return result;
+  return FULL_NAME_RE.test(result.value)
+    ? result
+    : { ok: false, error: "Name may contain letters, spaces, apostrophes, periods and hyphens only." };
 };
 
 export const validatePost = (value: unknown) => text(value, 1, 5000, "Post");
