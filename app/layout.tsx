@@ -6,6 +6,7 @@ import "./auth-premium.css";
 import "./premium-brand.css";
 import "./premium-dashboard.css";
 import "./project-lab-ai.css";
+import "./ai-fullframe.css";
 import AppFrame from "./app-frame";
 import { AuthProvider } from "../lib/auth-context";
 
