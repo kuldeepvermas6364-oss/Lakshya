@@ -1,0 +1,123 @@
+/* Lakshya AI — true full-frame workspace */
+.lakshya-ai-page {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: calc(100vh - 68px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* The AI page itself is the workspace; don't wrap it in another hero/card. */
+.lakshya-ai-page .ai-spotlight {
+  display: none !important;
+}
+
+.lakshya-ai-page .ai-workspace {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 auto;
+  min-height: calc(100vh - 68px);
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.lakshya-ai-page .ai-workspace-head {
+  flex: 0 0 auto;
+  padding: 16px clamp(18px, 3vw, 34px) !important;
+  background: rgba(255,255,255,.96);
+}
+
+.lakshya-ai-page .ai-prompt-row {
+  flex: 0 0 auto;
+  padding: 12px clamp(18px, 3vw, 34px) !important;
+  background: #fff;
+}
+
+.lakshya-ai-page .ai-conversation {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto;
+  padding: clamp(22px, 4vw, 42px) clamp(18px, 5vw, 72px) !important;
+  background: linear-gradient(180deg, #fbfaff 0%, #fff 100%);
+}
+
+.lakshya-ai-page .ai-empty {
+  margin: clamp(70px, 12vh, 150px) auto !important;
+  max-width: 720px;
+}
+
+.lakshya-ai-page .ai-message {
+  max-width: min(980px, 88%) !important;
+  font-size: 14px;
+}
+
+.lakshya-ai-page .ai-rich-response,
+.lakshya-ai-page .ai-message p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.lakshya-ai-page .ai-composer {
+  flex: 0 0 auto;
+  padding: 14px clamp(18px, 4vw, 54px) 16px !important;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 -8px 28px rgba(38,44,90,.06);
+}
+
+.lakshya-ai-page > .muted {
+  flex: 0 0 auto;
+  margin: 0 !important;
+  padding: 8px 18px 12px;
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .lakshya-ai-page {
+    min-height: calc(100vh - 62px - 72px);
+  }
+
+  .lakshya-ai-page .ai-workspace {
+    min-height: calc(100vh - 62px - 72px);
+  }
+
+  .lakshya-ai-page .ai-workspace-head {
+    padding: 12px 16px !important;
+  }
+
+  .lakshya-ai-page .ai-prompt-row {
+    padding: 10px 16px !important;
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+  }
+
+  .lakshya-ai-page .ai-prompt-row button {
+    flex: 0 0 auto;
+  }
+
+  .lakshya-ai-page .ai-conversation {
+    padding: 20px 14px !important;
+  }
+
+  .lakshya-ai-page .ai-message {
+    max-width: 96% !important;
+  }
+
+  .lakshya-ai-page .ai-composer {
+    padding: 10px 14px 12px !important;
+  }
+
+  .lakshya-ai-page > .muted {
+    padding-bottom: 8px;
+    font-size: 11px;
+  }
+}
