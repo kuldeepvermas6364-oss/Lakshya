@@ -1,5 +1,5 @@
 import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, initializeAuth, browserLocalPersistence, indexedDBLocalPersistence, type Auth } from "firebase/auth";
+import { getAuth, initializeAuth, browserLocalPersistence, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { getDatabase, type Database } from "firebase/database";
@@ -18,10 +18,11 @@ export const firebaseApp: FirebaseApp =
   getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 function createBrowserAuth(): Auth {
+  // Keep Firebase auth initialization deliberately conservative on mobile
+  // browsers. IndexedDB persistence can throw during hydration/private browsing;
+  // browserLocalPersistence is supported by Firebase and has a safe fallback.
   try {
-    return initializeAuth(firebaseApp, {
-      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-    });
+    return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
   } catch {
     return getAuth(firebaseApp);
   }
