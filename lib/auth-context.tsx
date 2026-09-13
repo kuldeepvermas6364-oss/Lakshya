@@ -19,26 +19,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    const unsubscribe = subscribeToAuth(async (nextUser) => {
-      if (!mounted) return;
-      setUser(nextUser);
-      if (!nextUser) {
+    let unsubscribe: (() => void) | undefined;
+
+    try {
+      unsubscribe = subscribeToAuth(async (nextUser) => {
+        if (!mounted) return;
+        setUser(nextUser);
+        if (!nextUser) {
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+        try {
+          const nextProfile = await getUserProfile(nextUser.uid);
+          if (mounted) setProfile(nextProfile);
+        } catch {
+          if (mounted) setProfile(null);
+        } finally {
+          if (mounted) setLoading(false);
+        }
+      });
+    } catch (error) {
+      // Never let a browser-specific Firebase initialization/storage problem
+      // crash the entire Lakshya client. Features can still render while auth
+      // is unavailable, and the next action can surface its own friendly error.
+      console.warn("Lakshya auth initialization skipped:", error);
+      if (mounted) {
+        setUser(null);
         setProfile(null);
         setLoading(false);
-        return;
       }
-      try {
-        const nextProfile = await getUserProfile(nextUser.uid);
-        if (mounted) setProfile(nextProfile);
-      } catch {
-        if (mounted) setProfile(null);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    });
+    }
+
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 
