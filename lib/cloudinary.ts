@@ -1,22 +1,20 @@
+import { uploadMedia } from "./storage";
+
 export type CloudinaryUploadResult = {
   secure_url: string;
   public_id: string;
   resource_type: string;
 };
 
+/**
+ * Backward-compatible helper for existing Lakshya features.
+ * New code should use uploadMedia() so category, metadata and cleanup remain consistent.
+ */
 export async function uploadToCloudinary(file: File): Promise<CloudinaryUploadResult> {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-  if (!cloudName || !uploadPreset) throw new Error("Cloudinary is not configured.");
-
-  const body = new FormData();
-  body.append("file", file);
-  body.append("upload_preset", uploadPreset);
-
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-    method: "POST",
-    body,
-  });
-  if (!response.ok) throw new Error("Cloudinary upload failed.");
-  return response.json();
+  const media = await uploadMedia(file, "posts");
+  return {
+    secure_url: media.secureUrl,
+    public_id: media.publicId,
+    resource_type: media.resourceType,
+  };
 }
