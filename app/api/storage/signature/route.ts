@@ -4,7 +4,7 @@ import {
   getCloudinaryConfig,
   getUserStorageFolder,
   verifyFirebaseIdToken,
-} from "../../../../../lib/storage-server";
+} from "../../../../lib/storage-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
