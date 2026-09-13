@@ -14,49 +14,51 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
-function createFirebaseApp(): FirebaseApp | null {
-  if (typeof window === "undefined") return null;
+const hasRequiredConfig = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.appId,
+].every(Boolean);
+
+/**
+ * Firebase must be initialized at module level as well as in the browser.
+ * The old implementation returned null during SSR and exported that null as
+ * FirebaseApp, which could later reach Firebase Auth and cause the runtime
+ * error: "Cannot read properties of null (reading 'app')".
+ */
+function createFirebaseApp(): FirebaseApp {
+  if (!hasRequiredConfig) {
+    throw new Error(
+      "Lakshya Firebase configuration is missing. Check the NEXT_PUBLIC_FIREBASE_* environment variables."
+    );
+  }
+
   try {
-    const required = [firebaseConfig.apiKey, firebaseConfig.authDomain, firebaseConfig.projectId, firebaseConfig.appId];
-    if (required.some((value) => !value)) {
-      console.warn("Lakshya Firebase: browser configuration is incomplete.");
-      return null;
-    }
     return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   } catch (error) {
-    console.warn("Lakshya Firebase initialization skipped:", error);
-    return null;
+    console.error("Lakshya Firebase initialization failed:", error);
+    throw error;
   }
 }
 
-export const firebaseApp = createFirebaseApp() as FirebaseApp;
+export const firebaseApp = createFirebaseApp();
 
-function createBrowserAuth(): Auth {
-  if (!firebaseApp) return null as unknown as Auth;
-  try {
-    return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
-  } catch {
+function createAuth(): Auth {
+  // On the browser, prefer explicit local persistence. On SSR, getAuth is
+  // enough and avoids browser-only persistence initialization.
+  if (typeof window !== "undefined") {
     try {
+      return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
+    } catch {
+      // Auth may already have been initialized by another module/HMR cycle.
       return getAuth(firebaseApp);
-    } catch (error) {
-      console.warn("Lakshya Firebase Auth unavailable:", error);
-      return null as unknown as Auth;
     }
   }
+  return getAuth(firebaseApp);
 }
 
-export const auth: Auth = createBrowserAuth();
-
-function createService<T>(factory: () => T): T {
-  try {
-    if (!firebaseApp) return null as unknown as T;
-    return factory();
-  } catch (error) {
-    console.warn("Lakshya Firebase service unavailable:", error);
-    return null as unknown as T;
-  }
-}
-
-export const db: Firestore = createService(() => getFirestore(firebaseApp));
-export const storage: FirebaseStorage = createService(() => getStorage(firebaseApp));
-export const realtimeDb: Database = createService(() => getDatabase(firebaseApp));
+export const auth: Auth = createAuth();
+export const db: Firestore = getFirestore(firebaseApp);
+export const storage: FirebaseStorage = getStorage(firebaseApp);
+export const realtimeDb: Database = getDatabase(firebaseApp);
