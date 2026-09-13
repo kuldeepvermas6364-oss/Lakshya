@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { cleanAIText } from "@/lib/ai/format";
 
 type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
 
@@ -13,12 +14,13 @@ const prompts = [
 ] as const;
 
 function InlineText({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const cleaned = cleanAIText(text);
+  const parts = cleaned.split(/(\*\*[^*]+\*\*)/g);
   return <>{parts.map((part, i) => part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : <span key={i}>{part}</span>)}</>;
 }
 
 function RichAIResponse({ text }: { text: string }) {
-  const lines = text.replace(/```(?:\w+)?\n?/g, "").split(/\r?\n/);
+  const lines = text.split(/\r?\n/);
   const nodes: React.ReactNode[] = [];
   let list: { key: string; content: string }[] = [];
   const flush = () => { if (!list.length) return; nodes.push(<ul className="ai-rich-list" key={`list-${nodes.length}`}>{list.map((x) => <li key={x.key}><InlineText text={x.content} /></li>)}</ul>); list = []; };
