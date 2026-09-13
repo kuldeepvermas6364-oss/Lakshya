@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { get, ref, serverTimestamp, set, update } from "firebase/database";
 import { auth, realtimeDb } from "./firebase";
-import { validateEmail, validateUsername } from "./validation";
+import { validateEmail, validateFullName } from "./validation";
 
 async function syncUserProfile(uid: string, data: Record<string, unknown>) {
   try { await update(ref(realtimeDb, `users/${uid}`), data); }
@@ -20,8 +20,8 @@ function assertCredentials(name: string | undefined, email: string, password: st
   const emailResult = validateEmail(email);
   if (!emailResult.ok) throw new Error(emailResult.error);
   if (registering) {
-    const nameResult = validateUsername(name ?? "");
-    if (!nameResult.ok) throw new Error("Name is required and must be 3–30 characters.");
+    const nameResult = validateFullName(name ?? "");
+    if (!nameResult.ok) throw new Error(nameResult.error);
   }
   if (typeof password !== "string" || password.length < 6 || password.length > 128) {
     throw new Error("Password must be between 6 and 128 characters.");
@@ -31,10 +31,11 @@ function assertCredentials(name: string | undefined, email: string, password: st
 export async function registerUser(name: string, email: string, password: string) {
   assertCredentials(name, email, password, true);
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim().replace(/\s+/g, " ");
   const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
-  await updateProfile(credential.user, { displayName: name.trim() });
+  await updateProfile(credential.user, { displayName: normalizedName });
   await set(ref(realtimeDb, `users/${credential.user.uid}`), {
-    uid: credential.user.uid, displayName: name.trim(), email: normalizedEmail,
+    uid: credential.user.uid, displayName: normalizedName, email: normalizedEmail,
     createdAt: serverTimestamp(), updatedAt: serverTimestamp(), role: "student", isOnline: true,
     onboardingComplete: false,
   });
