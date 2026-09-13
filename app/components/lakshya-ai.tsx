@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { cleanAIText } from "@/lib/ai/format";
 
 const actions = [
   ["🧠", "Explain", "Explain the current topic simply with an example."],
@@ -61,7 +62,7 @@ export default function LakshyaAI() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "AI request failed");
-      setAnswer(data.text || "No response was returned.");
+      setAnswer(cleanAIText(data.text || "No response was returned."));
     } catch (error) {
       setAnswer(error instanceof Error ? error.message : "AI service is temporarily unavailable. Please try again.");
     } finally {
