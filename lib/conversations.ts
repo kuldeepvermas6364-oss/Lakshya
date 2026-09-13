@@ -1,17 +1,13 @@
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "./firebase";
+import { ref, get, set } from "firebase/database";
+import { realtimeDb } from "./firebase";
 
 export async function ensureConversation(userId: string, otherUserId: string) {
   if (!userId || !otherUserId || userId === otherUserId) throw new Error("Invalid conversation");
   const id = [userId, otherUserId].sort().join("_");
-  const conversationRef = doc(db, "conversations", id);
-  const snapshot = await getDoc(conversationRef);
+  const conversationRef = ref(realtimeDb, `conversations/${id}`);
+  const snapshot = await get(conversationRef);
   if (!snapshot.exists()) {
-    await setDoc(conversationRef, {
-      memberIds: [userId, otherUserId],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    await set(conversationRef, { memberIds: [userId, otherUserId], createdAt: Date.now(), updatedAt: Date.now() });
   }
   return id;
 }
