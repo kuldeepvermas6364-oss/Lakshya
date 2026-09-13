@@ -14,28 +14,49 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
-export const firebaseApp: FirebaseApp =
-  getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-function createBrowserAuth(): Auth {
-  // Keep Firebase auth initialization deliberately conservative on mobile
-  // browsers. IndexedDB persistence can throw during hydration/private browsing;
-  // browserLocalPersistence is supported by Firebase and has a safe fallback.
+function createFirebaseApp(): FirebaseApp | null {
+  if (typeof window === "undefined") return null;
   try {
-    return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
-  } catch {
-    return getAuth(firebaseApp);
+    const required = [firebaseConfig.apiKey, firebaseConfig.authDomain, firebaseConfig.projectId, firebaseConfig.appId];
+    if (required.some((value) => !value)) {
+      console.warn("Lakshya Firebase: browser configuration is incomplete.");
+      return null;
+    }
+    return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  } catch (error) {
+    console.warn("Lakshya Firebase initialization skipped:", error);
+    return null;
   }
 }
 
-export const auth: Auth =
-  typeof window !== "undefined" ? createBrowserAuth() : (null as unknown as Auth);
+export const firebaseApp = createFirebaseApp() as FirebaseApp;
 
-export const db: Firestore =
-  typeof window !== "undefined" ? getFirestore(firebaseApp) : (null as unknown as Firestore);
+function createBrowserAuth(): Auth {
+  if (!firebaseApp) return null as unknown as Auth;
+  try {
+    return initializeAuth(firebaseApp, { persistence: browserLocalPersistence });
+  } catch {
+    try {
+      return getAuth(firebaseApp);
+    } catch (error) {
+      console.warn("Lakshya Firebase Auth unavailable:", error);
+      return null as unknown as Auth;
+    }
+  }
+}
 
-export const storage: FirebaseStorage =
-  typeof window !== "undefined" ? getStorage(firebaseApp) : (null as unknown as FirebaseStorage);
+export const auth: Auth = createBrowserAuth();
 
-export const realtimeDb: Database =
-  typeof window !== "undefined" ? getDatabase(firebaseApp) : (null as unknown as Database);
+function createService<T>(factory: () => T): T {
+  try {
+    if (!firebaseApp) return null as unknown as T;
+    return factory();
+  } catch (error) {
+    console.warn("Lakshya Firebase service unavailable:", error);
+    return null as unknown as T;
+  }
+}
+
+export const db: Firestore = createService(() => getFirestore(firebaseApp));
+export const storage: FirebaseStorage = createService(() => getStorage(firebaseApp));
+export const realtimeDb: Database = createService(() => getDatabase(firebaseApp));
