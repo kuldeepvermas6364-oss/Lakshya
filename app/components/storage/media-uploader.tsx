@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { deleteMedia, uploadMedia, type MediaMetadata, type StorageCategory } from "../../../lib/storage";
 
 type Props = {
@@ -23,8 +23,6 @@ export function MediaUploader({ category = "posts", multiple = true, accept = "i
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [dragging, setDragging] = useState(false);
-
-  const ready = useMemo(() => items.flatMap((item) => item.media ? [item.media] : []), [items]);
 
   function addFiles(files: FileList | File[]) {
     const incoming = Array.from(files).slice(0, Math.max(0, maxFiles - items.length));
