@@ -3,6 +3,15 @@ import { realtimeDb } from "./firebase";
 
 export type FriendRequestStatus = "pending" | "accepted" | "declined";
 
+type FriendRequestRow = {
+  id: string;
+  fromId?: string;
+  toId?: string;
+  status?: FriendRequestStatus;
+  createdAt?: number;
+  respondedAt?: number;
+};
+
 const requestsRef = () => ref(realtimeDb, "friendRequests");
 const friendshipsRef = () => ref(realtimeDb, "friendships");
 
@@ -36,9 +45,10 @@ export async function removeFriend(userId: string, friendId: string) {
 export async function listFriendRequests(userId: string, maxResults = 50) {
   if (!userId) throw new Error("Sign in required");
   const snap = await get(requestsRef());
-  const all = snap.exists() ? (snap.val() as Record<string, Record<string, unknown>>) : {};
-  const rows = Object.entries(all).map(([id, value]) => ({ id, ...value })).filter((item) => item.status === "pending");
-  const incoming = rows.filter((item) => item.toId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
-  const outgoing = rows.filter((item) => item.fromId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
+  const all = snap.exists() ? (snap.val() as Record<string, Omit<FriendRequestRow, "id">>) : {};
+  const rows: FriendRequestRow[] = Object.entries(all).map(([id, value]) => ({ id, ...value }));
+  const pendingRows = rows.filter((item) => item.status === "pending");
+  const incoming = pendingRows.filter((item) => item.toId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
+  const outgoing = pendingRows.filter((item) => item.fromId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
   return { incoming, outgoing };
 }
