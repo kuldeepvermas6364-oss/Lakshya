@@ -2,6 +2,7 @@ import { getApps, getApp, initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, initializeAuth, browserLocalPersistence, type Auth } from "firebase/auth";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { getDatabase, type Database } from "firebase/database";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -51,3 +52,4 @@ function createAuth(): Auth {
 export const auth: Auth = createAuth();
 export const storage: FirebaseStorage = getStorage(firebaseApp);
 export const realtimeDb: Database = getDatabase(firebaseApp);
+export const db: Firestore = getFirestore(firebaseApp);
