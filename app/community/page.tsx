@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../lib/firebase";
+import { get, onValue, push, ref, set } from "firebase/database";
+import { auth, realtimeDb } from "../../lib/firebase";
 import { createCommunity, joinCommunity, listCommunities, type CommunityRecord } from "../../lib/community-storage";
 import { MediaGallery } from "../components/storage/media-gallery";
 import { MediaUploader } from "../components/storage/media-uploader";
@@ -17,9 +17,9 @@ const demoPosts: Post[] = [
 ];
 
 function relativeTime(value: unknown) {
-  const seconds = value && typeof value === "object" && "seconds" in value ? Number((value as { seconds?: number }).seconds) : 0;
-  if (!seconds) return "Just now";
-  const mins = Math.max(1, Math.floor((Date.now() - seconds * 1000) / 60000));
+  const timestamp = typeof value === "number" ? value : 0;
+  if (!timestamp) return "Just now";
+  const mins = Math.max(1, Math.floor((Date.now() - timestamp) / 60000));
   return mins < 60 ? `${mins} min ago` : mins < 1440 ? `${Math.floor(mins / 60)} hr ago` : `${Math.floor(mins / 1440)} d ago`;
 }
 
@@ -38,15 +38,16 @@ export default function CommunityPage() {
 
   useEffect(() => {
     if (!userId) { setPostsState(demoPosts); return; }
-    const postsQuery = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    return onSnapshot(postsQuery, (snap) => {
-      const live = snap.docs.map((item) => {
-        const d = item.data();
-        const displayName = typeof d.authorName === "string" && d.authorName ? d.authorName : "Student";
-        return { id: item.id, name: displayName, initials: displayName.slice(0, 1).toUpperCase(), time: relativeTime(d.createdAt), tag: d.tag || "Discussion", text: d.text || "", replies: Number(d.replies || 0), likes: Number(d.likes || 0), media: Array.isArray(d.media) ? d.media as MediaMetadata[] : undefined };
-      });
+    return onValue(ref(realtimeDb, "posts"), (snap) => {
+      const data = snap.exists() ? (snap.val() as Record<string, Record<string, unknown>>) : {};
+      const live = Object.entries(data)
+        .map(([id, d]) => {
+          const displayName = typeof d.authorName === "string" && d.authorName ? d.authorName : "Student";
+          return { id, name: displayName, initials: displayName.slice(0, 1).toUpperCase(), time: relativeTime(d.createdAt), tag: typeof d.tag === "string" ? d.tag : "Discussion", text: typeof d.text === "string" ? d.text : "", replies: Number(d.replies || 0), likes: Number(d.likes || 0), media: Array.isArray(d.media) ? d.media as MediaMetadata[] : undefined };
+        })
+        .sort((a, b) => (Date.now() - 0) + Number(b.id ? data[b.id]?.createdAt ?? 0 : 0) - Number(data[a.id]?.createdAt ?? 0));
       setPostsState(live.length ? live : demoPosts);
-    }, () => setError("Posts could not be loaded. Check your Firestore rules or connection."));
+    }, () => setError("Posts could not be loaded. Check your Realtime Database rules or connection."));
   }, [userId]);
 
   useEffect(() => { if (userId) listCommunities().then(setCommunities).catch(() => undefined); }, [userId]);
@@ -59,7 +60,8 @@ export default function CommunityPage() {
     setPublishing(true); setError("");
     try {
       const displayName = auth.currentUser?.displayName || "Student";
-      await addDoc(collection(db, "posts"), { authorId: userId, authorName: displayName, tag: "Discussion", text, media: composerMedia, likes: 0, replies: 0, createdAt: serverTimestamp() });
+      const post = push(ref(realtimeDb, "posts"));
+      await set(post, { authorId: userId, authorName: displayName, tag: "Discussion", text, media: composerMedia, likes: 0, replies: 0, createdAt: Date.now() });
       setComposer(""); setComposerMedia([]);
     } catch (e) { setError(e instanceof Error ? e.message : "Could not publish post. Please try again."); }
     finally { setPublishing(false); }
