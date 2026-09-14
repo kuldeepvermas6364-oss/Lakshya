@@ -19,13 +19,11 @@ const chapterLists: Record<string, string[]> = {
 };
 
 function ncertPdfUrl(subject: string, chapter: string) {
-  const lists = chapterLists[subject] || [];
-  const index = Math.max(0, lists.indexOf(chapter));
-  const part2Start = subject === "Physics" ? 7 : subject === "Chemistry" ? 5 : 99;
-  const part = index >= part2Start ? 2 : 1;
-  const localIndex = part === 2 ? index - part2Start + 1 : index + 1;
-  const prefix = subject === "Physics" ? `leph${part}` : subject === "Chemistry" ? `kech${part}` : "lebo1";
-  return `https://ncert.nic.in/textbook/pdf/${prefix}${String(localIndex).padStart(2, "0")}.pdf`;
+  const index = Math.max(0, (chapterLists[subject] || []).indexOf(chapter));
+  if (subject === "Physics") return index < 8 ? "https://ncert.nic.in/textbook/pdf/leph1ps.pdf" : "https://ncert.nic.in/textbook/pdf/leph2ps.pdf";
+  if (subject === "Chemistry") return index < 5 ? "https://ncert.nic.in/textbook/pdf/lech1ps.pdf" : "https://ncert.nic.in/textbook/pdf/lech2ps.pdf";
+  if (subject === "Biology") return "https://ncert.nic.in/textbook/pdf/lebo1ps.pdf";
+  return "https://ncert.nic.in/textbook.php";
 }
 
 export default function ChapterWorkspacePage() {
