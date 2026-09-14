@@ -12,7 +12,7 @@ const chapterSets: Record<string, string[]> = {
 function pdfFor(subject: string, chapter: string) {
   const chapters = chapterSets[subject] || [];
   const index = Math.max(0, chapters.indexOf(chapter));
-  if (subject === "Physics") return `https://www.ncert.nic.in/textbook/pdf/${index < 7 ? "keph" : "leph"}${index < 7 ? index + 1 : index - 6}01.pdf`;
+  if (subject === "Physics") return `https://www.ncert.nic.in/textbook/pdf/${index < 7 ? "leph" : "leph"}${index + 1}01.pdf`;
   if (subject === "Chemistry") return `https://www.ncert.nic.in/textbook/pdf/${index < 5 ? "kech" : "lech"}${index < 5 ? index + 1 : index - 4}01.pdf`;
   return `https://www.ncert.nic.in/textbook/pdf/lebo1${index + 1}01.pdf`;
 }
