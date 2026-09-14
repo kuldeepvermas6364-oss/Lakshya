@@ -1,75 +1,44 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  where,
-  writeBatch,
-} from "firebase/firestore";
-import { db } from "./firebase";
+import { get, push, ref, remove, update } from "firebase/database";
+import { realtimeDb } from "./firebase";
 
 export type FriendRequestStatus = "pending" | "accepted" | "declined";
 
+const requestsRef = () => ref(realtimeDb, "friendRequests");
+const friendshipsRef = () => ref(realtimeDb, "friendships");
+
 export async function sendFriendRequest(fromId: string, toId: string) {
   if (!fromId || !toId || fromId === toId) throw new Error("Invalid friendship request");
-  return addDoc(collection(db, "friendRequests"), {
-    fromId,
-    toId,
-    status: "pending" satisfies FriendRequestStatus,
-    createdAt: serverTimestamp(),
+  const request = push(requestsRef());
+  await update(ref(realtimeDb), {
+    [`friendRequests/${request.key}`]: { fromId, toId, status: "pending" satisfies FriendRequestStatus, createdAt: Date.now() },
   });
+  return request;
 }
 
-export async function respondToFriendRequest(
-  requestId: string,
-  currentUserId: string,
-  fromId: string,
-  status: Extract<FriendRequestStatus, "accepted" | "declined">,
-) {
-  const batch = writeBatch(db);
-  batch.update(doc(db, "friendRequests", requestId), {
-    status,
-    respondedAt: serverTimestamp(),
-  });
-
+export async function respondToFriendRequest(requestId: string, currentUserId: string, fromId: string, status: Extract<FriendRequestStatus, "accepted" | "declined">) {
+  if (!requestId || !currentUserId || !fromId) throw new Error("Invalid friendship request");
+  const updates: Record<string, unknown> = {
+    [`friendRequests/${requestId}/status`]: status,
+    [`friendRequests/${requestId}/respondedAt`]: Date.now(),
+  };
   if (status === "accepted") {
     const friendshipId = [currentUserId, fromId].sort().join("_");
-    batch.set(doc(db, "friendships", friendshipId), {
-      memberIds: [currentUserId, fromId],
-      createdAt: serverTimestamp(),
-    });
+    updates[`friendships/${friendshipId}`] = { memberIds: [currentUserId, fromId], createdAt: Date.now() };
   }
-  await batch.commit();
+  await update(ref(realtimeDb), updates);
 }
 
 export async function removeFriend(userId: string, friendId: string) {
   const friendshipId = [userId, friendId].sort().join("_");
-  await deleteDoc(doc(db, "friendships", friendshipId));
+  await remove(ref(realtimeDb, `friendships/${friendshipId}`));
 }
 
 export async function listFriendRequests(userId: string, maxResults = 50) {
-  const incoming = query(
-    collection(db, "friendRequests"),
-    where("toId", "==", userId),
-    where("status", "==", "pending"),
-    orderBy("createdAt", "desc"),
-    limit(maxResults),
-  );
-  const outgoing = query(
-    collection(db, "friendRequests"),
-    where("fromId", "==", userId),
-    where("status", "==", "pending"),
-    orderBy("createdAt", "desc"),
-    limit(maxResults),
-  );
-  const [incomingSnap, outgoingSnap] = await Promise.all([getDocs(incoming), getDocs(outgoing)]);
-  return {
-    incoming: incomingSnap.docs.map((item) => ({ id: item.id, ...item.data() })),
-    outgoing: outgoingSnap.docs.map((item) => ({ id: item.id, ...item.data() })),
-  };
+  if (!userId) throw new Error("Sign in required");
+  const snap = await get(requestsRef());
+  const all = snap.exists() ? (snap.val() as Record<string, Record<string, unknown>>) : {};
+  const rows = Object.entries(all).map(([id, value]) => ({ id, ...value })).filter((item) => item.status === "pending");
+  const incoming = rows.filter((item) => item.toId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
+  const outgoing = rows.filter((item) => item.fromId === userId).sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0)).slice(0, maxResults);
+  return { incoming, outgoing };
 }
