@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_HOSTS = new Set(["ncert.nic.in", "www.ncert.nic.in"]);
 
@@ -13,32 +13,20 @@ export async function GET(request: NextRequest) {
     return new Response("Invalid PDF URL", { status: 400 });
   }
 
-  if (target.protocol !== "https:" || !ALLOWED_HOSTS.has(target.hostname) || !target.pathname.endsWith(".pdf")) {
+  if (
+    target.protocol !== "https:" ||
+    !ALLOWED_HOSTS.has(target.hostname) ||
+    !target.pathname.toLowerCase().endsWith(".pdf")
+  ) {
     return new Response("Only official NCERT PDF URLs are allowed", { status: 403 });
   }
 
-  try {
-    const upstream = await fetch(target.toString(), {
-      headers: { Accept: "application/pdf" },
-      cache: "no-store",
-    });
+  // NCERT blocks server-side PDF fetching from some Vercel regions. Instead of
+  // returning a blank/502 iframe, hand the official NCERT URL to Google's
+  // browser PDF viewer. The PDF itself still comes directly from NCERT.
+  const viewer = new URL("https://docs.google.com/gview");
+  viewer.searchParams.set("embedded", "1");
+  viewer.searchParams.set("url", target.toString());
 
-    if (!upstream.ok) {
-      return new Response(`NCERT PDF unavailable (${upstream.status})`, { status: 502 });
-    }
-
-    const body = await upstream.arrayBuffer();
-    return new Response(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Length": String(body.byteLength),
-        "Content-Disposition": "inline",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
-        "X-Content-Source": "NCERT official",
-      },
-    });
-  } catch {
-    return new Response("Could not load the official NCERT PDF", { status: 502 });
-  }
+  return NextResponse.redirect(viewer, 307);
 }
