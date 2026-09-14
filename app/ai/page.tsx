@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanAIText } from "@/lib/ai/format";
 
@@ -54,6 +54,16 @@ export default function AIPage() {
   const [imageName, setImageName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const context = useMemo(() => `Current study context: ${subject}. Keep explanations student-friendly and exam-oriented.`, [subject]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("lakshya_pyq_ai_prompt");
+      if (stored) {
+        setInput(stored);
+        localStorage.removeItem("lakshya_pyq_ai_prompt");
+      }
+    } catch { /* localStorage can be unavailable in some browser modes */ }
+  }, []);
 
   async function ask(text = input) {
     const value = text.trim() || (imageData ? "Analyze this image and explain what it shows. Solve any visible academic question step by step." : "");
