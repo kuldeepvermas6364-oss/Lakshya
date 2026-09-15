@@ -23,19 +23,33 @@ export type MediaMetadata = {
 
 export type UploadProgress = { loaded: number; total: number; percent: number };
 
-const MAX_IMAGE = 10 * 1024 * 1024;
-const MAX_VIDEO = 100 * 1024 * 1024;
-const MAX_RAW = 25 * 1024 * 1024;
+const MAX_IMAGE = 20 * 1024 * 1024;
+const MAX_VIDEO = 200 * 1024 * 1024;
+const MAX_RAW = 50 * 1024 * 1024;
 
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
-const RAW_TYPES = new Set(["application/pdf", "text/plain"]);
+const IMAGE_TYPES = new Set([
+  "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/bmp", "image/svg+xml", "image/heic", "image/heif",
+]);
+const VIDEO_TYPES = new Set([
+  "video/mp4", "video/webm", "video/quicktime", "video/x-matroska", "video/avi", "video/mpeg", "video/3gpp", "video/x-msvideo",
+]);
+const RAW_TYPES = new Set([
+  "application/pdf", "text/plain", "text/csv", "application/rtf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip", "application/x-zip-compressed", "application/octet-stream",
+]);
+
+function extensionOf(file: File) {
+  return file.name.toLowerCase().split(".").pop() ?? "";
+}
 
 export function getResourceType(file: File): StorageResourceType {
-  if (IMAGE_TYPES.has(file.type)) return "image";
-  if (VIDEO_TYPES.has(file.type)) return "video";
-  if (RAW_TYPES.has(file.type)) return "raw";
-  throw new Error("This file type is not supported.");
+  const type = file.type.toLowerCase();
+  const extension = extensionOf(file);
+  if (IMAGE_TYPES.has(type) || ["jpg", "jpeg", "png", "webp", "gif", "avif", "bmp", "svg", "heic", "heif"].includes(extension)) return "image";
+  if (VIDEO_TYPES.has(type) || ["mp4", "webm", "mov", "mkv", "avi", "mpeg", "mpg", "3gp"].includes(extension)) return "video";
+  if (RAW_TYPES.has(type) || ["pdf", "txt", "csv", "rtf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip"].includes(extension)) return "raw";
+  throw new Error("This file type is not supported. Please choose an image, video, PDF, or common document.");
 }
 
 export function validateMediaFile(file: File) {
@@ -49,7 +63,7 @@ export function validateMediaFile(file: File) {
   return resourceType;
 }
 
-function getBearerToken() {
+async function getBearerToken() {
   const user = auth.currentUser;
   if (!user) throw new Error("Please sign in before uploading media.");
   return user.getIdToken();
@@ -61,6 +75,7 @@ async function requestSignature(category: StorageCategory) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ category }),
+    cache: "no-store",
   });
   const payload = (await response.json().catch(() => ({}))) as { error?: string; cloudName?: string; apiKey?: string; folder?: string; timestamp?: number; signature?: string };
   if (!response.ok || !payload.signature || !payload.folder || !payload.timestamp || !payload.cloudName || !payload.apiKey) {
@@ -72,7 +87,7 @@ async function requestSignature(category: StorageCategory) {
 function cloudinaryUpload(file: File, signature: Awaited<ReturnType<typeof requestSignature>>, resourceType: StorageResourceType, onProgress?: (progress: UploadProgress) => void) {
   return new Promise<Record<string, unknown>>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/auto/upload`;
+    const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(signature.cloudName)}/${resourceType}/upload`;
     xhr.open("POST", endpoint);
     xhr.responseType = "json";
     xhr.upload.onprogress = (event) => {
@@ -92,7 +107,7 @@ function cloudinaryUpload(file: File, signature: Awaited<ReturnType<typeof reque
     form.append("timestamp", String(signature.timestamp));
     form.append("folder", signature.folder);
     form.append("signature", signature.signature);
-    form.append("resource_type", resourceType);
+    // resource_type is selected by the endpoint above and is intentionally NOT signed.
     xhr.send(form);
   });
 }
@@ -114,7 +129,7 @@ export async function uploadMedia(file: File, category: StorageCategory, onProgr
     id: mediaRef.key!,
     ownerId: user.uid,
     fileName: file.name,
-    fileType: file.type,
+    fileType: file.type || "application/octet-stream",
     fileSize: file.size,
     resourceType,
     publicId: String(result.public_id ?? ""),
