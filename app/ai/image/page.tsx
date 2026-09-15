@@ -4,9 +4,10 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 const presets = [
-  ["Physics diagram", "Create a clean, accurate educational diagram for a Class 12 Physics concept. Use clear labels, simple shapes, white background, textbook-style presentation."],
-  ["Concept map", "Create a student-friendly concept map for this topic. Organize the main idea, key formulas, relationships and examples clearly."],
-  ["Project visual", "Create a polished educational illustration for a school science project. Make it realistic, clean, labelled and suitable for a Class 12 project."],
+  ["⚡ Physics Diagram", "Create a clean, accurate educational diagram for a Class 12 Physics concept. Use clear labels, simple shapes, textbook-style presentation."],
+  ["🧠 Concept Map", "Create a student-friendly concept map for this topic. Organize the main idea, key formulas, relationships and examples clearly."],
+  ["📚 Project Visual", "Create a polished educational illustration for a school science project. Make it realistic, clean, labelled and suitable for a Class 12 project."],
+  ["📝 Infographic", "Create a clean educational infographic for a student. Use concise labels, readable typography, logical sections and a premium study-app visual style."],
 ];
 
 export default function ImageAIPage() {
@@ -21,6 +22,7 @@ export default function ImageAIPage() {
     if (!value || loading) return;
     setLoading(true);
     setError("");
+    setImage("");
     try {
       const response = await fetch("/api/ai/image", {
         method: "POST",
@@ -38,37 +40,92 @@ export default function ImageAIPage() {
   }
 
   return (
-    <main className="page" style={{ maxWidth: 1100 }}>
-      <section className="ai-spotlight" style={{ marginTop: 0 }}>
-        <div className="ai-copy">
-          <span className="ai-badge">✦ LAKSHYA AI · IMAGE STUDIO</span>
-          <h1 style={{ fontSize: "clamp(36px,6vw,64px)", letterSpacing: "-.05em", lineHeight: 1, margin: "12px 0" }}>Turn ideas into study visuals.</h1>
-          <p>This dedicated Gemini image AI is focused only on creating useful educational images, diagrams and project visuals.</p>
+    <main className="page lakshya-image-page">
+      <section className="image-hero">
+        <div className="image-orbit orbit-one" />
+        <div className="image-orbit orbit-two" />
+        <div className="image-hero-copy">
+          <div className="image-kicker"><span className="spark">✦</span> LAKSHYA AI · IMAGE STUDIO</div>
+          <h1>Create anything you need<br /><span>for your studies.</span></h1>
+          <p>Describe a diagram, concept map, project visual or infographic. Gemini turns your idea into a study-ready image.</p>
         </div>
-        <Link className="ai-cta" href="/ai">← Lakshya AI</Link>
+        <Link className="image-back" href="/ai">← Back to AI</Link>
       </section>
 
-      <section className="panel" style={{ marginTop: 14, padding: 22 }}>
-        <div className="section-heading" style={{ marginBottom: 14 }}>
-          <div><span className="section-eyebrow">IMAGE GENERATOR</span><h2>What should I create?</h2></div>
+      <section className="image-create-card panel">
+        <div className="create-head">
+          <div><span className="section-eyebrow">CREATE IMAGE</span><h2>What do you want to see?</h2></div>
+          <div className="gemini-pill"><span className="pulse-dot" /> Gemini Image AI</div>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-          {presets.map(([label, text]) => <button key={label} className="secondary" type="button" onClick={() => setPrompt(text)} disabled={loading}>{label}</button>)}
+
+        <div className="image-presets">
+          {presets.map(([label, text]) => (
+            <button key={label} className="image-preset" type="button" onClick={() => setPrompt(text)} disabled={loading}>
+              <span>{label}</span><small>Use template</small>
+            </button>
+          ))}
         </div>
-        <form onSubmit={generate}>
-          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={2000} rows={5} placeholder="Example: Draw a labelled electric circuit showing a cell, resistor, switch and ammeter for a Class 12 Physics project..." disabled={loading} style={{ width: "100%", boxSizing: "border-box", resize: "vertical", border: "1px solid #e1e0eb", borderRadius: 14, padding: 14, font: "inherit", fontSize: 13, outline: "none", background: "#fbfbff" }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 10 }}>
-            <span className="muted" style={{ fontSize: 10 }}>{prompt.length}/2000 · Gemini Image AI</span>
-            <button className="primary" type="submit" disabled={!prompt.trim() || loading}>{loading ? "Creating image…" : "Generate image →"}</button>
+
+        <form onSubmit={generate} className="image-form">
+          <div className={`prompt-shell ${loading ? "is-loading" : ""}`}>
+            <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={2000} rows={4} placeholder="Describe the image you want… e.g. A labelled Class 12 Physics electric circuit showing a cell, resistor, switch and ammeter." disabled={loading} />
+            {loading && <div className="prompt-shimmer" />}
+          </div>
+          <div className="image-form-foot">
+            <span>{prompt.length}/2000 · Educational image generation</span>
+            <button className="generate-image-btn" type="submit" disabled={!prompt.trim() || loading}>
+              <span className="btn-spark">✦</span>{loading ? "Creating…" : "Create Image"}<span className="btn-arrow">→</span>
+            </button>
           </div>
         </form>
       </section>
 
-      {error && <section className="ai-error" style={{ margin: "14px 0 0" }} role="alert">{error}</section>}
+      {error && <section className="ai-error image-error" role="alert">{error}</section>}
 
-      <section className="panel" style={{ marginTop: 14, minHeight: 300, display: "grid", placeItems: "center", padding: 22 }}>
-        {loading ? <div style={{ textAlign: "center" }}><div className="ai-empty-icon" style={{ margin: "0 auto 14px" }}>✦</div><h3>Creating your study visual…</h3><p className="muted">Gemini is generating the image. This can take a little while.</p></div> : image ? <div style={{ width: "100%", textAlign: "center" }}><img src={image} alt="AI generated study visual" style={{ maxWidth: "100%", maxHeight: 720, borderRadius: 16, border: "1px solid #e7e5ef", display: "block", margin: "0 auto" }} /><div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 14, flexWrap: "wrap" }}><a className="secondary" href={image} download="lakshya-study-image.png">Download image</a><button className="secondary" type="button" onClick={() => void generate()}>Regenerate</button></div></div> : <div style={{ textAlign: "center", maxWidth: 500 }}><div className="ai-empty-icon" style={{ margin: "0 auto 14px" }}>◎</div><h3>Your generated image will appear here.</h3><p className="muted">Use this studio for diagrams, concept maps, project visuals and other genuinely useful study images.</p></div>}
+      <section className={`image-result panel ${loading ? "generating" : ""} ${image ? "has-image" : ""}`}>
+        {loading ? (
+          <div className="generation-state" aria-live="polite">
+            <div className="generation-logo"><span>✦</span></div>
+            <div className="generation-rings"><i /><i /><i /></div>
+            <h2>Creating your image</h2>
+            <p>Gemini is thinking about composition, labels and visual details…</p>
+            <div className="thinking-bar"><span /></div>
+          </div>
+        ) : image ? (
+          <div className="result-content">
+            <div className="result-top"><div><span className="section-eyebrow">GENERATED IMAGE</span><h2>Your study visual is ready</h2></div><span className="ready-pill">● Ready</span></div>
+            <div className="image-frame"><img src={image} alt="AI generated study visual" /></div>
+            <div className="result-actions">
+              <a className="result-btn" href={image} download="lakshya-study-image.png">↓ Download image</a>
+              <button className="result-btn" type="button" onClick={() => void generate()}>↻ Regenerate</button>
+              <Link className="result-btn" href="/ai">Ask AI about it →</Link>
+            </div>
+          </div>
+        ) : (
+          <div className="empty-image-state">
+            <div className="empty-glow"><span>✦</span></div>
+            <h2>Your image will appear here</h2>
+            <p>Write what you want above and tap <b>Create Image</b>. Your generated visual will open in this workspace.</p>
+          </div>
+        )}
       </section>
+
+      <p className="image-note">Powered by Gemini 3.1 Flash Image · Built for Lakshya study workflows</p>
+
+      <style jsx>{`
+        .lakshya-image-page{max-width:1180px;overflow:hidden}
+        .image-hero{position:relative;min-height:270px;margin:0 0 14px;padding:34px 30px;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 78% 25%,rgba(168,85,247,.22),transparent 30%),radial-gradient(circle at 25% 80%,rgba(109,93,252,.13),transparent 34%),linear-gradient(135deg,#101322,#1b1630 58%,#21163a);color:#fff;box-shadow:0 22px 60px rgba(38,25,80,.2)}
+        .image-hero-copy{position:relative;z-index:2;max-width:720px}.image-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;opacity:.78}.spark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);box-shadow:0 0 24px rgba(217,70,239,.45)}
+        .image-hero h1{font-size:clamp(34px,6vw,68px);line-height:.98;letter-spacing:-.055em;margin:17px 0 13px}.image-hero h1 span{background:linear-gradient(90deg,#fff,#d8b4fe,#f0abfc);-webkit-background-clip:text;color:transparent}.image-hero p{max-width:610px;margin:0;color:rgba(255,255,255,.72);font-size:13px;line-height:1.7}.image-back{position:absolute;z-index:3;right:24px;top:22px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);padding:10px 14px;border-radius:13px;font-size:11px;font-weight:800;backdrop-filter:blur(10px)}
+        .image-orbit{position:absolute;border:1px solid rgba(255,255,255,.09);border-radius:50%;pointer-events:none}.orbit-one{width:360px;height:360px;right:-90px;top:-170px;animation:orbit 12s linear infinite}.orbit-two{width:220px;height:220px;right:35px;bottom:-125px;animation:orbit 9s linear infinite reverse}.image-orbit:after{content:"";position:absolute;width:7px;height:7px;right:12%;top:15%;border-radius:50%;background:#d946ef;box-shadow:0 0 18px #d946ef}
+        .image-create-card{margin-top:14px;padding:22px;border-radius:22px}.create-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.create-head h2{margin:4px 0 0}.gemini-pill{display:flex;align-items:center;gap:7px;border:1px solid #e6e3f2;border-radius:999px;padding:8px 11px;font-size:9px;font-weight:900;color:#66697a}.pulse-dot{width:7px;height:7px;border-radius:50%;background:#8b5cf6;box-shadow:0 0 0 0 rgba(139,92,246,.4);animation:pulse 1.8s infinite}
+        .image-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:18px 0 12px}.image-preset{border:1px solid #e8e6f0;background:linear-gradient(180deg,#fff,#fbfaff);border-radius:14px;padding:13px;text-align:left;cursor:pointer;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.image-preset:hover{transform:translateY(-2px);border-color:#cfc7ff;box-shadow:0 10px 24px rgba(70,55,150,.08)}.image-preset span{display:block;font-size:11px;font-weight:900;color:#333546}.image-preset small{display:block;margin-top:5px;color:#9498a7;font-size:8px}.image-form{margin-top:8px}.prompt-shell{position:relative;border:1px solid #dfddec;border-radius:18px;background:#fbfaff;overflow:hidden;transition:border-color .25s,box-shadow .25s}.prompt-shell:focus-within{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.08)}.prompt-shell textarea{display:block;width:100%;min-height:112px;box-sizing:border-box;resize:vertical;border:0;outline:0;background:transparent;padding:17px;font:inherit;font-size:13px;line-height:1.65;color:#292b3b}.prompt-shimmer{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,#8b5cf6,#d946ef,transparent);background-size:200% 100%;animation:shimmer 1.2s linear infinite}.image-form-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px}.image-form-foot>span{font-size:9px;color:#9498a7}.generate-image-btn{display:flex;align-items:center;gap:9px;border:0;border-radius:13px;padding:12px 17px;background:linear-gradient(135deg,#6d5dfc,#b83df1);color:#fff;font-size:11px;font-weight:900;cursor:pointer;box-shadow:0 10px 25px rgba(109,93,252,.22);transition:transform .2s,box-shadow .2s}.generate-image-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 30px rgba(109,93,252,.3)}.generate-image-btn:disabled{opacity:.5;cursor:not-allowed}.btn-spark{font-size:14px}.btn-arrow{font-size:14px}
+        .image-result{position:relative;min-height:390px;margin-top:14px;padding:22px;border-radius:22px;display:grid;place-items:center;overflow:hidden}.image-result.generating{background:radial-gradient(circle at 50% 42%,rgba(139,92,246,.11),transparent 30%),linear-gradient(180deg,#fff,#fbfaff)}.generation-state{text-align:center;position:relative}.generation-logo{position:relative;z-index:2;width:72px;height:72px;margin:0 auto 18px;display:grid;place-items:center;border-radius:24px;background:linear-gradient(135deg,#6d5dfc,#c43df2);color:#fff;font-size:31px;box-shadow:0 16px 45px rgba(109,93,252,.3);animation:float 2.2s ease-in-out infinite}.generation-rings{position:absolute;width:150px;height:150px;left:50%;top:-39px;transform:translateX(-50%);pointer-events:none}.generation-rings i{position:absolute;inset:0;border:1px solid rgba(109,93,252,.16);border-radius:50%;animation:ring 2.2s ease-out infinite}.generation-rings i:nth-child(2){animation-delay:.55s}.generation-rings i:nth-child(3){animation-delay:1.1s}.generation-state h2{margin:0 0 7px;font-size:20px}.generation-state p{margin:0;color:#8a8e9e;font-size:11px}.thinking-bar{width:min(300px,70vw);height:4px;margin:18px auto 0;border-radius:9px;background:#eceaf5;overflow:hidden}.thinking-bar span{display:block;width:45%;height:100%;border-radius:9px;background:linear-gradient(90deg,#6d5dfc,#d946ef);animation:progress 1.5s ease-in-out infinite}
+        .result-content{width:100%}.result-top{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:14px}.result-top h2{margin:4px 0 0}.ready-pill{font-size:9px;font-weight:900;color:#4d7d5b;background:#effaf1;border:1px solid #d5efd9;padding:7px 10px;border-radius:999px}.image-frame{padding:8px;border-radius:19px;background:linear-gradient(135deg,#f4f1ff,#fff);border:1px solid #e6e2f3}.image-frame img{display:block;width:100%;max-height:700px;object-fit:contain;border-radius:14px}.result-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:13px}.result-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #e2dfed;background:#fff;color:#3e4050;border-radius:11px;padding:10px 13px;font-size:10px;font-weight:900;cursor:pointer}.result-btn:hover{border-color:#bfb5ff;transform:translateY(-1px)}.empty-image-state{text-align:center;max-width:460px}.empty-glow{width:64px;height:64px;margin:0 auto 16px;display:grid;place-items:center;border-radius:21px;background:linear-gradient(135deg,#6d5dfc,#d946ef);color:#fff;font-size:27px;box-shadow:0 14px 38px rgba(109,93,252,.22);animation:float 3s ease-in-out infinite}.empty-image-state h2{margin:0 0 7px;font-size:20px}.empty-image-state p{margin:0;color:#8b8f9e;font-size:11px;line-height:1.7}.image-note{text-align:center;color:#9a9eac;font-size:8px;margin:12px 0 2px}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(139,92,246,.35)}70%{box-shadow:0 0 0 8px rgba(139,92,246,0)}100%{box-shadow:0 0 0 0 rgba(139,92,246,0)}}@keyframes ring{0%{transform:scale(.45);opacity:.8}100%{transform:scale(1.35);opacity:0}}@keyframes progress{0%{transform:translateX(-110%)}100%{transform:translateX(230%)}}@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes orbit{to{transform:rotate(360deg)}}
+        @media(max-width:760px){.image-hero{min-height:330px;padding:28px 20px;border-radius:22px}.image-back{top:17px;right:17px}.image-hero h1{font-size:clamp(36px,12vw,54px);margin-top:45px}.image-create-card,.image-result{padding:16px;border-radius:18px}.image-presets{grid-template-columns:repeat(2,1fr)}.create-head{align-items:flex-start}.gemini-pill{display:none}.image-form-foot{align-items:flex-end}.image-form-foot>span{max-width:46%}.generate-image-btn{padding:11px 13px}.image-result{min-height:340px}.result-top{align-items:flex-start}.result-top h2{font-size:18px}}
+        @media(max-width:430px){.image-presets{grid-template-columns:1fr 1fr;gap:7px}.image-preset{padding:11px 9px}.image-preset span{font-size:10px}.image-form-foot{flex-direction:column;align-items:stretch}.image-form-foot>span{max-width:none}.generate-image-btn{justify-content:center}}
+      `}</style>
     </main>
   );
 }
