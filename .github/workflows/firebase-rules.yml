@@ -1,0 +1,40 @@
+name: Deploy Firebase Realtime Database Rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "database.rules.json"
+      - "firebase.json"
+      - ".github/workflows/firebase-rules.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy-rtdb-rules:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
+      - name: Authenticate with Firebase
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Deploy Realtime Database rules
+        run: firebase deploy --only database --project kuldeep-study --non-interactive
