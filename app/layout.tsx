@@ -8,6 +8,7 @@ import "./premium-dashboard.css";
 import "./project-lab-ai.css";
 import "./ai-fullframe.css";
 import "./premium-colorful.css";
+import "./premium-light-theme.css";
 import AppFrame from "./app-frame";
 import { AuthProvider } from "../lib/auth-context";
 
