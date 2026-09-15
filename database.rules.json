@@ -12,6 +12,31 @@
             ".write": "auth != null && auth.uid === $uid",
             ".validate": "newData.hasChildren(['userId', 'name', 'topic', 'subject', 'classLevel', 'templateId', 'blocks', 'research']) && newData.child('userId').val() === auth.uid && newData.child('name').isString() && newData.child('topic').isString() && newData.child('subject').isString() && newData.child('classLevel').isString()"
           }
+        },
+        "media": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$mediaId": {
+            ".write": "auth != null && auth.uid === $uid && newData.child('ownerId').val() === auth.uid"
+          }
+        }
+      }
+    },
+    "posts": {
+      ".read": "auth != null",
+      "$postId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('authorId').val() === auth.uid) || (data.exists() && data.child('authorId').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['authorId', 'text', 'likes', 'replies', 'createdAt']) && newData.child('authorId').isString() && newData.child('authorId').val() === auth.uid && newData.child('text').isString() && newData.child('likes').isNumber() && newData.child('replies').isNumber() && newData.child('createdAt').isNumber()"
+      }
+    },
+    "communities": {
+      ".read": "auth != null",
+      "$communityId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('ownerId').val() === auth.uid) || (data.exists() && data.child('ownerId').val() === auth.uid))",
+        "members": {
+          "$uid": {
+            ".read": "auth != null",
+            ".write": "auth != null && ($uid === auth.uid || root.child('communities').child($communityId).child('ownerId').val() === auth.uid)"
+          }
         }
       }
     },
