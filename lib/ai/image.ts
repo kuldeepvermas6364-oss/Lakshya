@@ -1,4 +1,4 @@
-const DEFAULT_MODEL = "gemini-2.5-flash-image";
+const DEFAULT_MODEL = "gemini-3.1-flash-image";
 const API_ROOT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export type GeneratedImage = {
@@ -27,13 +27,8 @@ export async function generateStudyImage(prompt: string): Promise<GeneratedImage
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{
-        role: "user",
-        parts: [{ text: cleanPrompt }],
-      }],
-      generationConfig: {
-        responseModalities: ["IMAGE"],
-      },
+      contents: [{ role: "user", parts: [{ text: cleanPrompt }] }],
+      generationConfig: { responseModalities: ["IMAGE"] },
     }),
     cache: "no-store",
   });
@@ -53,8 +48,5 @@ export async function generateStudyImage(prompt: string): Promise<GeneratedImage
     throw new Error(finishReason ? `Gemini did not return an image (${finishReason}). Try a different prompt.` : "Gemini did not return an image. Try a different prompt.");
   }
 
-  return {
-    data: imagePart.inlineData.data,
-    mimeType: imagePart.inlineData.mimeType || "image/png",
-  };
+  return { data: imagePart.inlineData.data, mimeType: imagePart.inlineData.mimeType || "image/png" };
 }
