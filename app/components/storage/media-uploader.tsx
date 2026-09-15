@@ -19,7 +19,7 @@ function formatSize(bytes: number) {
   return `${Math.round(bytes / 104857.6) / 10} MB`;
 }
 
-export function MediaUploader({ category = "posts", multiple = true, accept = "image/*,video/*,.pdf,.txt", maxFiles = 8, onComplete }: Props) {
+export function MediaUploader({ category = "posts", multiple = true, accept = "image/*,video/*,.pdf,.txt,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip", maxFiles = 8, onComplete }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -70,7 +70,7 @@ export function MediaUploader({ category = "posts", multiple = true, accept = "i
     >
       <span className="storage-icon">↑</span>
       <strong>Add {category === "study-materials" ? "study material" : "media"}</strong>
-      <small>Images, videos, PDF & text · secure upload · optimized delivery</small>
+      <small>Images, videos, PDF, documents & ZIP · secure upload · optimized delivery</small>
     </button>
     <input ref={inputRef} hidden type="file" accept={accept} multiple={multiple} onChange={(event) => { if (event.target.files) addFiles(event.target.files); event.currentTarget.value = ""; }} />
 
