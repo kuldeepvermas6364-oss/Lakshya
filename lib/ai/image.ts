@@ -13,7 +13,10 @@ function getApiKey() {
 }
 
 function getModel() {
-  return process.env.GEMINI_IMAGE_MODEL || DEFAULT_MODEL;
+  // Gemini 3.1 Flash Image (Nano Banana 2) is Google's stable, recommended
+  // all-around image-generation model. Keep an env override for deployments,
+  // but always fall back to this known-good model.
+  return process.env.GEMINI_IMAGE_MODEL?.trim() || DEFAULT_MODEL;
 }
 
 export async function generateStudyImage(prompt: string): Promise<GeneratedImage> {
