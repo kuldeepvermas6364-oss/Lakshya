@@ -1,21 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Keep the existing Vercel variable names compatible.
 const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
-
 export const gemini = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
-// 3.8 Flash is the current stable production model. The fallback chain uses
-// current stable Flash models so a temporary capacity issue does not leave the UI spinning.
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Faster everyday-study default. GEMINI_MODEL can still override this in Vercel.
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 const FALLBACK_MODELS = [
   GEMINI_MODEL,
-  "gemini-3.7-flash",
-  "gemini-3.6-flash",
+  "gemini-3.8-flash",
   "gemini-3.5-flash-lite",
 ].filter((value, index, all) => all.indexOf(value) === index);
 
-const REQUEST_TIMEOUT_MS = 15000;
+const REQUEST_TIMEOUT_MS = 12000;
 
 export function getGeminiModel(systemInstruction?: string, modelName = GEMINI_MODEL) {
   if (!gemini) throw new Error("GEMINI_API_KEY or AI_API_KEY is not configured");
@@ -44,8 +40,7 @@ export async function generateGeminiContent(prompt: string, systemInstruction?: 
   if (!gemini) throw new Error("GEMINI_API_KEY or AI_API_KEY is not configured");
   let lastError: unknown;
 
-  // One attempt per model: this avoids the old 3-model × 2-retry chain that could
-  // keep the frontend in a loading state for a very long time.
+  // No repeated retries: a failed/slow model moves quickly to the next current Flash model.
   for (const modelName of FALLBACK_MODELS) {
     try {
       const model = getGeminiModel(systemInstruction, modelName);
