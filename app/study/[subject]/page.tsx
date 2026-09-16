@@ -13,12 +13,12 @@ const curriculum = {
 type Material = "quiz" | "notes" | "summary" | "flashcards" | "practice" | "pyq" | "tricky";
 const materialInfo: { key: Material; icon: string; title: string; desc: string }[] = [
   { key: "quiz", icon: "🧠", title: "Quiz / क्विज़", desc: "Chapter-wise MCQs & timed tests" },
-  { key: "notes", icon: "📝", title: "Notes / नोट्स", desc: "Detailed chapter notes" },
-  { key: "summary", icon: "📄", title: "Summary / सारांश", desc: "Quick revision summaries" },
-  { key: "flashcards", icon: "🗂️", title: "Flashcards / फ्लैशकार्ड", desc: "Active-recall revision" },
-  { key: "practice", icon: "✍️", title: "Practice / अभ्यास", desc: "Concept & JEE-level questions" },
-  { key: "pyq", icon: "📚", title: "PYQ / पिछले वर्ष के प्रश्न", desc: "Previous-year questions" },
-  { key: "tricky", icon: "⚡", title: "Tricky Questions / ट्रिकी प्रश्न", desc: "High-thinking questions & traps" },
+  { key: "notes", icon: "📝", title: "Notes / नोट्स", desc: "AI-assisted detailed chapter notes" },
+  { key: "summary", icon: "📄", title: "Summary / सारांश", desc: "AI quick revision summaries" },
+  { key: "flashcards", icon: "🗂️", title: "Flashcards / फ्लैशकार्ड", desc: "AI active-recall revision cards" },
+  { key: "practice", icon: "✍️", title: "Practice / अभ्यास", desc: "Concept & JEE-level AI practice" },
+  { key: "pyq", icon: "📚", title: "PYQ / पिछले वर्ष के प्रश्न", desc: "Chapter-wise PYQ practice with AI" },
+  { key: "tricky", icon: "⚡", title: "Tricky Questions / ट्रिकी प्रश्न", desc: "High-thinking questions & common traps" },
 ];
 
 export default function SubjectPage({ params }: { params: Promise<{ subject: string }> }) {
@@ -84,7 +84,7 @@ export default function SubjectPage({ params }: { params: Promise<{ subject: str
           return <article className={`${styles.chapterCard} ${completed ? styles.completed : ""}`} key={chapter}>
             <span className={styles.chapterNumber}>CH - {String(index + 1).padStart(2, "0")}</span>
             <Link href={`/study/chapter?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}`} className={styles.chapterBody}>
-              <b>{chapter}</b><small>Concepts · AI Learning · Practice · Revision</small>
+              <b>{chapter}</b><small>Concepts · AI Learning · NCERT · Practice · Revision</small>
             </Link>
             <span className={styles.chapterProgress}>{completed ? "✓" : `${progress[chapterId(chapter)] || 0}%`}</span>
             <Link href={`/study/chapter?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}`} className={styles.chapterArrow}>›</Link>
@@ -92,15 +92,15 @@ export default function SubjectPage({ params }: { params: Promise<{ subject: str
         })}
       </section>
     </> : <>
-      <section className={styles.materialIntro}><p>STUDY MATERIAL / पढ़ाई सामग्री</p><h2>{data.name} • Learn, practise & revise</h2><span>Har material ko chapter-wise open karo — same clean format, fast navigation.</span></section>
+      <section className={styles.materialIntro}><p>STUDY MATERIAL / पढ़ाई सामग्री</p><h2>{data.name} • Learn, practise & revise with AI</h2><span>हर material chapter-wise खुलेगा और उसी chapter workspace में AI से पढ़कर MCQ, notes, summary, flashcard, practice, PYQ और tricky questions save किए जा सकेंगे।</span></section>
       <section className={styles.materialList}>
         {materialInfo.map(item => {
           const open = openMaterial === item.key;
           return <div className={`${styles.materialCard} ${open ? styles.materialOpen : ""}`} key={item.key}>
             <button className={styles.materialRow} onClick={() => setOpenMaterial(open ? null : item.key)}><span className={styles.materialIcon}>{item.icon}</span><span><b>{item.title}</b><small>{item.desc}</small></span><strong>{open ? "⌄" : "›"}</strong></button>
             {open && <div className={styles.materialChapters}>{data.chapters.map((chapter, index) => {
-              const href = item.key === "quiz" ? `/quiz?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}` : `/study/chapter?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}`;
-              return <div className={styles.materialChapter} key={chapter}><Link href={href}><span>📄</span><b>{String(index + 1).padStart(2, "0")} · {chapter}</b></Link>{item.key === "quiz" ? <Link href={href} className={styles.startButton}>Start MCQ</Link> : <Link href={href} className={styles.openButton}>Open</Link>}</div>;
+              const href = `/study/chapter?subject=${encodeURIComponent(data.name)}&chapter=${encodeURIComponent(chapter)}&material=${encodeURIComponent(item.key)}`;
+              return <div className={styles.materialChapter} key={chapter}><Link href={href}><span>📄</span><b>{String(index + 1).padStart(2, "0")} · {chapter}</b></Link><Link href={href} className={item.key === "quiz" ? styles.startButton : styles.openButton}>{item.key === "quiz" ? "Start AI MCQ" : "Open AI"}</Link></div>;
             })}</div>}
           </div>;
         })}
