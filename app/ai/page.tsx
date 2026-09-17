@@ -47,6 +47,7 @@ export default function AIPage() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [streamingId, setStreamingId] = useState<number | null>(null);
   const [subject, setSubject] = useState("General");
   const [error, setError] = useState("");
   const [imageData, setImageData] = useState("");
@@ -66,19 +67,67 @@ export default function AIPage() {
     const value = text.trim() || (imageData ? "Analyze this image and explain what it shows. Solve any visible academic question step by step." : "");
     if (!value || loading) return;
     const id = Date.now();
+    const aiId = id + 1;
     const attachedImage = imageData;
     setMessages((prev) => [...prev, { id, role: "user", text: value, image: attachedImage || undefined }]);
     setInput(""); setLoading(true); setError("");
+
     try {
-      const endpoint = attachedImage ? "/api/ai/vision" : "/api/ai/chat";
-      const body = attachedImage ? { message: value, image: attachedImage, mimeType: imageMime, context } : { message: value, context };
-      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "AI request failed");
-      setMessages((prev) => [...prev, { id: id + 1, role: "ai", text: data.text || "No response was returned." }]);
-      if (attachedImage) { setImageData(""); setImageName(""); setImageMime("image/jpeg"); }
-    } catch (e) { setError(e instanceof Error ? e.message : "AI service is temporarily unavailable. Please try again."); }
-    finally { setLoading(false); }
+      if (attachedImage) {
+        const res = await fetch("/api/ai/vision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: value, image: attachedImage, mimeType: imageMime, context }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "AI request failed");
+        setMessages((prev) => [...prev, { id: aiId, role: "ai", text: data.text || "No response was returned." }]);
+        setImageData(""); setImageName(""); setImageMime("image/jpeg");
+        return;
+      }
+
+      // Text chat is streamed so the first generated tokens appear immediately.
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "text/plain" },
+        body: JSON.stringify({ message: value, context, stream: true }),
+      });
+      if (!res.ok) {
+        let message = "AI request failed";
+        try { const data = await res.json(); message = data.error || message; } catch { /* non-JSON error */ }
+        throw new Error(message);
+      }
+      if (!res.body) throw new Error("AI stream was not available. Please try again.");
+
+      setStreamingId(aiId);
+      setMessages((prev) => [...prev, { id: aiId, role: "ai", text: "" }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      try {
+        while (true) {
+          const { value: chunk, done } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(chunk, { stream: true });
+          setMessages((prev) => prev.map((message) => message.id === aiId ? { ...message, text: accumulated } : message));
+        }
+        accumulated += decoder.decode();
+        if (accumulated) {
+          setMessages((prev) => prev.map((message) => message.id === aiId ? { ...message, text: accumulated } : message));
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      if (!accumulated.trim()) throw new Error("AI returned an empty response. Please try again.");
+    } catch (e) {
+      setMessages((prev) => prev.filter((message) => !(message.id === aiId && message.role === "ai" && !message.text)));
+      setError(e instanceof Error ? e.message : "AI service is temporarily unavailable. Please try again.");
+    } finally {
+      setStreamingId(null);
+      setLoading(false);
+    }
   }
 
   function submit(event: FormEvent) { event.preventDefault(); void ask(); }
@@ -102,7 +151,7 @@ export default function AIPage() {
       </div>
       <div className="ai-conversation" aria-live="polite">
         {messages.length === 0 && !loading ? <div className="ai-empty"><div className="ai-empty-icon">✦</div><h3>Ready when you are.</h3><p>Ask a question, paste a concept, upload a photo, or create a study image with Gemini Image AI.</p><Link href="/ai/image" className="ai-empty-image-link">✦ Create a study image</Link></div> : messages.map((message) => <article key={message.id} className={`ai-message ${message.role}`}><span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>{message.image && <img className="ai-user-image" src={message.image} alt="Uploaded study material" />}{message.role === "ai" ? <RichAIResponse text={message.text} /> : <p>{message.text}</p>}</article>)}
-        {loading && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><i></i><i></i><i></i><span>Looking at your question{imageData ? " and image" : ""}…</span></div></div>}
+        {loading && streamingId === null && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><i></i><i></i><i></i><span>Looking at your question{imageData ? " and image" : ""}…</span></div></div>}
       </div>
       {error && <div className="ai-error" role="alert">{error} <button onClick={() => setError("")}>Dismiss</button></div>}
       <form onSubmit={submit} className="ai-composer">
