@@ -1,4 +1,4 @@
-import { extractWebSources, formatWebSources, generateGeminiContent, streamGeminiContent, type WebSource } from "../../../../lib/ai/gemini";
+import { buildWebContext, formatWebSources, generateGeminiContent, searchWeb, streamGeminiContent, type WebSource } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,11 +11,11 @@ LANGUAGE:
 - For academic answers, use clean, natural Hindi or English as appropriate.
 
 WEB SEARCH:
-- You have access to live Google Search grounding.
-- Use web search when the question needs current, changing, recent, factual or externally verifiable information, or when the student explicitly asks you to search/check the web.
+- Lakshya can receive live web-search context from Parallel Search and Tavily.
+- Use the supplied web sources when present for current, changing, recent, factual or externally verifiable information.
 - Prefer authoritative and primary sources when available.
-- Do not claim that you browsed unless the grounding tool actually returned web sources.
-- When web sources are used, base relevant claims on those sources and let the app show the source list.
+- Never claim you browsed unless web sources are supplied in the prompt.
+- Do not invent citations or sources.
 
 FORMATTING:
 - Use normal readable text. Never wrap normal answers, MCQs, explanations or notes in code fences.
@@ -36,13 +36,14 @@ MCQ RULES:
 STUDY QUALITY:
 - Explain concepts accurately at the student's class/exam level.
 - For calculations, show clear steps and a final answer.
-- Do not invent citations, sources, facts or browsing claims.
 - Do not encourage cheating or unsafe experiments/activities.`;
 
-function makePrompt(message: string, context: string) {
-  return context
-    ? `Student context:\n${context}\n\nStudent request:\n${message}`
-    : message;
+function makePrompt(message: string, context: string, webContext = "") {
+  const parts = [context ? `Student context:\n${context}` : "", `Student request:\n${message}`];
+  if (webContext) {
+    parts.push(`Live web sources retrieved by Lakshya:\n${webContext}\n\nUse these sources only when relevant and do not invent details beyond them.`);
+  }
+  return parts.filter(Boolean).join("\n\n");
 }
 
 export async function POST(request: Request) {
@@ -54,27 +55,27 @@ export async function POST(request: Request) {
 
     if (!message) return new Response(JSON.stringify({ error: "Message is required" }), { status: 400, headers: { "Content-Type": "application/json" } });
 
-    const prompt = makePrompt(message, context);
+    // Search providers run concurrently and only for web/current-style queries.
+    // This removes Google grounding from every request and keeps normal study chats fast.
+    const sources = await searchWeb(message);
+    const prompt = makePrompt(message, context, buildWebContext(sources));
 
     if (!stream) {
       const text = await generateGeminiContent(prompt, LAKSHYA_SYSTEM);
-      return Response.json({ text });
+      return Response.json({ text: `${text}${formatWebSources(sources)}` });
     }
 
     const result = await streamGeminiContent(prompt, LAKSHYA_SYSTEM);
     const encoder = new TextEncoder();
-    const sources = new Map<string, WebSource>();
-
     const bodyStream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
           for await (const chunk of result) {
             const text = chunk.text;
             if (text) controller.enqueue(encoder.encode(text));
-            for (const source of extractWebSources(chunk)) sources.set(source.url, source);
           }
 
-          const sourceText = formatWebSources([...sources.values()]);
+          const sourceText = formatWebSources(sources);
           if (sourceText) controller.enqueue(encoder.encode(sourceText));
           controller.close();
         } catch (error) {
