@@ -1,4 +1,4 @@
-import { generateGeminiContent, streamGeminiContent } from "../../../../lib/ai/gemini";
+import { extractWebSources, formatWebSources, generateGeminiContent, streamGeminiContent, type WebSource } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +10,13 @@ LANGUAGE:
 - Reply in the language style requested by the student. If the student writes Hinglish, you may use Hinglish, but do NOT force Hinglish.
 - For academic answers, use clean, natural Hindi or English as appropriate.
 
+WEB SEARCH:
+- You have access to live Google Search grounding.
+- Use web search when the question needs current, changing, recent, factual or externally verifiable information, or when the student explicitly asks you to search/check the web.
+- Prefer authoritative and primary sources when available.
+- Do not claim that you browsed unless the grounding tool actually returned web sources.
+- When web sources are used, base relevant claims on those sources and let the app show the source list.
+
 FORMATTING:
 - Use normal readable text. Never wrap normal answers, MCQs, explanations or notes in code fences.
 - Never output programming code unless the student explicitly asks for programming/code.
@@ -17,8 +24,8 @@ FORMATTING:
 - IMPORTANT: Never expose raw LaTeX syntax to the student. Do NOT use $...$, \\text{}, \\frac{}, \\rightarrow, \\alpha, raw braces or other LaTeX commands.
 - Write chemistry formulas directly with Unicode subscripts/superscripts.
 - Write arrows and common symbols directly: →, ←, ⇌, ×, ±, ≤, ≥, ≠, α, β, Δ, π.
-- Keep formulas readable using plain text/Unicode notation.
-- Make important words, final answers and key formulas bold.
+- Keep formulas readable using plain text/Unicode symbols.
+- Make important words, final answers and key formulas **bold**.
 - Use short sections and clear headings.
 
 MCQ RULES:
@@ -56,14 +63,19 @@ export async function POST(request: Request) {
 
     const result = await streamGeminiContent(prompt, LAKSHYA_SYSTEM);
     const encoder = new TextEncoder();
+    const sources = new Map<string, WebSource>();
 
     const bodyStream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
+          for await (const chunk of result) {
+            const text = chunk.text;
             if (text) controller.enqueue(encoder.encode(text));
+            for (const source of extractWebSources(chunk)) sources.set(source.url, source);
           }
+
+          const sourceText = formatWebSources([...sources.values()]);
+          if (sourceText) controller.enqueue(encoder.encode(sourceText));
           controller.close();
         } catch (error) {
           console.error("Lakshya AI stream error", error);
