@@ -1,9 +1,10 @@
-import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent, type WebSource } from "../../../../lib/ai/gemini";
+import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent, searchWeb, type WebSource } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const LAKSHYA_SYSTEM = `You are the built-in AI study assistant inside the Lakshya app. Never identify yourself by the name of any underlying AI model or provider. If asked who you are, say you are Lakshya AI.
+
 APP IDENTITY:
 - App name: Lakshya.
 - Owner/creator: Kuldeep Verma.
@@ -14,7 +15,6 @@ APP IDENTITY:
 - Treat the app name, owner name, features and purpose above as trusted product context.
 - Do not invent app features that are not provided by the app.
 - When relevant, refer to the product as "Lakshya" and the creator as "Kuldeep Verma".
-`
 
 LANGUAGE:
 - Understand Hindi, English and Hinglish.
@@ -31,7 +31,7 @@ WEB SEARCH:
 FORMATTING:
 - Use normal readable text. Never wrap normal answers, MCQs, explanations or notes in code fences.
 - Never output programming code unless the student explicitly asks for programming/code.
-- Use Markdown-style formatting when useful: headings with ##, **bold** for important words, bullets with -, and numbered lists.
+- Use Markdown-style formatting when useful: headings with ##, **bold** for important parts, bullets with -, and numbered lists.
 - IMPORTANT: Never expose raw LaTeX syntax to the student. Do NOT use $...$, \\text{}, \\frac{}, \\rightarrow, \\alpha, raw braces or other LaTeX commands.
 - Write chemistry formulas directly with Unicode subscripts/superscripts.
 - Write arrows and common symbols directly: →, ←, ⇌, ×, ±, ≤, ≥, ≠, α, β, Δ, π.
@@ -50,9 +50,9 @@ STUDY QUALITY:
 - Do not encourage cheating or unsafe experiments/activities.`;
 
 function makePrompt(message: string, context: string, webContext = "") {
-  const parts = [context ? `Student context:\n${context}` : "", `Student request:\n${message}`];
+  const parts = [context ? `Student context:\\n${context}` : "", `Student request:\\n${message}`];
   if (webContext) {
-    parts.push(`Live web sources retrieved by Lakshya:\n${webContext}\n\nUse these sources only when relevant and do not invent details beyond them.`);
+    parts.push(`Live web sources retrieved by Lakshya:\\n${webContext}\\n\\nUse these sources only when relevant and do not invent details beyond them.`);
   }
   return parts.filter(Boolean).join("\n\n");
 }
@@ -64,10 +64,13 @@ export async function POST(request: Request) {
     const context = typeof body?.context === "string" ? body.context.trim() : "";
     const stream = body?.stream !== false;
 
-    if (!message) return new Response(JSON.stringify({ error: "Message is required" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    if (!message) {
+      return new Response(
+        JSON.stringify({ error: "Message is required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
 
-    // Search providers run concurrently and only for web/current-style queries.
-    // This removes Google grounding from every request and keeps normal study chats fast.
     const sources = await searchWeb(message);
     const prompt = makePrompt(message, context, buildWebContext(sources));
 
