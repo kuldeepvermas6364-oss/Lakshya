@@ -17,7 +17,7 @@ FORMATTING RULES:
 
 export async function POST(request: Request) {
   try {
-    if (!normalApiKey && !imageApiKey) return NextResponse.json({ error: "Gemini AI API is not configured" }, { status: 503 });
+    if (!apiKey) return NextResponse.json({ error: "Gemini AI API is not configured" }, { status: 503 });
     const body = await request.json();
     const message = typeof body?.message === "string" ? body.message.trim() : "What is shown in this image? Explain it clearly.";
     const image = typeof body?.image === "string" ? body.image : "";
