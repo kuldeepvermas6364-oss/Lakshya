@@ -23,10 +23,9 @@ export function useImageAILane() {
 }
 
 export function getStudyAIConfig(systemInstruction?: string) {
-  return {
-    ...(systemInstruction ? { systemInstruction } : {}),
-    responseModalities: ["TEXT"] as const,
-  };
+  // Keep this config intentionally minimal for @google/genai type compatibility.
+  // Text is the default response modality for study answers.
+  return systemInstruction ? { systemInstruction } : {};
 }
 
 export function getGeminiClient() {
