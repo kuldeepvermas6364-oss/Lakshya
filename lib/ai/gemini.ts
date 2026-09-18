@@ -1,12 +1,33 @@
-import { GoogleGenAI } from "@google/genai";\nimport { randomInt } from "node:crypto";
+import { GoogleGenAI } from "@google/genai";
+import { randomInt } from "node:crypto";
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 export const gemini = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fast everyday-study model. Override in Vercel with GEMINI_MODEL when needed.
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";\nexport const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+export const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image";
 const REQUEST_TIMEOUT_MS = 15000;
-const SEARCH_TIMEOUT_MS = 4500;\n\n// Keep the two Gemini lanes on roughly a 50/50 split without changing any Vercel env names.\n// The image lane can return text as well as images, so it is safe for normal study answers.\nfunction getImageLaneClient() {\n  const key = process.env.GEMINI_IMAGE_API_KEY;\n  if (!key) return null;\n  return new GoogleGenAI({ apiKey: key });\n}\n\nexport function useImageAILane() {\n  return randomInt(0, 2) === 1 && Boolean(process.env.GEMINI_IMAGE_API_KEY);\n}\n\nexport function getStudyAIConfig(systemInstruction?: string) {\n  return {\n    ...(systemInstruction ? { systemInstruction } : {}),\n    responseModalities: ["TEXT"],\n  };\n}
+const SEARCH_TIMEOUT_MS = 4500;
+
+// Keep the two Gemini lanes on roughly a 50/50 split without changing any Vercel env names.
+// The image lane can return text as well as images, so it is safe for normal study answers.
+function getImageLaneClient() {
+  const key = process.env.GEMINI_IMAGE_API_KEY;
+  if (!key) return null;
+  return new GoogleGenAI({ apiKey: key });
+}
+
+export function useImageAILane() {
+  return randomInt(0, 2) === 1 && Boolean(process.env.GEMINI_IMAGE_API_KEY);
+}
+
+export function getStudyAIConfig(systemInstruction?: string) {
+  return {
+    ...(systemInstruction ? { systemInstruction } : {}),
+    responseModalities: ["TEXT"],
+  };
+}
 
 export function getGeminiClient() {
   if (!gemini) throw new Error("GEMINI_API_KEY or AI_API_KEY is not configured");
@@ -50,7 +71,11 @@ export function extractWebSources(response: any): WebSource[] {
 
 export function formatWebSources(sources: WebSource[]) {
   if (!sources.length) return "";
-  return `\n\n## Sources\n${sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}`).join("\n")}`;
+  return `
+
+## Sources
+${sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}`).join("
+")}`;
 }
 
 function shouldSearchWeb(message: string) {
@@ -145,8 +170,59 @@ export async function searchWeb(query: string): Promise<WebSource[]> {
 export function buildWebContext(sources: WebSource[]) {
   if (!sources.length) return "";
   return sources
-    .map((source, index) => `SOURCE ${index + 1}\nTitle: ${source.title}\nURL: ${source.url}\nExcerpt: ${source.content || ""}`)
-    .join("\n\n");
+    .map((source, index) => `SOURCE ${index + 1}
+Title: ${source.title}
+URL: ${source.url}
+Excerpt: ${source.content || ""}`)
+    .join("
+
+");
+}
+
+async function generateImageLaneText(prompt: string, systemInstruction?: string) {
+  const client = getImageLaneClient();
+  if (!client) throw new Error("GEMINI_IMAGE_API_KEY is not configured");
+  const response = await withTimeout(
+    client.models.generateContent({
+      model: GEMINI_IMAGE_MODEL,
+      contents: prompt,
+      config: getStudyAIConfig(systemInstruction),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  return `${response.text || ""}`.trim();
+}
+
+export async function generateStudyAIContent(prompt: string, systemInstruction?: string) {
+  if (useImageAILane()) {
+    try {
+      return await generateImageLaneText(prompt, systemInstruction);
+    } catch (error) {
+      console.error("Gemini image-capable lane failed; falling back to fast Gemini lane", error);
+    }
+  }
+  return generateGeminiContent(prompt, systemInstruction);
+}
+
+async function streamImageLaneText(prompt: string, systemInstruction?: string) {
+  const client = getImageLaneClient();
+  if (!client) throw new Error("GEMINI_IMAGE_API_KEY is not configured");
+  return client.models.generateContentStream({
+    model: GEMINI_IMAGE_MODEL,
+    contents: prompt,
+    config: getStudyAIConfig(systemInstruction),
+  });
+}
+
+export async function streamStudyAIContent(prompt: string, systemInstruction?: string) {
+  if (useImageAILane()) {
+    try {
+      return await streamImageLaneText(prompt, systemInstruction);
+    } catch (error) {
+      console.error("Gemini image-capable stream failed; falling back to fast Gemini stream", error);
+    }
+  }
+  return streamGeminiContent(prompt, systemInstruction);
 }
 
 export async function generateGeminiContent(prompt: string, systemInstruction?: string) {
