@@ -25,7 +25,7 @@ export function useImageAILane() {
 export function getStudyAIConfig(systemInstruction?: string) {
   return {
     ...(systemInstruction ? { systemInstruction } : {}),
-    responseModalities: ["TEXT"],
+    responseModalities: ["TEXT"] as const,
   };
 }
 
