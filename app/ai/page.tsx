@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanAIText } from "@/lib/ai/format";
 
-type Message = { id: number; role: "user" | "ai"; text: string; image?: string };\ntype PlanTask = { title: string; subjectId: string; date: string; time: string; durationMinutes: number };\ntype PendingPlan = { planTitle: string; summary: string; questions: string[]; tasks: PlanTask[] };
+type Message = { id: number; role: "user" | "ai"; text: string; image?: string };\ntype PlanTask = { title: string; subjectId: string; date: string; time: string; durationMinutes: number };\ntype PendingPlan = { planTitle: string; summary: string; questions: string[]; tasks: PlanTask[] };\ntype PendingAction = { type: string; summary: string; payload: Record<string, any> };
 
 const prompts = [
   ["Explain", "Explain a difficult concept in simple language with an example."],
@@ -130,7 +130,7 @@ export default function AIPage() {
   const [error, setError] = useState("");
   const [imageData, setImageData] = useState("");
   const [imageMime, setImageMime] = useState("image/jpeg");
-  const [imageName, setImageName] = useState("");\n  const [pendingPlan, setPendingPlan] = useState<PendingPlan | null>(null);\n  const [planSaving, setPlanSaving] = useState(false);
+  const [imageName, setImageName] = useState("");\n  const [pendingPlan, setPendingPlan] = useState<PendingPlan | null>(null);\n  const [planSaving, setPlanSaving] = useState(false);\n  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);\n  const [actionSaving, setActionSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const context = useMemo(() => `Current study context: ${subject}. Keep explanations student-friendly and exam-oriented.`, [subject]);
 
@@ -140,6 +140,33 @@ export default function AIPage() {
       if (stored) { setInput(stored); localStorage.removeItem("lakshya_pyq_ai_prompt"); }
     } catch { /* localStorage can be unavailable in some browser modes */ }
   }, []);
+
+  async function executeAction() {
+    if (!pendingAction || actionSaving) return;
+    setActionSaving(true); setError("");
+    try {
+      const { auth, realtimeDb } = await import("@/lib/firebase");
+      const user = auth.currentUser;
+      if (!user) throw new Error("Sign in to let Lakshya AI change your app data.");
+      const p = pendingAction.payload; const storage = await import("@/lib/study-storage");
+      if (pendingAction.type === "CREATE_PLAN") {
+        for (const task of (p.tasks || [])) await storage.savePlannerTask(user.uid, task);
+      } else if (pendingAction.type === "SAVE_QUIZ") {
+        await storage.saveSavedQuiz(user.uid, { id: `ai-${Date.now()}`, subject:String(p.subject||"Other"), chapter:String(p.chapter||""), topic:String(p.title||"AI Quiz"), language:String(p.language||"English"), difficulty:String(p.difficulty||"Mixed"), questions:Array.isArray(p.questions)?p.questions:[], durationMinutes:Number(p.durationMinutes||30), createdAt:Date.now() });
+      } else if (pendingAction.type === "SAVE_NOTE") {
+        await storage.saveStudyNote(user.uid, { title:String(p.title||"Study note"), content:String(p.content||""), subject:p.subject?String(p.subject):undefined });
+      } else if (pendingAction.type === "LOG_STUDY_SESSION") {
+        await storage.saveStudySession(user.uid, String(p.subjectId||"Other"), Number(p.minutes||0));
+      } else if (pendingAction.type === "UPDATE_PROGRESS") {
+        await storage.updateChapterProgress(user.uid, String(p.chapterId||""), Number(p.progress||0));
+      } else if (pendingAction.type === "UPDATE_SETTINGS") {
+        const { ref, update } = await import("firebase/database"); await update(ref(realtimeDb, `users/${user.uid}/settings`), p);
+        const current=JSON.parse(localStorage.getItem("lakshya_settings")||"{}"); localStorage.setItem("lakshya_settings",JSON.stringify({...current,...p}));
+      } else if (pendingAction.type === "NAVIGATE") { window.location.href=String(p.path||"/study"); return; }
+      else throw new Error("This action is not available yet.");
+      setMessages(prev=>[...prev,{id:Date.now(),role:"ai",text:`✓ Done — ${pendingAction.summary}`}]); setPendingAction(null);
+    } catch(e){setError(e instanceof Error?e.message:"Could not complete that action.");} finally{setActionSaving(false);}
+  }
 
   function isPlanRequest(value: string) {
     return /\\b(plan|planner|schedule|timetable|routine|study plan|schedule me|set.*plan|plan.*set)\\b/i.test(value)
@@ -230,6 +257,17 @@ ${(Array.isArray(data.questions) ? data.questions : ["Tell me your available stu
         return;
       }
 
+      if (!attachedImage) {
+        const ar=await fetch("/api/ai/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:value,context,today:localToday()})});
+        const ad=await ar.json();
+        if(ar.ok && ad.status==="needs_info"){setMessages(prev=>[...prev,{id:aiId,role:"ai",text:`## I need a little more information
+${(ad.questions||[]).map((q:unknown)=>"- "+String(q)).join("\n")}`}]);return;}
+        if(ar.ok && ad.status==="ready" && ad.action){setPendingAction({type:String(ad.action.type),summary:String(ad.summary||"Action ready."),payload:ad.action.payload||{}});setMessages(prev=>[...prev,{id:aiId,role:"ai",text:`## Ready to do it
+${String(ad.summary||"I prepared the requested app action.")}
+
+Review it below and confirm before I change your app data.`}]);return;}
+      }
+
       if (attachedImage) {
         const res = await fetch("/api/ai/vision", {
           method: "POST",
@@ -310,6 +348,13 @@ ${(Array.isArray(data.questions) ? data.questions : ["Tell me your available stu
         {messages.length === 0 && !loading ? <div className="ai-empty"><div className="ai-empty-icon">✦</div><h3>Ready when you are.</h3><p>Ask a question, paste a concept, upload a photo, or create a study image.</p><Link href="/ai/image" className="ai-empty-image-link">✦ Create a study image</Link></div> : messages.map((message) => <article key={message.id} className={`ai-message ${message.role}`}><span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>{message.image && <img className="ai-user-image" src={message.image} alt="Uploaded study material" />}{message.role === "ai" ? <AIResponseContent text={message.text} /> : <p>{message.text}</p>}</article>)}
         {loading && streamingId === null && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><span className="ai-gemini-orb"><span>✦</span></span><div><b>Lakshya AI is thinking</b><small>Analyzing your question{imageData ? " and image" : ""}…</small></div><span className="ai-thinking-dots"><i></i><i></i><i></i></span></div></div>}
       </div>
+      {pendingAction && (
+        <section className="ai-plan-card" aria-label="AI app action confirmation">
+          <div className="ai-plan-head"><div><span className="section-eyebrow">ACTION READY</span><h3>{pendingAction.type.replaceAll("_"," ")}</h3></div></div>
+          <p className="ai-plan-summary">{pendingAction.summary}</p>
+          <div className="ai-plan-actions"><button className="primary" onClick={()=>void executeAction()} disabled={actionSaving}>{actionSaving?"Applying…":"✓ Confirm & apply"}</button><button className="secondary" onClick={()=>setPendingAction(null)} disabled={actionSaving}>Cancel</button></div>
+        </section>
+      )}
       {pendingPlan && pendingPlan.tasks.length > 0 && (
         <section className="ai-plan-card" aria-label="AI generated study plan">
           <div className="ai-plan-head">
