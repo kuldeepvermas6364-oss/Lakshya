@@ -1,4 +1,4 @@
-import { buildWebContext, formatWebSources, generateGeminiContent, searchWeb, streamGeminiContent, type WebSource } from "../../../../lib/ai/gemini";
+import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent, type WebSource } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,11 +61,11 @@ export async function POST(request: Request) {
     const prompt = makePrompt(message, context, buildWebContext(sources));
 
     if (!stream) {
-      const text = await generateGeminiContent(prompt, LAKSHYA_SYSTEM);
+      const text = await generateStudyAIContent(prompt, LAKSHYA_SYSTEM);
       return Response.json({ text: `${text}${formatWebSources(sources)}` });
     }
 
-    const result = await streamGeminiContent(prompt, LAKSHYA_SYSTEM);
+    const result = await streamStudyAIContent(prompt, LAKSHYA_SYSTEM);
     const encoder = new TextEncoder();
     const bodyStream = new ReadableStream<Uint8Array>({
       async start(controller) {
