@@ -36,7 +36,7 @@ export default function ImageAIPage() {
 
   function saveImage() {
     if (!image) return;
-    const item: SavedImage = { id: `${Date.now()}`, image, prompt: prompt.trim() || "Lakshya AI image", savedAt: new Date().toISOString() };
+    const item: SavedImage = { id: `${Date.now()}`, image, prompt: prompt.trim() || "Lakshya study image", savedAt: new Date().toISOString() };
     const next = [item, ...savedImages.filter((x) => x.image !== image)].slice(0, 12);
     persistSaved(next);
     setSaved(true);
@@ -77,9 +77,9 @@ export default function ImageAIPage() {
         <div className="image-orbit orbit-one" />
         <div className="image-orbit orbit-two" />
         <div className="image-hero-copy">
-          <div className="image-kicker"><span className="spark">✦</span> LAKSHYA AI · IMAGE STUDIO</div>
+          <div className="image-kicker"><span className="spark">✦</span> LAKSHYA · IMAGE STUDIO</div>
           <h1>Create anything you need<br /><span>for your studies.</span></h1>
-          <p>Describe a diagram, concept map, project visual or infographic. Gemini turns your idea into a study-ready image.</p>
+          <p>Describe a diagram, concept map, project visual or infographic. Lakshya turns your idea into a study-ready image.</p>
         </div>
         <Link className="image-back" href="/ai">← Back to AI</Link>
       </section>
@@ -87,7 +87,7 @@ export default function ImageAIPage() {
       <section className="image-create-card panel">
         <div className="create-head">
           <div><span className="section-eyebrow">CREATE IMAGE</span><h2>What do you want to see?</h2></div>
-          <div className="gemini-pill"><span className="pulse-dot" /> Gemini Image AI</div>
+          <div className="gemini-pill"><span className="pulse-dot" /> Lakshya Image Studio</div>
         </div>
 
         <div className="image-presets">
@@ -120,7 +120,7 @@ export default function ImageAIPage() {
             <div className="generation-logo"><span>✦</span></div>
             <div className="generation-rings"><i /><i /><i /></div>
             <h2>Creating your image</h2>
-            <p>Gemini is thinking about composition, labels and visual details…</p>
+            <p>Preparing composition, labels and visual details…</p>
             <div className="thinking-bar"><span /></div>
           </div>
         ) : image ? (
@@ -159,7 +159,7 @@ export default function ImageAIPage() {
         </section>
       )}
 
-      <p className="image-note">Powered by Gemini 3.1 Flash Image · Built for Lakshya study workflows</p>
+      <p className="image-note">Lakshya Image Studio · Built for Lakshya study workflows</p>
 
       <style jsx>{`
         .lakshya-image-page{max-width:1180px;overflow:hidden}
