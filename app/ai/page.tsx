@@ -90,7 +90,7 @@ function RichAIResponse({ text }: { text: string }) {
   let list: { key: string; content: string }[] = [];
   const flush = () => {
     if (!list.length) return;
-    nodes.push(<ul className="ai-rich-list" key={\`list-\${nodes.length}\`}>{list.map((x) => <li key={x.key}><InlineText text={x.content} /></li>)}</ul>);
+    nodes.push(<ul className="ai-rich-list" key={`list-${nodes.length}`}>{list.map((x) => <li key={x.key}><InlineText text={x.content} /></li>)}</ul>);
     list = [];
   };
 
@@ -99,22 +99,22 @@ function RichAIResponse({ text }: { text: string }) {
     if (!line) { flush(); return; }
 
     const heading = line.match(/^#{1,3}\s+(.+)/);
-    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={\`h-\${index}\`}><span>✦</span><InlineText text={heading[1]} /></h3>); return; }
+    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={`h-${index}`}><span>✦</span><InlineText text={heading[1]} /></h3>); return; }
 
     const bullet = line.match(/^[-•*]\s+(.+)/);
-    if (bullet) { list.push({ key: \`\${index}\`, content: bullet[1] }); return; }
+    if (bullet) { list.push({ key: `${index}`, content: bullet[1] }); return; }
 
     const numbered = line.match(/^\d+[.)]\s+(.+)/);
-    if (numbered) { flush(); nodes.push(<div className="ai-rich-number" key={\`n-\${index}\`}><span>{line.match(/^\d+/)?.[0]}</span><InlineText text={numbered[1]} /></div>); return; }
+    if (numbered) { flush(); nodes.push(<div className="ai-rich-number" key={`n-${index}`}><span>{line.match(/^\d+/)?.[0]}</span><InlineText text={numbered[1]} /></div>); return; }
 
     const option = line.match(/^([A-D])[.)]\s+(.+)/i);
-    if (option) { flush(); nodes.push(<div className="ai-rich-option" key={\`o-\${index}\`}><b>{option[1].toUpperCase()}</b><InlineText text={option[2]} /></div>); return; }
+    if (option) { flush(); nodes.push(<div className="ai-rich-option" key={`o-${index}`}><b>{option[1].toUpperCase()}</b><InlineText text={option[2]} /></div>); return; }
 
     const question = line.match(/^(\*\*)?(Q\d+[.:]?)(\*\*)?\s*(.+)/i);
-    if (question) { flush(); nodes.push(<div className="ai-rich-question" key={\`q-\${index}\`}><InlineText text={\`\${question[2]} \${question[4]}\`} /></div>); return; }
+    if (question) { flush(); nodes.push(<div className="ai-rich-question" key={`q-${index}`}><InlineText text={`${question[2]} ${question[4]}`} /></div>); return; }
 
     flush();
-    nodes.push(<p key={\`p-\${index}\`}><InlineText text={line} /></p>);
+    nodes.push(<p key={`p-${index}`}><InlineText text={line} /></p>);
   });
 
   flush();
@@ -239,7 +239,7 @@ export default function AIPage() {
       </form>
     </section>
     <p className="muted center" style={{ marginTop: 12 }}>AI can make mistakes. Verify important academic information with your textbook or teacher.</p>
-    <style jsx>{\`
+    <style jsx>{`
   .lakshya-ai-page{
     --ai-ink:#202124;--ai-muted:#70757f;--ai-line:#e8e8ee;--ai-soft:#f7f6fb;
     position:relative;width:100vw;max-width:none!important;min-height:100dvh;
@@ -411,6 +411,6 @@ export default function AIPage() {
     .lakshya-ai-page:before,.lakshya-ai-page:after,.ai-message,.ai-gemini-orb,.ai-empty-icon,.ai-gemini-orb span,.ai-thinking-dots i{animation:none}
     .ai-conversation{scroll-behavior:auto}
   }
-\`}</style>
+`}</style>
   </main>;
 }
