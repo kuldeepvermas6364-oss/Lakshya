@@ -42,16 +42,16 @@ export async function generateStudyImage(prompt: string): Promise<GeneratedImage
     const payload = await response.json().catch(() => null) as any;
     if (!response.ok) {
       const apiMessage = payload?.error?.message;
-      if (response.status === 401 || response.status === 403) throw new Error("Gemini Image API key is invalid or not authorized.");
-      if (response.status === 429) throw new Error("Gemini Image API quota/rate limit reached. Please try again later.");
-      throw new Error(apiMessage || `Gemini Image API request failed (${response.status}).`);
+      if (response.status === 401 || response.status === 403) throw new Error("Image service key is invalid or not authorized.");
+      if (response.status === 429) throw new Error("Image service quota/rate limit reached. Please try again later.");
+      throw new Error(apiMessage || `Image service request failed (${response.status}).`);
     }
 
     const parts = payload?.candidates?.flatMap((candidate: any) => candidate?.content?.parts || []) || [];
     const imagePart = parts.find((part: any) => part?.inlineData?.data);
     if (!imagePart?.inlineData?.data) {
       const finishReason = payload?.candidates?.[0]?.finishReason;
-      throw new Error(finishReason ? `Gemini did not return an image (${finishReason}). Try a different prompt.` : "Gemini did not return an image. Try a different prompt.");
+      throw new Error(finishReason ? `Image service did not return an image (${finishReason}). Try a different prompt.` : "Image service did not return an image. Try a different prompt.");
     }
 
     return { data: imagePart.inlineData.data, mimeType: imagePart.inlineData.mimeType || "image/png" };
