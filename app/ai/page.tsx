@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanAIText } from "@/lib/ai/format";
 
-type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
+type Message = { id: number; role: "user" | "ai"; text: string; image?: string };\ntype PlanTask = { title: string; subjectId: string; date: string; time: string; durationMinutes: number };\ntype PendingPlan = { planTitle: string; summary: string; questions: string[]; tasks: PlanTask[] };
 
 const prompts = [
   ["Explain", "Explain a difficult concept in simple language with an example."],
@@ -130,7 +130,7 @@ export default function AIPage() {
   const [error, setError] = useState("");
   const [imageData, setImageData] = useState("");
   const [imageMime, setImageMime] = useState("image/jpeg");
-  const [imageName, setImageName] = useState("");
+  const [imageName, setImageName] = useState("");\n  const [pendingPlan, setPendingPlan] = useState<PendingPlan | null>(null);\n  const [planSaving, setPlanSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const context = useMemo(() => `Current study context: ${subject}. Keep explanations student-friendly and exam-oriented.`, [subject]);
 
@@ -140,6 +140,50 @@ export default function AIPage() {
       if (stored) { setInput(stored); localStorage.removeItem("lakshya_pyq_ai_prompt"); }
     } catch { /* localStorage can be unavailable in some browser modes */ }
   }, []);
+
+  function isPlanRequest(value: string) {
+    return /\\b(plan|planner|schedule|timetable|routine|study plan|schedule me|set.*plan|plan.*set)\\b/i.test(value)
+      || /(plan|planner|schedule|routine|timetable|प्लान|शेड्यूल|रूटीन|समय.*तालिका|बना दो|सेट कर)/i.test(value);
+  }
+
+  function localToday() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  async function confirmPlan() {
+    if (!pendingPlan || !pendingPlan.tasks.length || planSaving) return;
+    setPlanSaving(true); setError("");
+    try {
+      const { auth } = await import("@/lib/firebase");
+      const user = auth.currentUser;
+      if (!user) throw new Error("Sign in to save your study plan.");
+      const { savePlannerTask } = await import("@/lib/study-storage");
+      for (const task of pendingPlan.tasks) {
+        await savePlannerTask(user.uid, {
+          title: task.title,
+          subjectId: task.subjectId,
+          date: task.date,
+          time: task.time,
+          durationMinutes: task.durationMinutes,
+          completed: false,
+        });
+      }
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: "ai",
+        text: `## Plan set successfully
+${pendingPlan.summary}
+
+I've added ${pendingPlan.tasks.length} study sessions to your Lakshya planner.`,
+      }]);
+      setPendingPlan(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save the plan.");
+    } finally {
+      setPlanSaving(false);
+    }
+  }
 
   async function ask(text = input) {
     const value = text.trim() || (imageData ? "Analyze this image and explain what it shows. Solve any visible academic question step by step." : "");
@@ -151,6 +195,41 @@ export default function AIPage() {
     setInput(""); setLoading(true); setError("");
 
     try {
+      if (!attachedImage && isPlanRequest(value)) {
+        const res = await fetch("/api/ai/plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: value, context, today: localToday() }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not build the study plan.");
+        if (data.ready) {
+          const plan: PendingPlan = {
+            planTitle: String(data.planTitle || "Your study plan"),
+            summary: String(data.summary || "Your schedule is ready to review."),
+            questions: Array.isArray(data.questions) ? data.questions.map(String) : [],
+            tasks: Array.isArray(data.tasks) ? data.tasks : [],
+          };
+          setPendingPlan(plan);
+          setMessages(prev => [...prev, {
+            id: aiId,
+            role: "ai",
+            text: `## ${plan.planTitle}
+${plan.summary}
+
+**${plan.tasks.length} sessions** are ready. Review them below, then tap **Set this plan** to save them to your Lakshya planner.`,
+          }]);
+        } else {
+          setMessages(prev => [...prev, {
+            id: aiId,
+            role: "ai",
+            text: `## I need a little more information
+${(Array.isArray(data.questions) ? data.questions : ["Tell me your available study time and target dates."]).map((q: unknown) => "- " + String(q)).join("\\n")}`,
+          }]);
+        }
+        return;
+      }
+
       if (attachedImage) {
         const res = await fetch("/api/ai/vision", {
           method: "POST",
@@ -231,6 +310,27 @@ export default function AIPage() {
         {messages.length === 0 && !loading ? <div className="ai-empty"><div className="ai-empty-icon">✦</div><h3>Ready when you are.</h3><p>Ask a question, paste a concept, upload a photo, or create a study image.</p><Link href="/ai/image" className="ai-empty-image-link">✦ Create a study image</Link></div> : messages.map((message) => <article key={message.id} className={`ai-message ${message.role}`}><span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>{message.image && <img className="ai-user-image" src={message.image} alt="Uploaded study material" />}{message.role === "ai" ? <AIResponseContent text={message.text} /> : <p>{message.text}</p>}</article>)}
         {loading && streamingId === null && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><span className="ai-gemini-orb"><span>✦</span></span><div><b>Lakshya AI is thinking</b><small>Analyzing your question{imageData ? " and image" : ""}…</small></div><span className="ai-thinking-dots"><i></i><i></i><i></i></span></div></div>}
       </div>
+      {pendingPlan && pendingPlan.tasks.length > 0 && (
+        <section className="ai-plan-card" aria-label="AI generated study plan">
+          <div className="ai-plan-head">
+            <div><span className="section-eyebrow">READY TO SAVE</span><h3>{pendingPlan.planTitle}</h3></div>
+            <span className="ai-plan-count">{pendingPlan.tasks.length} sessions</span>
+          </div>
+          <p className="ai-plan-summary">{pendingPlan.summary}</p>
+          <div className="ai-plan-list">
+            {pendingPlan.tasks.slice(0, 12).map((task, index) => (
+              <div className="ai-plan-row" key={`${task.date}-${task.time}-${index}`}>
+                <span>{task.date}</span><b>{task.time}</b><strong>{task.title}</strong><small>{task.durationMinutes}m · {task.subjectId}</small>
+              </div>
+            ))}
+            {pendingPlan.tasks.length > 12 && <small className="ai-plan-more">+ {pendingPlan.tasks.length - 12} more sessions</small>}
+          </div>
+          <div className="ai-plan-actions">
+            <button className="primary" onClick={() => void confirmPlan()} disabled={planSaving}>{planSaving ? "Saving plan…" : "✓ Set this plan"}</button>
+            <button className="secondary" onClick={() => setPendingPlan(null)} disabled={planSaving}>Not now</button>
+          </div>
+        </section>
+      )}
       {error && <div className="ai-error" role="alert">{error} <button onClick={() => setError("")}>Dismiss</button></div>}
       <form onSubmit={submit} className="ai-composer">
         {imageData && <div className="ai-image-preview"><img src={imageData} alt="Selected study image" /><div><b>{imageName || "Study image"}</b><span>AI will read this image and answer your question.</span></div><button type="button" onClick={() => { setImageData(""); setImageName(""); }}>Remove</button></div>}
@@ -368,6 +468,12 @@ export default function AIPage() {
   .ai-thinking-dots{display:flex;gap:3px;margin-left:3px}.ai-thinking-dots i{width:4px;height:4px;border-radius:50%;background:#765cf3;animation:thinkingDot 1s ease-in-out infinite}
   .ai-thinking-dots i:nth-child(2){animation-delay:.15s}.ai-thinking-dots i:nth-child(3){animation-delay:.3s}
 
+  .ai-plan-card{margin:0 20px 14px;padding:14px;border:1px solid #ddd6fb;border-radius:16px;background:linear-gradient(135deg,rgba(249,247,255,.96),rgba(255,248,253,.96));box-shadow:0 10px 28px rgba(80,60,150,.08)}
+  .ai-plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.ai-plan-head h3{margin:3px 0 0;font-size:14px;color:#302b55}.ai-plan-count{font-size:8px;font-weight:900;padding:5px 8px;border-radius:999px;background:#eee9ff;color:#6855db}
+  .ai-plan-summary{margin:8px 0;color:#626574;font-size:10px;line-height:1.55}.ai-plan-list{display:flex;flex-direction:column;gap:5px;max-height:250px;overflow:auto}
+  .ai-plan-row{display:grid;grid-template-columns:82px 48px minmax(0,1fr) auto;align-items:center;gap:7px;padding:8px 9px;border:1px solid #ece8f6;border-radius:10px;background:rgba(255,255,255,.78);font-size:9px}
+  .ai-plan-row span,.ai-plan-row b{color:#756f82;font-size:8px}.ai-plan-row strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#373543}.ai-plan-row small{color:#8b8c97;font-size:8px}.ai-plan-more{padding:4px 2px;color:#777b88;font-size:8px}
+  .ai-plan-actions{display:flex;gap:7px;margin-top:10px}.ai-plan-actions .primary,.ai-plan-actions .secondary{font-size:9px}
   .ai-error{margin:0 20px 12px;padding:10px 12px;border-radius:11px;background:#fff2f2;color:#9a3e3e;font-size:10px}
   .ai-error button{float:right;border:0;background:none;text-decoration:underline}
   .ai-composer{
@@ -418,6 +524,8 @@ export default function AIPage() {
     .ai-rich-response{font-size:11px;line-height:1.75}.ai-source-grid{grid-template-columns:1fr}
     .ai-composer{position:sticky;bottom:0;z-index:4;padding:10px}.ai-composer-foot{align-items:flex-end}
     .ai-tools{flex-wrap:wrap}.ai-tools span{display:none}.ai-composer .primary{padding:9px 11px}
+    .ai-plan-card{margin:0 10px 12px}.ai-plan-row{grid-template-columns:68px 42px minmax(0,1fr)}.ai-plan-row small{grid-column:3}.ai-plan-actions{flex-wrap:wrap}
+
     .ai-image-preview{align-items:flex-start}
   }
   @media(prefers-reduced-motion:reduce){
