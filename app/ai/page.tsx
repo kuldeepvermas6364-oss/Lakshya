@@ -4,7 +4,10 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanAIText } from "@/lib/ai/format";
 
-type Message = { id: number; role: "user" | "ai"; text: string; image?: string };\ntype PlanTask = { title: string; subjectId: string; date: string; time: string; durationMinutes: number };\ntype PendingPlan = { planTitle: string; summary: string; questions: string[]; tasks: PlanTask[] };\ntype PendingAction = { type: string; summary: string; payload: Record<string, any> };
+type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
+type PlanTask = { title: string; subjectId: string; date: string; time: string; durationMinutes: number };
+type PendingPlan = { planTitle: string; summary: string; questions: string[]; tasks: PlanTask[] };
+type PendingAction = { type: string; summary: string; payload: Record<string, any> };
 
 const prompts = [
   ["Explain", "Explain a difficult concept in simple language with an example."],
