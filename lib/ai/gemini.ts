@@ -1,12 +1,12 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";\nimport { randomInt } from "node:crypto";
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 export const gemini = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fast everyday-study model. Override in Vercel with GEMINI_MODEL when needed.
-export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";\nexport const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image";
 const REQUEST_TIMEOUT_MS = 15000;
-const SEARCH_TIMEOUT_MS = 4500;
+const SEARCH_TIMEOUT_MS = 4500;\n\n// Keep the two Gemini lanes on roughly a 50/50 split without changing any Vercel env names.\n// The image lane can return text as well as images, so it is safe for normal study answers.\nfunction getImageLaneClient() {\n  const key = process.env.GEMINI_IMAGE_API_KEY;\n  if (!key) return null;\n  return new GoogleGenAI({ apiKey: key });\n}\n\nexport function useImageAILane() {\n  return randomInt(0, 2) === 1 && Boolean(process.env.GEMINI_IMAGE_API_KEY);\n}\n\nexport function getStudyAIConfig(systemInstruction?: string) {\n  return {\n    ...(systemInstruction ? { systemInstruction } : {}),\n    responseModalities: ["TEXT"],\n  };\n}
 
 export function getGeminiClient() {
   if (!gemini) throw new Error("GEMINI_API_KEY or AI_API_KEY is not configured");
