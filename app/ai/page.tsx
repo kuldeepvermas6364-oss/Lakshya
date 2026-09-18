@@ -241,19 +241,31 @@ export default function AIPage() {
     <p className="muted center" style={{ marginTop: 12 }}>AI can make mistakes. Verify important academic information with your textbook or teacher.</p>
     <style jsx>{`
   .lakshya-ai-page{
-    --ai-ink:#202124;--ai-muted:#70757f;--ai-line:#e8e8ee;--ai-soft:#f7f6fb;
+    --ai-ink:#202124;--ai-muted:#656a79;--ai-line:rgba(116,92,210,.16);--ai-soft:#f7f4ff;
     position:relative;width:100vw;max-width:none!important;min-height:100dvh;
     margin-left:calc(50% - 50vw);padding:0 0 34px!important;overflow:hidden;
-    background:radial-gradient(circle at 10% 5%,rgba(123,97,255,.13),transparent 25%),
-      radial-gradient(circle at 92% 18%,rgba(236,72,153,.11),transparent 28%),
-      linear-gradient(180deg,#fbfaff 0%,#fff 52%,#faf9ff 100%);
+    background:
+      radial-gradient(circle at 8% 8%,rgba(117,92,255,.34),transparent 25%),
+      radial-gradient(circle at 92% 7%,rgba(236,72,153,.28),transparent 24%),
+      radial-gradient(circle at 80% 58%,rgba(34,211,238,.20),transparent 28%),
+      radial-gradient(circle at 12% 76%,rgba(251,191,36,.18),transparent 25%),
+      linear-gradient(135deg,#f5f1ff 0%,#eef5ff 32%,#fff0fa 64%,#eefdfb 100%);
+    background-size:120% 120%;
+    animation:aiBackgroundShift 18s ease-in-out infinite alternate;
   }
   .lakshya-ai-page:before,.lakshya-ai-page:after{
-    content:"";position:absolute;width:340px;height:340px;border-radius:50%;filter:blur(70px);
-    pointer-events:none;opacity:.35;z-index:0;
+    content:"";position:absolute;width:440px;height:440px;border-radius:50%;filter:blur(80px);
+    pointer-events:none;opacity:.42;z-index:0;
   }
-  .lakshya-ai-page:before{left:-170px;top:18%;background:rgba(99,91,255,.18);animation:aiFloat1 10s ease-in-out infinite alternate}
-  .lakshya-ai-page:after{right:-170px;top:55%;background:rgba(217,70,239,.14);animation:aiFloat2 12s ease-in-out infinite alternate}
+  .lakshya-ai-page:before{
+    left:-190px;top:8%;background:linear-gradient(135deg,rgba(99,91,255,.35),rgba(56,189,248,.18));
+    animation:aiFloat1 9s ease-in-out infinite alternate;
+  }
+  .lakshya-ai-page:after{
+    right:-190px;top:48%;background:linear-gradient(135deg,rgba(236,72,153,.28),rgba(168,85,247,.24));
+    animation:aiFloat2 11s ease-in-out infinite alternate;
+  }
+  .lakshya-ai-page::marker{display:none}
   .lakshya-ai-page>*{position:relative;z-index:1}
 
   .ai-spotlight{
@@ -385,6 +397,7 @@ export default function AIPage() {
   .ai-user-image{display:block;max-width:300px;max-height:260px;object-fit:contain;border-radius:13px;margin:0 0 10px;border:1px solid #e5e3ef}
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
+  @keyframes aiBackgroundShift{from{background-position:0% 0%}to{background-position:100% 100%}}
   @keyframes aiFloat1{from{transform:translate3d(0,0,0) scale(.85)}to{transform:translate3d(70px,50px,0) scale(1.12)}}
   @keyframes aiFloat2{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-60px,-55px,0) scale(.82)}}
   @keyframes messageIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
