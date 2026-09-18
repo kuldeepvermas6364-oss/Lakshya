@@ -74,8 +74,7 @@ export function formatWebSources(sources: WebSource[]) {
   return `
 
 ## Sources
-${sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}`).join("
-")}`;
+${sources.map((source, index) => `${index + 1}. ${source.title} — ${source.url}`).join("\n")}`;
 }
 
 function shouldSearchWeb(message: string) {
@@ -174,9 +173,7 @@ export function buildWebContext(sources: WebSource[]) {
 Title: ${source.title}
 URL: ${source.url}
 Excerpt: ${source.content || ""}`)
-    .join("
-
-");
+    .join("\n\n");
 }
 
 async function generateImageLaneText(prompt: string, systemInstruction?: string) {
