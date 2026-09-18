@@ -28,14 +28,14 @@ function InlineText({ text }: { text: string }) {
 type AISource = { title: string; url: string };
 
 function splitAISources(text: string) {
-  const match = text.match(/(?:^|\\n)##\\s+Sources\\s*\\n([\\s\\S]*)$/i);
+  const match = text.match(/(?:^|\n)##\s+Sources\s*\n([\s\S]*)$/i);
   if (!match) return { answer: text, sources: [] as AISource[] };
   const answer = text.slice(0, match.index ?? text.length).trim();
   const sources = match[1]
-    .split(/\\r?\\n/)
+    .split(/\r?\n/)
     .map((line) => line.trim())
     .map((line) => {
-      const item = line.match(/^\\d+\\.\\s+(.+?)\\s+—\\s+(https?:\\/\\/\\S+)\\s*$/);
+      const item = line.match(/^\d+\.\s+(.+?)\s+—\s+(https?:\/\/\S+)\s*$/);
       return item ? { title: item[1].trim(), url: item[2].trim() } : null;
     })
     .filter((item): item is AISource => Boolean(item));
@@ -43,7 +43,7 @@ function splitAISources(text: string) {
 }
 
 function sourceDomain(url: string) {
-  try { return new URL(url).hostname.replace(/^www\\./, ""); } catch { return "Web source"; }
+  try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "Web source"; }
 }
 
 function AIResponseContent({ text }: { text: string }) {
