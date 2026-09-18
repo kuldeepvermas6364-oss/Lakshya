@@ -1,4 +1,4 @@
-import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent, searchWeb, type WebSource } from "../../../../lib/ai/gemini";
+import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent, type WebSource } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
