@@ -1,6 +1,4 @@
 import { GoogleGenAI } from "@google/genai";
-import { randomInt } from "node:crypto";
-
 const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 export const gemini = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
@@ -19,7 +17,7 @@ function getImageLaneClient() {
 }
 
 export function useImageAILane() {
-  return randomInt(0, 2) === 1 && Boolean(process.env.GEMINI_IMAGE_API_KEY);
+  return false;
 }
 
 export function getStudyAIConfig(systemInstruction?: string) {
@@ -194,7 +192,7 @@ export async function generateStudyAIContent(prompt: string, systemInstruction?:
     try {
       return await generateImageLaneText(prompt, systemInstruction);
     } catch (error) {
-      console.error("Gemini image-capable lane failed; falling back to fast Gemini lane", error);
+      console.error("Image-capable lane failed; falling back to fast study lane", error);
     }
   }
   return generateGeminiContent(prompt, systemInstruction);
@@ -215,7 +213,7 @@ export async function streamStudyAIContent(prompt: string, systemInstruction?: s
     try {
       return await streamImageLaneText(prompt, systemInstruction);
     } catch (error) {
-      console.error("Gemini image-capable stream failed; falling back to fast Gemini stream", error);
+      console.error("Image-capable stream failed; falling back to fast study stream", error);
     }
   }
   return streamGeminiContent(prompt, systemInstruction);
