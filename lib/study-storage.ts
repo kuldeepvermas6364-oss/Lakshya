@@ -73,3 +73,11 @@ export async function updateChapterProgress(uid: string, chapterId: string, prog
 export async function updateStudyProfile(uid: string, data: Record<string, unknown>) {
   return update(ref(realtimeDb, `${userPath(uid)}`), { ...data, updatedAt: Date.now() });
 }
+
+
+export async function saveStudyNote(uid: string, note: { title: string; content: string; subject?: string }) {
+  if (!uid || !note.title.trim()) throw new Error("Invalid note");
+  const item = push(ref(realtimeDb, `${userPath(uid)}/notes`));
+  await set(item, { ...note, createdAt: Date.now(), updatedAt: Date.now() });
+  return item;
+}
