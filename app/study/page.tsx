@@ -99,7 +99,9 @@ export default function StudyPage(){
       <div className="xp-pill"><span>✦</span><b>{overallProgress}%</b><small>progress</small></div>
     </header>
 
-    <Link href="/pyq" className="study-ai-menu" aria-label="Open AI Intelligence">\n      <span className="study-ai-menu-icon">✦</span>\n      <span className="study-ai-menu-copy"><b>AI Intelligence</b><small>PYQ analysis • important concepts • trend-based practice paper</small></span>\n      <strong>→</strong>\n    </Link>\n\n    <nav className="study-tabs" aria-label="Study sections">
+    <Link href="/pyq" className="study-ai-menu" aria-label="Open AI Intelligence">\n      <span className="study-ai-menu-icon">✦</span>\n      <span className="study-ai-menu-copy"><b>AI Intelligence</b><small>PYQ analysis • important concepts • trend-based practice paper</small></span>\n      <strong>→</strong>\n    </Link>
+
+    <nav className="study-tabs" aria-label="Study sections">
       <button className={tab==="chapters"?"active":""} onClick={()=>setTab("chapters")}>Chapters</button>
       <button className={tab==="materials"?"active":""} onClick={()=>setTab("materials")}>Study Material</button>
     </nav>
