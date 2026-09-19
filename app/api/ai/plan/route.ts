@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateStudyAIContent } from "../../../../lib/ai/gemini";
+import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SYSTEM = `You are Lakshya AI's study-planning engine.
+const SYSTEM = `${LAKSHYA_AI_SYSTEM_PROMPT}\n\nYou are Lakshya AI's study-planning engine.
 You create realistic academic schedules for the authenticated student. Never mention any underlying AI provider/model.
 
 Return ONLY valid JSON. No Markdown, no code fences.
