@@ -99,7 +99,11 @@ export default function StudyPage(){
       <div className="xp-pill"><span>✦</span><b>{overallProgress}%</b><small>progress</small></div>
     </header>
 
-    <Link href="/pyq" className="study-ai-menu" aria-label="Open AI Intelligence">\n      <span className="study-ai-menu-icon">✦</span>\n      <span className="study-ai-menu-copy"><b>AI Intelligence</b><small>PYQ analysis • important concepts • trend-based practice paper</small></span>\n      <strong>→</strong>\n    </Link>
+    <Link href="/pyq" className="study-ai-menu" aria-label="Open AI Intelligence">
+      <span className="study-ai-menu-icon">✦</span>
+      <span className="study-ai-menu-copy"><b>AI Intelligence</b><small>PYQ analysis • important concepts • trend-based practice paper</small></span>
+      <strong>→</strong>
+    </Link>
 
     <nav className="study-tabs" aria-label="Study sections">
       <button className={tab==="chapters"?"active":""} onClick={()=>setTab("chapters")}>Chapters</button>
@@ -126,7 +130,6 @@ export default function StudyPage(){
       <div className="material-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search chapters / chapters खोजें..."/></div>
       <div className="special-materials">
         <Link href="/study/ncert" className="special-card"><span>📚</span><div><b>NCERT Library / NCERT लाइब्रेरी</b><small>Class 12 official chapter material</small></div><strong>→</strong></Link>
-        <Link href="/pyq" className="special-card pyq-intelligence-card"><span>🧠</span><div><b>PYQ Intelligence</b><small>Previous papers analyze → recurring concepts → Important Practice Paper</small></div><strong>→</strong></Link>
       </div>
       <section className="material-list">
         {materials.map(item=>{
