@@ -28,7 +28,7 @@ const materials: {key:MaterialKey;icon:string;title:string;desc:string}[] = [
   {key:"summary",icon:"📄",title:"Summary / सारांश",desc:"Quick revision summaries"},
   {key:"flashcards",icon:"🗂",title:"Flashcards / फ्लैशकार्ड",desc:"Active-recall revision"},
   {key:"practice",icon:"✍",title:"Practice / अभ्यास",desc:"Concept & JEE-level questions"},
-  {key:"pyq",icon:"📚",title:"PYQ / पिछले वर्ष के प्रश्न",desc:"Previous-year questions"},
+  {key:"pyq",icon:"🧠",title:"PYQ Intelligence / PYQ विश्लेषण",desc:"AI से PYQ patterns analyze करके Important Practice Paper"},
   {key:"tricky",icon:"⚡",title:"Tricky Questions / ट्रिकी प्रश्न",desc:"High-thinking questions & traps"}
 ];
 
@@ -124,7 +124,7 @@ export default function StudyPage(){
       <div className="material-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search chapters / chapters खोजें..."/></div>
       <div className="special-materials">
         <Link href="/study/ncert" className="special-card"><span>📚</span><div><b>NCERT Library / NCERT लाइब्रेरी</b><small>Class 12 official chapter material</small></div><strong>→</strong></Link>
-        <Link href="/study/pyq" className="special-card"><span>📑</span><div><b>PYQ & Practice Center</b><small>UPMSP + JEE Main • MCQ / Full Paper / Short Question</small></div><strong>→</strong></Link>
+        <Link href="/pyq" className="special-card pyq-intelligence-card"><span>🧠</span><div><b>PYQ Intelligence</b><small>Previous papers analyze → recurring concepts → Important Practice Paper</small></div><strong>→</strong></Link>
       </div>
       <section className="material-list">
         {materials.map(item=>{
