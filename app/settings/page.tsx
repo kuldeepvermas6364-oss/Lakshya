@@ -26,7 +26,7 @@ export default function SettingsPage(){
  const [privacy,setPrivacy]=useState({profile:true,messages:true}); const [notifications,setNotifications]=useState({community:true,study:true,ai:true}); const [appearance,setAppearance]=useState("system"); const [language,setLanguage]=useState("hi-en");
  useEffect(()=>onAuthStateChanged(auth,u=>{setUid(u?.uid||null);setEmail(u?.email||""); if(u) import("../../lib/firebase").then(()=>{});}),[]);
  useEffect(()=>{const saved=localStorage.getItem("lakshya_settings");if(saved)try{const x=JSON.parse(saved);setPrivacy(x.privacy||privacy);setNotifications(x.notifications||notifications);setAppearance(x.appearance||"system");setLanguage(x.language||"hi-en")}catch{}},[]);
- function persist(next:any){localStorage.setItem("lakshya_settings",JSON.stringify(next));setMessage("Settings saved.");}
+ function persist(next:any){localStorage.setItem("lakshya_settings",JSON.stringify(next));localStorage.setItem("lakshya_ai_language",next.language||"hi-en");setMessage("Settings saved.");}
  async function save(){setSaving(true);setMessage("");const data={privacy,notifications,appearance,language};persist(data);if(uid)try{await set(ref(realtimeDb,`users/${uid}/settings`),data)}catch(e){setMessage(e instanceof Error?e.message:"Settings saved locally; cloud sync failed.")}finally{setSaving(false)}}
  async function resetPassword(){if(!email){setMessage("Please sign in first.");return}try{await sendPasswordResetEmail(auth,email);setMessage("Password reset email sent.")}catch(e){setMessage(e instanceof Error?e.message:"Could not send reset email.")}}
  async function logout(){await signOut(auth);window.location.href="/auth/sign-in"}
