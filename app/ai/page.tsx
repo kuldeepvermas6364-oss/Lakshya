@@ -149,7 +149,7 @@ export default function AIPage() {
         const res = await fetch("/api/ai/vision", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: value, image: attachedImage, mimeType: imageMime, context }),
+          body: JSON.stringify({ message: value, image: attachedImage, mimeType: imageMime, context, language: getPreferredLanguage() }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "AI request failed");
