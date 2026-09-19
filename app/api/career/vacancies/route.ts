@@ -52,7 +52,8 @@ async function refresh() {
 
 export async function GET(request: Request) {
   const urlObj = new URL(request.url);
-  if (urlObj.searchParams.get("refresh") !== "1") return Response.json({ ok: true, mode: "live", message: "Use refresh=1 for a fresh official-source search." });
+  const isCron = request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
+  if (urlObj.searchParams.get("refresh") !== "1" && !isCron) return Response.json({ ok: true, mode: "live", message: "Career vacancy feed is refreshed automatically every day." });
   try {
     const result = await refresh();
     return Response.json({ ok: true, mode: "live", ...result, note: "Fresh AI web research. Verify every application on the official notification." });
