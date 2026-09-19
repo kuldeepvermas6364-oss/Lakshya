@@ -55,7 +55,7 @@ function RichAIResponse({ text }: { text: string }) {
   let list: { key: string; content: string }[] = [];
   const flush = () => {
     if (!list.length) return;
-    nodes.push(<ul className="ai-rich-list" key={\`list-\${nodes.length}\`}>{list.map((x) => <li key={x.key}><InlineText text={x.content} /></li>)}</ul>);
+    nodes.push(<ul className="ai-rich-list" key={`list-${nodes.length}`}>{list.map((x) => <li key={x.key}><InlineText text={x.content} /></li>)}</ul>);
     list = [];
   };
 
@@ -63,17 +63,17 @@ function RichAIResponse({ text }: { text: string }) {
     const line = raw.trim();
     if (!line) { flush(); return; }
     const heading = line.match(/^#{1,3}\s+(.+)/);
-    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={\`h-\${index}\`}><span>✦</span><InlineText text={heading[1]} /></h3>); return; }
+    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={`h-${index}`}><span>✦</span><InlineText text={heading[1]} /></h3>); return; }
     const bullet = line.match(/^[-•*]\s+(.+)/);
-    if (bullet) { list.push({ key: \`\${index}\`, content: bullet[1] }); return; }
+    if (bullet) { list.push({ key: `${index}`, content: bullet[1] }); return; }
     const numbered = line.match(/^\d+[.)]\s+(.+)/);
-    if (numbered) { flush(); nodes.push(<div className="ai-rich-number" key={\`n-\${index}\`}><span>{line.match(/^\d+/)?.[0]}</span><InlineText text={numbered[1]} /></div>); return; }
+    if (numbered) { flush(); nodes.push(<div className="ai-rich-number" key={`n-${index}`}><span>{line.match(/^\d+/)?.[0]}</span><InlineText text={numbered[1]} /></div>); return; }
     const option = line.match(/^([A-D])[.)]\s+(.+)/i);
-    if (option) { flush(); nodes.push(<div className="ai-rich-option" key={\`o-\${index}\`}><b>{option[1].toUpperCase()}</b><InlineText text={option[2]} /></div>); return; }
+    if (option) { flush(); nodes.push(<div className="ai-rich-option" key={`o-${index}`}><b>{option[1].toUpperCase()}</b><InlineText text={option[2]} /></div>); return; }
     const question = line.match(/^(\*\*)?(Q\d+[.:]?)(\*\*)?\s*(.+)/i);
-    if (question) { flush(); nodes.push(<div className="ai-rich-question" key={\`q-\${index}\`}><InlineText text={\`\${question[2]} \${question[4]}\`} /></div>); return; }
+    if (question) { flush(); nodes.push(<div className="ai-rich-question" key={`q-${index}`}><InlineText text={`${question[2]} ${question[4]}`} /></div>); return; }
     flush();
-    nodes.push(<p key={\`p-\${index}\`}><InlineText text={line} /></p>);
+    nodes.push(<p key={`p-${index}`}><InlineText text={line} /></p>);
   });
   flush();
   return <div className="ai-rich-response">{nodes}</div>;
@@ -112,7 +112,7 @@ export default function AIPage() {
   const [imageName, setImageName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const conversationRef = useRef<HTMLDivElement>(null);
-  const context = useMemo(() => \`Current study context: \${subject}. Keep explanations student-friendly and exam-oriented.\`, [subject]);
+  const context = useMemo(() => `Current study context: ${subject}. Keep explanations student-friendly and exam-oriented.`, [subject]);
 
   useEffect(() => {
     try {
@@ -255,7 +255,7 @@ export default function AIPage() {
                 </div>
               </div>
             ) : messages.map((message) => (
-              <article key={message.id} className={\`ai-message \${message.role}\`}>
+              <article key={message.id} className={`ai-message ${message.role}`}>
                 {message.role === "ai" && <span className="ai-avatar">✦</span>}
                 <div className="ai-message-body">
                   <span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>
@@ -301,7 +301,7 @@ export default function AIPage() {
         <p className="ai-disclaimer">AI can make mistakes. Verify important academic information with your textbook or teacher.</p>
       </section>
 
-      <style jsx>{\`
+      <style jsx>{`
         .lakshya-ai-page{
           --ink:#272238;--muted:#77758a;--line:rgba(91,74,170,.13);
           position:relative;width:100vw;min-height:100dvh;margin-left:calc(50% - 50vw);
@@ -372,7 +372,7 @@ export default function AIPage() {
           .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 11px;gap:9px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-bottom:9px;scrollbar-width:none}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
         }
         @media(prefers-reduced-motion:reduce){.lakshya-ai-page:before,.lakshya-ai-page:after,.ai-brand-orb,.ai-welcome-orb,.ai-welcome-orb span,.ai-welcome-orb i,.ai-message,.thinking-avatar,.ai-status i,.ai-thinking i{animation:none}}
-      \`}</style>
+      `}</style>
     </main>
   );
 }
