@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateGeminiContent } from "../../../../lib/ai/gemini";
 import { cleanAIText } from "../../../../lib/ai/format";
+import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 
 const allowedLevels = new Set(["Foundation", "JEE", "Challenge"]);
 const allowedLanguages = new Set(["English", "Hindi", "Hinglish"]);
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
         : "Write entirely in clear, natural English.";
 
     const prompt = `Create exactly ${questionCount} original multiple-choice questions for ${subject}, chapter: ${chapter}, topic: ${topic}. Difficulty: ${difficulty}. Quiz language: ${language}. Time limit: ${durationMinutes} minutes. ${languageRule} Foundation = board/fundamentals, JEE = competitive exam level with strong concepts and calculations, Challenge = advanced multi-step JEE-style reasoning. Mix conceptual and numerical questions where appropriate. Every question must have exactly 4 options and one correct option index (0-3). Include a short teaching explanation. Stay aligned with the requested chapter/topic. Avoid ambiguous questions, duplicate options, unsupported facts and questions outside the topic. IMPORTANT: Never use LaTeX, Markdown math delimiters, or programming/code syntax. Write formulas with Unicode subscripts/superscripts and symbols, e.g. H₂O, CH₃COOH, x², √2, →, α. Return this exact JSON shape and nothing else: {"questions":[{"question":"...","options":["...","...","...","..."],"answer":0,"explanation":"..."}]}`;
-    const raw = (await generateGeminiContent(prompt, "You are Lakshya AI, an accurate academic quiz generator for Class 12 PCM students. Respect the requested language exactly, never output LaTeX, and return ONLY valid JSON.")).trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
+    const raw = (await generateGeminiContent(prompt, `${LAKSHYA_AI_SYSTEM_PROMPT}\n\nQUIZ-SPECIFIC: Generate accurate original academic MCQs, respect the requested language, never output LaTeX, and return ONLY valid JSON.`)).trim().replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
     const data = JSON.parse(raw);
     if (!Array.isArray(data?.questions) || !data.questions.length) throw new Error("Invalid quiz response");
     const questions = data.questions.slice(0, questionCount).map((q: any) => ({
