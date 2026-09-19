@@ -78,7 +78,7 @@ export default function AIChapterPage() {
     const prompt = question.trim(); if (!prompt || loading) return;
     setLoading(true); setAnswer("");
     try {
-      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `You are teaching Class 12 ${subject}, chapter ${chapter}. The student is using ${current.title}. Answer accurately in Hindi-first Hinglish, keeping important scientific terms in English. Use headings, bullets and readable formulas. Do not reproduce copyrighted textbook passages.\n\nStudent request:\n${prompt}`, context: `Lakshya AI Chapter Workspace — ${subject} — ${chapter} — ${selectedMaterial}` }) });
+      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `You are teaching Class 12 ${subject}, chapter ${chapter}. The student is using ${current.title}. Answer accurately in Hindi-first Hinglish, keeping important scientific terms in English. Use headings, bullets and readable formulas. Do not reproduce copyrighted textbook passages.\n\nStudent request:\n${prompt}`, context: `Lakshya AI Chapter Workspace — ${subject} — ${chapter} — ${selectedMaterial}`, stream: false }) });
       const data = await res.json(); if (!res.ok) throw new Error(data.error || "AI request failed");
       setAnswer(typeof data.text === "string" ? data.text : "कोई उत्तर नहीं मिला।");
     } catch (e) { setAnswer(e instanceof Error ? e.message : "AI अभी उपलब्ध नहीं है।"); }
@@ -99,7 +99,7 @@ export default function AIChapterPage() {
     if (!user) { setMessage("पहले Sign in करें ताकि AI-generated material इसी chapter में save हो सके।"); return; }
     setGenerating(category); setMessage("");
     try {
-      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `${materialInfo[category].instruction}\n\nSubject: ${subject}\nChapter: ${chapter}\n\nImportant: Make original AI-generated study content. Do not reproduce NCERT text verbatim.`, context: `Lakshya AI generator — ${subject} — ${chapter} — ${category}` }) });
+      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `${materialInfo[category].instruction}\n\nSubject: ${subject}\nChapter: ${chapter}\n\nImportant: Make original AI-generated study content. Do not reproduce NCERT text verbatim.`, context: `Lakshya AI generator — ${subject} — ${chapter} — ${category}`, stream: false }) });
       const data = await res.json(); if (!res.ok) throw new Error(data.error || "AI generation failed");
       const text = typeof data.text === "string" ? data.text : ""; if (!text) throw new Error("AI ने कोई content नहीं दिया।");
       await saveItem(category, text); setSelectedMaterial(category);
