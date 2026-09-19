@@ -7,7 +7,12 @@ import { cleanAIText } from "@/lib/ai/format";
 type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
 type AISource = { title: string; url: string };
 
-function getPreferredLanguage() { return typeof window === "undefined" ? "hi-en" : localStorage.getItem("lakshya_ai_language") || "hi-en"; }
+function getPreferredLanguage() {
+  if (typeof window === "undefined") return "hi-en";
+  const direct = localStorage.getItem("lakshya_ai_language");
+  if (direct) return direct;
+  try { return JSON.parse(localStorage.getItem("lakshya_settings") || "{}").language || "hi-en"; } catch { return "hi-en"; }
+}
 
 const prompts = [
   ["Explain", "Explain a difficult concept in simple language with an example."],
