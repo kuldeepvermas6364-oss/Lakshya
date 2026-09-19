@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateGeminiContent, searchWeb } from "../../../../lib/ai/gemini";
+import { generateGeminiContentWithWebSearch } from "../../../../lib/ai/gemini";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,26 +29,22 @@ export async function POST(request: Request) {
     const query = [
       subject, exam, chapter === "All chapters" ? "" : chapter,
       "previous year question paper PYQ official question paper PDF India"
-    ].filter(Boolean).join(" ");
+    ].filter(Boolean).join(" ");    const groundedPrompt = [
+      query,
+      "",
+      "You are Lakshya's PYQ Intelligence Engine. Find and use real previous-year question papers and official exam/question-paper sources on the web.",
+      "Prefer official NTA, JEE, CBSE/board or other authoritative sources.",
+      "Focus specifically on Class 12 Physics Chapter 4 when that is the requested chapter.",
+      "Do not invent a paper, trend, URL, date, weightage or question.",
+      "Analyze only evidence you can actually find. Generate original questions based on verified patterns; never copy source questions verbatim.",
+      "If web evidence is insufficient, return an empty questions array and explain why in sourceNotes.",
+      "Language: " + language + ". Generate exactly " + count + " MCQs.",
+      "Return ONLY valid JSON: {\"analysis\":{\"recurringTopics\":[],\"highPriorityConcepts\":[],\"patternSummary\":\"\",\"difficultyMix\":\"\",\"sourceNotes\":[]},\"questions\":[{\"question\":\"\",\"options\":[\"\",\"\",\"\",\"\"],\"answer\":0,\"explanation\":\"\",\"importance\":\"High\",\"topic\":\"\"}]}"
+    ].join("\n");
 
-    const sources = await searchWeb(query);
-    const sourceText = sources.slice(0, 10).map((s, i) =>
-      "SOURCE " + (i + 1) + "\nTitle: " + s.title + "\nURL: " + s.url + "\nContent: " + (s.content || "")
-    ).join("\n\n");
-
-    const prompt = `You are Lakshya's PYQ Intelligence Engine.
-Analyze the supplied previous-year-paper sources for ${exam}, subject ${subject}, chapter/topic ${chapter}.
-Do NOT claim to know the future paper. Create a high-priority TREND-BASED PRACTICE PAPER from recurring concepts, question styles, chapter weight patterns and difficulty patterns found in the sources.
-Use original wording; never copy a source question verbatim.
-Language: ${language}. Generate exactly ${count} MCQs.
-Each must have 4 options, one answer index 0-3 and a concise teaching explanation.
-Also return an analysis with recurringTopics, highPriorityConcepts, patternSummary, difficultyMix and sourceNotes.
-If evidence is weak or a source is not an actual paper, say so in sourceNotes rather than inventing trends.
-Return ONLY valid JSON:
-{"analysis":{"recurringTopics":[],"highPriorityConcepts":[],"patternSummary":"","difficultyMix":"","sourceNotes":[]},"questions":[{"question":"","options":["","","",""],"answer":0,"explanation":"","importance":"High","topic":""}]}
-${sourceText ? "\n\nSOURCES:\n" + sourceText : "\n\nNo usable web sources were found. Return a transparent empty analysis and no fabricated paper."}`;
-
-    const raw = await generateGeminiContent(prompt);
+    const grounded = await generateGeminiContentWithWebSearch(groundedPrompt);
+    const raw = grounded.text;
+    const sources = grounded.sources;);
     const data = parseJson(raw);
     const questions = Array.isArray(data?.questions) ? data.questions.slice(0, count).map((q: any) => ({
       question: String(q?.question || "").trim(),
