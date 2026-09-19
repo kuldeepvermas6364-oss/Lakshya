@@ -1,3 +1,14 @@
+function languageInstruction(code: string) {
+  const names: Record<string, string> = {
+    "hi-en": "Hindi + English (natural Hinglish)",
+    hi: "Hindi (हिन्दी)", en: "English", bn: "Bengali (বাংলা)", mr: "Marathi (मराठी)",
+    te: "Telugu (తెలుగు)", ta: "Tamil (தமிழ்)", gu: "Gujarati (ગુજરાતી)",
+    kn: "Kannada (ಕನ್ನಡ)", ml: "Malayalam (മലയാളം)", pa: "Punjabi (ਪੰਜਾਬੀ)",
+    or: "Odia (ଓଡ଼ିଆ)", as: "Assamese (অসমীয়া)", ur: "Urdu (اردو)"
+  };
+  return `Preferred response language: ${names[code] || names["hi-en"]}. Answer naturally in this language unless the student clearly asks for another language.`;
+}
+
 export const AI_FEATURES = {
   tutor: "Explain the student's question clearly, step by step, and adapt the teaching method to the student's understanding.",
   planner: "Create a realistic study plan based on goals, subjects, available time, priorities, revision needs and actual constraints.",
@@ -883,8 +894,9 @@ UNDERSTAND
 → PERFORM BETTER
 `;
 
-export function buildFeaturePrompt(feature: string, request: string, context = "") {
+export function buildFeaturePrompt(feature: string, request: string, context = "", language = "hi-en") {
   return [
+    languageInstruction(language),
     `Lakshya AI feature: ${feature}`,
     context ? `Relevant student/app context:\n${context}` : "",
     `Student request:\n${request}`,
