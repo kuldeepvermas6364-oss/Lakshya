@@ -115,6 +115,9 @@ export default function AIPage() {
   const [subject, setSubject] = useState("General");
   const [error, setError] = useState("");
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [chatId, setChatId] = useState(() => `chat-${Date.now()}`);
+  const [chatHistory, setChatHistory] = useState<{ id: string; title: string; updatedAt: number }[]>([]);
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const [imageData, setImageData] = useState("");
   const [imageMime, setImageMime] = useState("image/jpeg");
@@ -131,9 +134,55 @@ export default function AIPage() {
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem("lakshya_ai_history");
+      if (raw) setChatHistory(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     const el = conversationRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, loading]);
+    if (!messages.length) return;
+    const firstUser = messages.find((m) => m.role === "user");
+    const title = firstUser?.text?.slice(0, 42) || "New study chat";
+    setChatHistory((prev) => {
+      const next = [{ id: chatId, title, updatedAt: Date.now() }, ...prev.filter((item) => item.id !== chatId)].slice(0, 30);
+      try { localStorage.setItem("lakshya_ai_history", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [messages, loading, chatId]);
+
+  function startNewChat() {
+    if (loading) return;
+    setMessages([]);
+    setInput("");
+    setImageData("");
+    setImageName("");
+    setError("");
+    setShowHistory(false);
+    setChatId(`chat-${Date.now()}`);
+  }
+
+  function openHistory(id: string) {
+    try {
+      const saved = localStorage.getItem(`lakshya_ai_chat_${id}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setMessages(parsed.messages || []);
+        setSubject(parsed.subject || "General");
+        setChatId(id);
+        setShowHistory(false);
+      }
+    } catch {}
+  }
+
+  useEffect(() => {
+    if (!messages.length) return;
+    try {
+      localStorage.setItem(`lakshya_ai_chat_${chatId}`, JSON.stringify({ messages, subject }));
+    } catch {}
+  }, [messages, subject, chatId]);
 
   async function ask(text = input) {
     const value = text.trim() || (imageData ? "Analyze this image and explain what it shows. Solve any visible academic question step by step." : "");
@@ -215,11 +264,35 @@ export default function AIPage() {
 
   return (
     <main className="page lakshya-ai-page">
+      {showHistory && (
+        <div className="ai-history-overlay" onClick={() => setShowHistory(false)}>
+          <aside className="ai-history-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="ai-history-head">
+              <div><b>Chat history</b><small>Your recent Lakshya AI chats</small></div>
+              <button type="button" onClick={() => setShowHistory(false)} aria-label="Close history">×</button>
+            </div>
+            <button type="button" className="ai-history-new" onClick={startNewChat}>＋ <span>New chat</span></button>
+            <div className="ai-history-list">
+              {chatHistory.length === 0 ? (
+                <div className="ai-history-empty">No previous chats yet.</div>
+              ) : chatHistory.map((item) => (
+                <button key={item.id} type="button" className={item.id === chatId ? "ai-history-item active" : "ai-history-item"} onClick={() => openHistory(item.id)}>
+                  <span>✦</span><span><b>{item.title}</b><small>{new Date(item.updatedAt).toLocaleDateString()}</small></span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
       <header className="ai-topbar">
         <Link href="/" className="ai-back" aria-label="Back to dashboard">←</Link>
         <div className="ai-brand">
           <span className="ai-brand-orb">✦</span>
           <div><b>Lakshya AI</b><small>Study companion</small></div>
+        </div>
+        <div className="ai-chat-actions">
+          <button type="button" className="ai-history-btn" onClick={() => setShowHistory(true)} aria-label="Open chat history">☰ <span>History</span></button>
+          <button type="button" className="ai-new-btn" onClick={startNewChat} disabled={loading}>＋ <span>New chat</span></button>
         </div>
         <div className="ai-top-actions">
           <label className="ai-context">
@@ -316,6 +389,7 @@ export default function AIPage() {
                   </div>
                 )}
               </div>
+              <button type="button" className="ai-upload-direct" onClick={() => fileRef.current?.click()} disabled={loading} aria-label="Upload image">▧</button>
               <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={imageData ? "Ask something about this image…" : "Ask Lakshya AI anything about your studies…"} rows={1} maxLength={4000} disabled={loading} />
               <button className="ai-send" disabled={(!input.trim() && !imageData) || loading} aria-label="Send">{loading ? "…" : "↑"}</button>
             </div>
@@ -358,7 +432,11 @@ export default function AIPage() {
         .ai-brand{display:flex;align-items:center;gap:10px;min-width:0}
         .ai-brand-orb{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#705cf5,#df4eb5);box-shadow:0 8px 22px rgba(106,79,226,.23);animation:brandPulse 3s ease-in-out infinite}
         .ai-brand div{display:flex;flex-direction:column}.ai-brand b{font-size:14px;color:var(--ink)}.ai-brand small{font-size:9px;color:#92909e;margin-top:2px}
-        .ai-top-actions{margin-left:auto;display:flex;align-items:center;gap:9px}
+        .ai-chat-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+        .ai-history-btn,.ai-new-btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);border-radius:11px;padding:8px 10px;font-size:9px;font-weight:850;cursor:pointer;white-space:nowrap}
+        .ai-new-btn{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;border-color:transparent}
+        .ai-new-btn:disabled{opacity:.5;cursor:not-allowed}
+        .ai-top-actions{display:flex;align-items:center;gap:9px}
         .ai-context{display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7)}
         .ai-context span{font-size:7px;font-weight:900;letter-spacing:.12em;color:#9693a2}.ai-context select{border:0;background:transparent;outline:0;font-size:10px;font-weight:800;color:var(--ink)}
         .ai-image-top{padding:9px 12px;border-radius:12px;background:linear-gradient(135deg,#f6f2ff,#fff1fa);border:1px solid #ded7f8;color:#604fe0;text-decoration:none;font-size:9px;font-weight:900;transition:.2s}
@@ -411,12 +489,26 @@ export default function AIPage() {
         @keyframes addMenuIn{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
         .ai-composer{padding:13px 16px 11px;border-top:1px solid rgba(92,75,155,.10);background:rgba(255,255,255,.78);backdrop-filter:blur(20px)}
         .ai-image-preview{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px;border:1px solid #e4def0;border-radius:11px;background:#faf8ff}.ai-image-preview img{width:43px;height:43px;object-fit:cover;border-radius:8px}.ai-image-preview div{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.ai-image-preview b{font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ai-image-preview span{font-size:7px;color:#8f8b99}.ai-image-preview button{border:0;background:none;color:#a24c4c;font-size:8px;font-weight:800}
+        .ai-upload-direct{width:34px;height:34px;flex:0 0 34px;border:0;border-radius:11px;background:#f2eff9;color:#6c61a1;font-size:17px;display:grid;place-items:center;cursor:pointer}
+        .ai-upload-direct:disabled{opacity:.45;cursor:not-allowed}
         .ai-composer-box{display:flex;align-items:flex-end;gap:8px;padding:7px;border:1px solid #ded9e8;background:rgba(255,255,255,.94);border-radius:18px;box-shadow:0 8px 25px rgba(60,45,120,.06);transition:.2s}.ai-composer-box:focus-within{border-color:#c9bdf2;box-shadow:0 10px 30px rgba(89,67,170,.10)}
+        .ai-history-overlay{position:fixed;inset:0;background:rgba(32,25,55,.22);backdrop-filter:blur(5px);z-index:100;display:flex}
+        .ai-history-panel{width:min(360px,88vw);height:100%;background:rgba(255,255,255,.97);box-shadow:20px 0 70px rgba(45,32,90,.18);padding:18px;animation:historyIn .2s ease-out}
+        .ai-history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+        .ai-history-head b{display:block;font-size:16px;color:var(--ink)}.ai-history-head small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+        .ai-history-head button{border:0;background:#f2eff9;border-radius:10px;width:32px;height:32px;font-size:20px;color:var(--ink)}
+        .ai-history-new{width:100%;margin:12px 0 8px;padding:11px;border:0;border-radius:13px;background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;font-weight:900;text-align:left;cursor:pointer}
+        .ai-history-list{display:flex;flex-direction:column;gap:5px;overflow:auto;max-height:calc(100dvh - 125px)}
+        .ai-history-item{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;text-align:left;padding:10px;border-radius:12px;cursor:pointer}
+        .ai-history-item:hover,.ai-history-item.active{background:#f5f1ff}.ai-history-item>span:first-child{width:28px;height:28px;border-radius:9px;background:#eeeaff;color:#705cf5;display:grid;place-items:center}
+        .ai-history-item b{display:block;color:var(--ink);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px}
+        .ai-history-item small{display:block;color:#9b97a5;font-size:7px;margin-top:3px}.ai-history-empty{padding:30px 10px;text-align:center;color:var(--muted);font-size:10px}
+        @keyframes historyIn{from{transform:translateX(-20px);opacity:.5}to{transform:none;opacity:1}}
         .ai-add,.ai-send{width:34px;height:34px;flex:0 0 34px;border:0;border-radius:11px;display:grid;place-items:center;cursor:pointer}.ai-add{background:#f2eff9;color:#6c61a1;font-size:21px}.ai-send{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;font-size:17px;font-weight:900;box-shadow:0 6px 17px rgba(105,80,225,.22)}.ai-send:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}.ai-composer-box textarea{flex:1;min-width:0;resize:none;border:0;outline:0;background:transparent;color:#282532;font:inherit;font-size:11px;line-height:1.5;padding:7px 2px;max-height:100px}.ai-composer-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px}.ai-composer-meta div{display:flex;gap:5px;flex-wrap:wrap}.ai-composer-meta button,.ai-composer-meta a{border:0;background:transparent;color:#777184;font-size:8px;font-weight:800;padding:2px 4px;text-decoration:none;cursor:pointer}.ai-composer-meta button:hover,.ai-composer-meta a:hover{color:#604fe0}.ai-composer-meta>span{font-size:7px;color:#a09ca8}.ai-user-image{display:block;max-width:300px;max-height:260px;object-fit:contain;border-radius:12px;margin:0 0 8px;border:1px solid #e3dfeb}
         .ai-disclaimer{text-align:center;color:#9995a2;font-size:8px;margin:9px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
         @keyframes aiBg{from{background-position:0 0}to{background-position:100% 100%}}@keyframes orbFloat{from{transform:translate(0,0) scale(.9)}to{transform:translate(70px,45px) scale(1.1)}}@keyframes orbFloat2{from{transform:translate(0,0)}to{transform:translate(-55px,-40px) scale(.85)}}@keyframes brandPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes welcomeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes spark{0%,100%{transform:scale(.88) rotate(-8deg)}50%{transform:scale(1.12) rotate(10deg)}}@keyframes particle{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-7px);opacity:1}}@keyframes statusPulse{0%,100%{box-shadow:0 0 0 3px rgba(67,184,135,.08)}50%{box-shadow:0 0 0 6px rgba(67,184,135,.04)}}@keyframes messageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
         @media(max-width:760px){
-          .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 11px;gap:9px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-top:9px;scrollbar-width:none}.ai-action-rail-bottom{margin-bottom:0}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
+          .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 8px;gap:7px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-history-btn,.ai-new-btn{padding:7px 8px;font-size:0}.ai-history-btn:first-letter,.ai-new-btn:first-letter{font-size:12px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-top:9px;scrollbar-width:none}.ai-action-rail-bottom{margin-bottom:0}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
         }
         @media(prefers-reduced-motion:reduce){.lakshya-ai-page:before,.lakshya-ai-page:after,.ai-brand-orb,.ai-welcome-orb,.ai-welcome-orb span,.ai-welcome-orb i,.ai-message,.thinking-avatar,.ai-status i,.ai-thinking i{animation:none}}
       `}</style>
