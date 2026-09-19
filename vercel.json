@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/career/vacancies?refresh=1",
+      "path": "/api/career/vacancies",
       "schedule": "0 2 * * *"
     }
   ]
