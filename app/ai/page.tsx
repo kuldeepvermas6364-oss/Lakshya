@@ -228,18 +228,6 @@ export default function AIPage() {
           <div className="ai-status"><i></i><span>Ready to learn</span></div>
         </div>
 
-        <div className="ai-action-rail" aria-label="Quick study actions">
-          {prompts.map(([label, prompt], index) => (
-            <button key={label} className="ai-action" onClick={() => void ask(prompt)} disabled={loading}>
-              <span className="ai-action-icon">{["✦", "✓", "↻", "◈"][index]}</span>
-              <span><b>{label}</b><small>{["Understand a topic", "Practice questions", "Quick revision", "Build a plan"][index]}</small></span>
-            </button>
-          ))}
-          <Link href="/ai/image" className="ai-action ai-action-image">
-            <span className="ai-action-icon">◇</span><span><b>Create Image</b><small>Visual study aid</small></span>
-          </Link>
-        </div>
-
         <section className="ai-chat-stage">
           <div ref={conversationRef} className="ai-conversation" aria-live="polite">
             {messages.length === 0 && !loading ? (
@@ -292,10 +280,21 @@ export default function AIPage() {
             </div>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/heic" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) chooseImage(f); e.currentTarget.value = ""; }} />
             <div className="ai-composer-meta">
-              <div><button type="button" onClick={() => setInput(prompts[0][1])}>✦ Explain</button><button type="button" onClick={() => setInput(prompts[1][1])}>✓ Quiz</button><button type="button" onClick={() => setInput(prompts[2][1])}>↻ Revise</button><Link href="/ai/image">◇ Image</Link></div>
               <span>{input.length}/4000 · {subject}</span>
             </div>
           </form>
+
+          <div className="ai-action-rail ai-action-rail-bottom" aria-label="Quick study actions">
+            {prompts.map(([label, prompt], index) => (
+              <button key={label} className="ai-action" onClick={() => void ask(prompt)} disabled={loading}>
+                <span className="ai-action-icon">{["✦", "✓", "↻", "◈"][index]}</span>
+                <span><b>{label}</b><small>{["Understand a topic", "Practice questions", "Quick revision", "Build a plan"][index]}</small></span>
+              </button>
+            ))}
+            <Link href="/ai/image" className="ai-action ai-action-image">
+              <span className="ai-action-icon">◇</span><span><b>Create Image</b><small>Visual study aid</small></span>
+            </Link>
+          </div>
         </section>
 
         <p className="ai-disclaimer">AI can make mistakes. Verify important academic information with your textbook or teacher.</p>
@@ -339,7 +338,7 @@ export default function AIPage() {
         .ai-intro p{margin:0;color:var(--muted);font-size:11px;line-height:1.6;max-width:610px}
         .ai-status{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:8px 11px;border:1px solid rgba(82,160,130,.18);background:rgba(255,255,255,.56);border-radius:999px;color:#5f796e;font-size:9px;font-weight:800}
         .ai-status i{width:6px;height:6px;border-radius:50%;background:#43b887;box-shadow:0 0 0 4px rgba(67,184,135,.10);animation:statusPulse 2s infinite}
-        .ai-action-rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:13px}
+        .ai-action-rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}.ai-action-rail-bottom{margin-bottom:0}
         .ai-action{display:flex;align-items:center;gap:9px;text-align:left;border:1px solid rgba(105,88,175,.12);border-radius:16px;padding:10px;background:rgba(255,255,255,.63);backdrop-filter:blur(12px);cursor:pointer;color:var(--ink);transition:.22s;text-decoration:none}
         .ai-action:hover{transform:translateY(-2px);border-color:#d6cdf7;box-shadow:0 12px 26px rgba(76,58,150,.09)}
         .ai-action:disabled{opacity:.55;cursor:not-allowed;transform:none}
@@ -369,7 +368,7 @@ export default function AIPage() {
         .ai-disclaimer{text-align:center;color:#9995a2;font-size:8px;margin:9px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
         @keyframes aiBg{from{background-position:0 0}to{background-position:100% 100%}}@keyframes orbFloat{from{transform:translate(0,0) scale(.9)}to{transform:translate(70px,45px) scale(1.1)}}@keyframes orbFloat2{from{transform:translate(0,0)}to{transform:translate(-55px,-40px) scale(.85)}}@keyframes brandPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes welcomeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes spark{0%,100%{transform:scale(.88) rotate(-8deg)}50%{transform:scale(1.12) rotate(10deg)}}@keyframes particle{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-7px);opacity:1}}@keyframes statusPulse{0%,100%{box-shadow:0 0 0 3px rgba(67,184,135,.08)}50%{box-shadow:0 0 0 6px rgba(67,184,135,.04)}}@keyframes messageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
         @media(max-width:760px){
-          .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 11px;gap:9px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-bottom:9px;scrollbar-width:none}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
+          .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 11px;gap:9px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-top:9px;scrollbar-width:none}.ai-action-rail-bottom{margin-bottom:0}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
         }
         @media(prefers-reduced-motion:reduce){.lakshya-ai-page:before,.lakshya-ai-page:after,.ai-brand-orb,.ai-welcome-orb,.ai-welcome-orb span,.ai-welcome-orb i,.ai-message,.thinking-avatar,.ai-status i,.ai-thinking i{animation:none}}
       `}</style>
