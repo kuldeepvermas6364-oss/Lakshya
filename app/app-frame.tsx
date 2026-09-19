@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import LakshyaAI from "./components/lakshya-ai";
 import { useAuth } from "../lib/auth-context";
 
-const primary = [["⌂","Dashboard","/"],["◫","Study","/study"],["✓","Practice","/practice"],["✦","PYQ Intelligence","/pyq"],["◷","Focus Mode","/focus"],["▤","Notes","/notes"],["↗","Analytics","/analytics"]];
+const primary = [["⌂","Dashboard","/"],["◫","Study","/study"],["✓","Practice","/practice"],["◷","Focus Mode","/focus"],["▤","Notes","/notes"],["↗","Analytics","/analytics"]];
 const social = [["◉","Community","/community"],["♙","Friends","/friends"],["▣","Messages","/messages"],["◆","Study Groups","/groups"]];
 const extra = [["◎","Goals","/goals"],["↻","Revision","/revision"],["★","Achievements","/achievements"],["♢","Notifications","/notifications"],["◈","Career","/career"]];
 
