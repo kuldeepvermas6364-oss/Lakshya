@@ -92,6 +92,7 @@ export default function ChapterWorkspacePage() {
     setLoading(true); setAnswer("");
     try {
       const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        stream: false,
         message: `You are teaching Class 12 ${subject}, chapter ${chapter}. ${custom ? "The student selected this NCERT text and wants it explained:" : "Student question:"}\n\n${prompt}\n\nExplain accurately and simply in a natural Hindi + English mix. Keep important terms in English with Hindi explanation. Stay faithful to the supplied text. Do not reproduce additional NCERT textbook passages. Do not use raw LaTeX delimiters; write formulas in readable plain text.`,
         context: `Lakshya chapter learning workspace for ${subject} — ${chapter}.`
       }) });
@@ -118,7 +119,7 @@ export default function ChapterWorkspacePage() {
     setCapturing(category);
     try {
       const instruction = category === "mcq" ? "Convert this explanation into ONE exam-quality MCQ. Include Question, four options A-D, and Correct Answer." : "Convert this explanation into ONE concise flashcard. Format exactly as Front: ... and Back: ...";
-      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: `${instruction}\n\nChapter: ${subject} — ${chapter}\n\nSource explanation:\n${answer}\n\nKeep it accurate, student-friendly, bilingual where natural, and free of raw LaTeX delimiters.`, context: `AI Capture System for chapter ${chapter}.` }) });
+      const res = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stream: false, message: `${instruction}\n\nChapter: ${subject} — ${chapter}\n\nSource explanation:\n${answer}\n\nKeep it accurate, student-friendly, bilingual where natural, and free of raw LaTeX delimiters.`, context: `AI Capture System for chapter ${chapter}.` }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "AI capture failed / AI capture असफल हुआ");
       await saveItem(category, typeof data.text === "string" ? data.text : answer);
