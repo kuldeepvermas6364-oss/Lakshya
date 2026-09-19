@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+const apiKey = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 export const gemini = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fast everyday-study model. Override in Vercel with GEMINI_MODEL when needed.
@@ -17,7 +17,7 @@ function getImageLaneClient() {
 }
 
 export function useImageAILane() {
-  return false;
+  return true;
 }
 
 export function getStudyAIConfig(systemInstruction?: string) {
@@ -27,7 +27,7 @@ export function getStudyAIConfig(systemInstruction?: string) {
 }
 
 export function getGeminiClient() {
-  if (!gemini) throw new Error("GEMINI_API_KEY or AI_API_KEY is not configured");
+  if (!gemini) throw new Error("GEMINI_IMAGE_API_KEY, GEMINI_API_KEY or AI_API_KEY is not configured");
   return gemini;
 }
 
