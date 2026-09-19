@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { cleanAIText } from "@/lib/ai/format";
 
@@ -51,7 +51,7 @@ function splitAISources(text: string) {
 
 function RichAIResponse({ text }: { text: string }) {
   const lines = text.split(/\r?\n/);
-  const nodes: React.ReactNode[] = [];
+  const nodes: ReactNode[] = [];
   let list: { key: string; content: string }[] = [];
   const flush = () => {
     if (!list.length) return;
