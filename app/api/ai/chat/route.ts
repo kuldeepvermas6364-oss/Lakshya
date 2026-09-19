@@ -1,3 +1,4 @@
+import { buildWebContext, formatWebSources, generateStudyAIContent, searchWeb, streamStudyAIContent } from "../../../../lib/ai/gemini";
 import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 
 export const runtime = "nodejs";
