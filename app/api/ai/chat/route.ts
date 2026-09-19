@@ -4,8 +4,9 @@ import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function makePrompt(message: string, context: string, webContext = "") {
-  const parts = [context ? `Student context:\\n${context}` : "", `Student request:\\n${message}`];
+function makePrompt(message: string, context: string, webContext = "", language = "hi-en") {
+  const languageNames: Record<string,string> = { "hi-en":"Hindi + English (natural Hinglish)", hi:"Hindi", en:"English", bn:"Bengali", mr:"Marathi", te:"Telugu", ta:"Tamil", gu:"Gujarati", kn:"Kannada", ml:"Malayalam", pa:"Punjabi", or:"Odia", as:"Assamese", ur:"Urdu" };
+  const parts = [`Preferred response language: ${languageNames[language] || languageNames["hi-en"]}. Answer naturally in this language unless the student clearly asks for another language.`, context ? `Student context:\\n${context}` : "", `Student request:\\n${message}`];
   if (webContext) {
     parts.push(`Live web sources retrieved by Lakshya:\\n${webContext}\\n\\nUse these sources only when relevant and do not invent details beyond them.`);
   }
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     const message = typeof body?.message === "string" ? body.message.trim() : "";
     const context = typeof body?.context === "string" ? body.context.trim() : "";
     const stream = body?.stream !== false;
+    const language = typeof body?.language === "string" ? body.language : "hi-en";
 
     if (!message) {
       return new Response(
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     const sources = await searchWeb(message);
-    const prompt = makePrompt(message, context, buildWebContext(sources));
+    const prompt = makePrompt(message, context, buildWebContext(sources), language);
 
     if (!stream) {
       const text = await generateStudyAIContent(prompt, LAKSHYA_AI_SYSTEM_PROMPT);
