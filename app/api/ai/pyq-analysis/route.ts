@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     const grounded = await generateGeminiContentWithWebSearch(groundedPrompt);
     const raw = grounded.text;
-    const sources = grounded.sources;);
+    const sources = grounded.sources;
     const data = parseJson(raw);
     const questions = Array.isArray(data?.questions) ? data.questions.slice(0, count).map((q: any) => ({
       question: String(q?.question || "").trim(),
