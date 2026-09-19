@@ -114,6 +114,7 @@ export default function AIPage() {
   const [streamingId, setStreamingId] = useState<number | null>(null);
   const [subject, setSubject] = useState("General");
   const [error, setError] = useState("");
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const [imageData, setImageData] = useState("");
   const [imageMime, setImageMime] = useState("image/jpeg");
   const [imageName, setImageName] = useState("");
@@ -196,6 +197,11 @@ export default function AIPage() {
   }
 
   function submit(event: FormEvent) { event.preventDefault(); void ask(); }
+
+  function runQuickAction(prompt: string) {
+    setShowAddMenu(false);
+    void ask(prompt);
+  }
 
   function chooseImage(file: File) {
     if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
@@ -281,7 +287,28 @@ export default function AIPage() {
               </div>
             )}
             <div className="ai-composer-box">
-              <button type="button" className="ai-add" onClick={() => fileRef.current?.click()} disabled={loading} aria-label="Add photo">+</button>
+              <div className="ai-add-wrap">
+                <button type="button" className={`ai-add ${showAddMenu ? "active" : ""}`} onClick={() => setShowAddMenu((v) => !v)} disabled={loading} aria-label="Open study actions">
+                  {showAddMenu ? "×" : "+"}
+                </button>
+                {showAddMenu && (
+                  <div className="ai-add-menu" role="menu">
+                    <div className="ai-add-menu-title"><span>✦</span><div><b>Study tools</b><small>Choose what you want to do</small></div></div>
+                    {prompts.map(([label, prompt], index) => (
+                      <button key={label} type="button" className="ai-add-item" onClick={() => runQuickAction(prompt)} disabled={loading}>
+                        <span className="ai-add-item-icon">{["✦", "✓", "↻", "◈"][index]}</span>
+                        <span><b>{label}</b><small>{["Understand a topic", "Practice questions", "Quick revision", "Study plan"][index]}</small></span>
+                      </button>
+                    ))}
+                    <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); window.location.href="/ai/image"; }}>
+                      <span className="ai-add-item-icon">◇</span><span><b>Create Image</b><small>Make a visual study aid</small></span>
+                    </button>
+                    <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); fileRef.current?.click(); }}>
+                      <span className="ai-add-item-icon">⌁</span><span><b>Upload Question</b><small>Photo of notes or question</small></span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={imageData ? "Ask something about this image…" : "Ask Lakshya AI anything about your studies…"} rows={1} maxLength={4000} disabled={loading} />
               <button className="ai-send" disabled={(!input.trim() && !imageData) || loading} aria-label="Send">{loading ? "…" : "↑"}</button>
             </div>
@@ -291,17 +318,6 @@ export default function AIPage() {
             </div>
           </form>
 
-          <div className="ai-action-rail ai-action-rail-bottom" aria-label="Quick study actions">
-            {prompts.map(([label, prompt], index) => (
-              <button key={label} className="ai-action" onClick={() => void ask(prompt)} disabled={loading}>
-                <span className="ai-action-icon">{["✦", "✓", "↻", "◈"][index]}</span>
-                <span><b>{label}</b><small>{["Understand a topic", "Practice questions", "Quick revision", "Build a plan"][index]}</small></span>
-              </button>
-            ))}
-            <Link href="/ai/image" className="ai-action ai-action-image">
-              <span className="ai-action-icon">◇</span><span><b>Create Image</b><small>Visual study aid</small></span>
-            </Link>
-          </div>
         </section>
 
         <p className="ai-disclaimer">AI can make mistakes. Verify important academic information with your textbook or teacher.</p>
@@ -368,6 +384,23 @@ export default function AIPage() {
         .ai-sources{margin-top:15px;padding-top:12px;border-top:1px solid #e8e4ee}.ai-sources-head{display:flex;align-items:center;gap:7px;font-size:10px;color:#4a4657}.ai-sources-head>span{color:#755cf1}.ai-sources-head em{font-style:normal;font-size:7px;background:#f0edf7;padding:3px 6px;border-radius:999px;color:#888493}.ai-source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:8px}.ai-source-card{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #e8e5ed;border-radius:11px;background:rgba(255,255,255,.7);text-decoration:none;color:#44414c;min-width:0}.ai-source-card:hover{border-color:#d6cdf6}.ai-source-favicon{width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:#f0edff;color:#6552d9;font-size:8px;font-weight:900}.ai-source-copy{flex:1;min-width:0}.ai-source-copy b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ai-source-copy small{display:block;color:#9995a4;font-size:7px;margin-top:2px}.ai-source-card>span:last-child{font-size:10px;color:#898493}
         .ai-thinking{display:flex;align-items:center;gap:9px;padding:7px 0}.ai-thinking b{font-size:10px;color:#514c5b}.ai-thinking small{display:block;font-size:8px;color:#9995a4;margin-top:2px}.ai-thinking>span{display:flex;gap:3px}.ai-thinking i{width:4px;height:4px;border-radius:50%;background:#765cf3;animation:dot 1s infinite}.ai-thinking i:nth-child(2){animation-delay:.15s}.ai-thinking i:nth-child(3){animation-delay:.3s}
         .ai-error{margin:0 20px 10px;padding:9px 11px;border-radius:10px;background:#fff1f1;color:#9b4444;font-size:9px}.ai-error span{margin-right:7px}.ai-error button{float:right;border:0;background:none;text-decoration:underline;font-size:8px}
+        .ai-add-wrap{position:relative;flex:0 0 auto}
+        .ai-add.active{background:linear-gradient(135deg,#7658ef,#d84eb7);color:#fff;transform:rotate(0deg)}
+        .ai-add-menu{
+          position:absolute;left:0;bottom:58px;width:min(290px,calc(100vw - 34px));padding:10px;
+          border:1px solid rgba(95,76,170,.14);border-radius:22px;background:rgba(255,255,255,.94);
+          box-shadow:0 22px 60px rgba(53,40,105,.20);backdrop-filter:blur(24px);animation:addMenuIn .18s ease-out;
+          z-index:30;
+        }
+        .ai-add-menu-title{display:flex;align-items:center;gap:10px;padding:7px 9px 10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+        .ai-add-menu-title>span{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7658ef,#d84eb7)}
+        .ai-add-menu-title b,.ai-add-item b{display:block;color:var(--ink);font-size:13px}
+        .ai-add-menu-title small,.ai-add-item small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+        .ai-add-item{width:100%;display:flex;align-items:center;gap:10px;padding:9px 8px;border:0;border-radius:14px;background:transparent;text-align:left;cursor:pointer;transition:.16s}
+        .ai-add-item:hover{background:rgba(117,88,239,.08);transform:translateX(2px)}
+        .ai-add-item:disabled{opacity:.5;cursor:not-allowed}
+        .ai-add-item-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;color:#7658ef;background:linear-gradient(135deg,rgba(118,88,239,.10),rgba(216,78,183,.10));font-weight:800}
+        @keyframes addMenuIn{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
         .ai-composer{padding:13px 16px 11px;border-top:1px solid rgba(92,75,155,.10);background:rgba(255,255,255,.78);backdrop-filter:blur(20px)}
         .ai-image-preview{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px;border:1px solid #e4def0;border-radius:11px;background:#faf8ff}.ai-image-preview img{width:43px;height:43px;object-fit:cover;border-radius:8px}.ai-image-preview div{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.ai-image-preview b{font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ai-image-preview span{font-size:7px;color:#8f8b99}.ai-image-preview button{border:0;background:none;color:#a24c4c;font-size:8px;font-weight:800}
         .ai-composer-box{display:flex;align-items:flex-end;gap:8px;padding:7px;border:1px solid #ded9e8;background:rgba(255,255,255,.94);border-radius:18px;box-shadow:0 8px 25px rgba(60,45,120,.06);transition:.2s}.ai-composer-box:focus-within{border-color:#c9bdf2;box-shadow:0 10px 30px rgba(89,67,170,.10)}
