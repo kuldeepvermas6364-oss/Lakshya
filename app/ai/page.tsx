@@ -229,7 +229,7 @@ export default function AIPage() {
       </div>
       <div className="ai-conversation" aria-live="polite">
         {messages.length === 0 && !loading ? <div className="ai-empty"><div className="ai-empty-icon">✦</div><h3>Ready when you are.</h3><p>Ask a question, paste a concept, upload a photo, or create a study image.</p><Link href="/ai/image" className="ai-empty-image-link">✦ Create a study image</Link></div> : messages.map((message) => <article key={message.id} className={`ai-message ${message.role}`}><span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>{message.image && <img className="ai-user-image" src={message.image} alt="Uploaded study material" />}{message.role === "ai" ? <AIResponseContent text={message.text} /> : <p>{message.text}</p>}</article>)}
-        {loading && streamingId === null && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><span className="ai-gemini-orb"><span>✦</span></span><div><b>Lakshya AI is thinking</b><small>Analyzing your question{imageData ? " and image" : ""}…</small></div><span className="ai-thinking-dots"><i></i><i></i><i></i></span></div></div>}
+        {loading && streamingId === null && <div className="ai-message ai"><span className="ai-message-label">LAKSHYA AI</span><div className="ai-thinking"><span className="ai-lakshya-orb"><span>✦</span></span><div><b>Lakshya AI is thinking</b><small>Analyzing your question{imageData ? " and image" : ""}…</small></div><span className="ai-thinking-dots"><i></i><i></i><i></i></span></div></div>}
       </div>
       {error && <div className="ai-error" role="alert">{error} <button onClick={() => setError("")}>Dismiss</button></div>}
       <form onSubmit={submit} className="ai-composer">
@@ -311,7 +311,7 @@ export default function AIPage() {
   .ai-empty-icon{
     width:58px;height:58px;display:grid;place-items:center;margin:auto;border-radius:20px;
     color:#fff;font-size:25px;background:linear-gradient(135deg,#705cf5,#e04db2);
-    box-shadow:0 14px 34px rgba(105,82,230,.25);animation:geminiGlow 2.2s ease-in-out infinite;
+    box-shadow:0 14px 34px rgba(105,82,230,.25);animation:lakshyaGlow 2.2s ease-in-out infinite;
   }
   .ai-empty h3{margin:16px 0 5px;font-size:19px;color:#292a33}.ai-empty p{margin:0;color:#858995;font-size:11px;line-height:1.7}
   .ai-empty-image-link{display:inline-flex;margin-top:14px;padding:9px 13px;border-radius:999px;background:#f5f2ff;color:#604fe0;text-decoration:none;font-size:9px;font-weight:900}
@@ -358,12 +358,12 @@ export default function AIPage() {
     display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;padding:8px 0;
     animation:thinkingIn .25s ease both;
   }
-  .ai-gemini-orb{
+  .ai-lakshya-orb{
     width:38px;height:38px;display:grid;place-items:center;flex:0 0 38px;border-radius:14px;
     background:linear-gradient(135deg,#705cf5,#e04db2);color:#fff;font-size:18px;
-    box-shadow:0 8px 28px rgba(108,80,225,.25);animation:geminiPulse 1.6s ease-in-out infinite;
+    box-shadow:0 8px 28px rgba(108,80,225,.25);animation:lakshyaPulse 1.6s ease-in-out infinite;
   }
-  .ai-gemini-orb span{animation:geminiSpark 1.15s ease-in-out infinite}.ai-thinking>div{display:flex;flex-direction:column;gap:2px}
+  .ai-lakshya-orb span{animation:lakshyaSpark 1.15s ease-in-out infinite}.ai-thinking>div{display:flex;flex-direction:column;gap:2px}
   .ai-thinking b{font-size:10px;color:#464650}.ai-thinking small{font-size:9px;color:#92949e}
   .ai-thinking-dots{display:flex;gap:3px;margin-left:3px}.ai-thinking-dots i{width:4px;height:4px;border-radius:50%;background:#765cf3;animation:thinkingDot 1s ease-in-out infinite}
   .ai-thinking-dots i:nth-child(2){animation-delay:.15s}.ai-thinking-dots i:nth-child(3){animation-delay:.3s}
@@ -402,9 +402,9 @@ export default function AIPage() {
   @keyframes aiFloat2{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-60px,-55px,0) scale(.82)}}
   @keyframes messageIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
   @keyframes thinkingIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-  @keyframes geminiPulse{0%,100%{transform:scale(.94);box-shadow:0 8px 25px rgba(108,80,225,.20)}50%{transform:scale(1.06);box-shadow:0 13px 35px rgba(217,79,184,.28)}}
-  @keyframes geminiSpark{0%,100%{transform:rotate(-10deg) scale(.88)}50%{transform:rotate(12deg) scale(1.14)}}
-  @keyframes geminiGlow{0%,100%{transform:translateY(0);box-shadow:0 14px 34px rgba(105,82,230,.20)}50%{transform:translateY(-3px);box-shadow:0 18px 42px rgba(217,79,184,.25)}}
+  @keyframes lakshyaPulse{0%,100%{transform:scale(.94);box-shadow:0 8px 25px rgba(108,80,225,.20)}50%{transform:scale(1.06);box-shadow:0 13px 35px rgba(217,79,184,.28)}}
+  @keyframes lakshyaSpark{0%,100%{transform:rotate(-10deg) scale(.88)}50%{transform:rotate(12deg) scale(1.14)}}
+  @keyframes lakshyaGlow{0%,100%{transform:translateY(0);box-shadow:0 14px 34px rgba(105,82,230,.20)}50%{transform:translateY(-3px);box-shadow:0 18px 42px rgba(217,79,184,.25)}}
   @keyframes thinkingDot{0%,100%{opacity:.2;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
 
   @media(max-width:700px){
@@ -421,7 +421,7 @@ export default function AIPage() {
     .ai-image-preview{align-items:flex-start}
   }
   @media(prefers-reduced-motion:reduce){
-    .lakshya-ai-page:before,.lakshya-ai-page:after,.ai-message,.ai-gemini-orb,.ai-empty-icon,.ai-gemini-orb span,.ai-thinking-dots i{animation:none}
+    .lakshya-ai-page:before,.lakshya-ai-page:after,.ai-message,.ai-lakshya-orb,.ai-empty-icon,.ai-lakshya-orb span,.ai-thinking-dots i{animation:none}
     .ai-conversation{scroll-behavior:auto}
   }
 `}</style>
