@@ -7,6 +7,8 @@ import { cleanAIText } from "@/lib/ai/format";
 type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
 type AISource = { title: string; url: string };
 
+function getPreferredLanguage() { return typeof window === "undefined" ? "hi-en" : localStorage.getItem("lakshya_ai_language") || "hi-en"; }
+
 const prompts = [
   ["Explain", "Explain a difficult concept in simple language with an example."],
   ["Quiz me", "Create 5 JEE-level MCQs on a topic I choose. Ask me one at a time."],
@@ -154,7 +156,7 @@ export default function AIPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/plain" },
-        body: JSON.stringify({ message: value, context, stream: true }),
+        body: JSON.stringify({ message: value, context, language: getPreferredLanguage(), stream: true }),
       });
       if (!res.ok) {
         let message = "AI request failed";
