@@ -17,7 +17,7 @@ function getImageLaneClient() {
 }
 
 export function useImageAILane() {
-  return true;
+  return false;
 }
 
 export function getStudyAIConfig(systemInstruction?: string) {
