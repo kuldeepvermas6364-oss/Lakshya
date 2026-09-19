@@ -68,7 +68,7 @@ export default function PYQPage(){
       </div>}
       <div className="panel source-card"><b>Source notes</b><p>{(data.analysis?.sourceNotes||[]).join(" · ")||"Verify every source and official paper independently."}</p><small>Generated {new Date(data.generatedAt).toLocaleString()}</small></div>
     </section>}
-    <style jsx>{\`
+    <style jsx>{`
       .pyq-hero,.pyq-builder,.analysis-card,.question-card,.source-card{max-width:1050px;margin:0 auto 16px}
       .pyq-hero{padding:28px}.pyq-hero h1{font-size:30px;line-height:1.15;margin:12px 0 9px}.pyq-hero p{max-width:800px;line-height:1.65}
       .badge{display:inline-flex;padding:6px 9px;border-radius:999px;background:rgba(99,91,255,.12);color:#635bff;font-weight:900;font-size:9px;letter-spacing:.6px}.pyq-warning{margin-top:16px;padding:11px 13px;border-radius:12px;background:#fff7e8;color:#8a5a08;font-size:10px;font-weight:700}
@@ -80,6 +80,6 @@ export default function PYQPage(){
       @keyframes pulse{50%{transform:scale(1.12);opacity:.65}}
       @media(max-width:900px){.pyq-builder{grid-template-columns:1fr 1fr}.pyq-generate{grid-column:1/-1}.pyq-hero h1{font-size:24px}}
       @media(max-width:600px){.pyq-builder{grid-template-columns:1fr}.pyq-generate{grid-column:auto}.analysis-grid{grid-template-columns:1fr}.pyq-hero,.question-card{padding:18px}.q-actions{align-items:flex-start;flex-direction:column}.q-actions .primary{width:100%}}
-    \`}</style>
+    `}</style>
   </main>
 }
