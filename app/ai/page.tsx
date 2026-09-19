@@ -115,6 +115,7 @@ export default function AIPage() {
   const [subject, setSubject] = useState("General");
   const [error, setError] = useState("");
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const cameraRef = useRef<HTMLInputElement | null>(null);
   const [imageData, setImageData] = useState("");
   const [imageMime, setImageMime] = useState("image/jpeg");
   const [imageName, setImageName] = useState("");
@@ -303,8 +304,14 @@ export default function AIPage() {
                     <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); window.location.href="/ai/image"; }}>
                       <span className="ai-add-item-icon">◇</span><span><b>Create Image</b><small>Make a visual study aid</small></span>
                     </button>
+                    <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); cameraRef.current?.click(); }}>
+                      <span className="ai-add-item-icon">⌾</span><span><b>Camera</b><small>Take a photo of your question</small></span>
+                    </button>
                     <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); fileRef.current?.click(); }}>
-                      <span className="ai-add-item-icon">⌁</span><span><b>Upload Question</b><small>Photo of notes or question</small></span>
+                      <span className="ai-add-item-icon">⌁</span><span><b>Upload Question</b><small>Choose a photo or notes</small></span>
+                    </button>
+                    <button type="button" className="ai-add-item" onClick={() => { setShowAddMenu(false); window.dispatchEvent(new CustomEvent("lakshya:open-plugins")); }}>
+                      <span className="ai-add-item-icon">⊞</span><span><b>Plugins</b><small>Use connected study tools</small></span>
                     </button>
                   </div>
                 )}
@@ -312,6 +319,7 @@ export default function AIPage() {
               <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={imageData ? "Ask something about this image…" : "Ask Lakshya AI anything about your studies…"} rows={1} maxLength={4000} disabled={loading} />
               <button className="ai-send" disabled={(!input.trim() && !imageData) || loading} aria-label="Send">{loading ? "…" : "↑"}</button>
             </div>
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) chooseImage(f); e.currentTarget.value = ""; }} />
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/heic" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) chooseImage(f); e.currentTarget.value = ""; }} />
             <div className="ai-composer-meta">
               <span>{input.length}/4000 · {subject}</span>
