@@ -21,7 +21,37 @@ const materialInfo: Record<Category, { icon: string; title: string; description:
   tricky: { icon: "⚡", title: "Tricky Questions / ट्रिकी प्रश्न", description: "Common traps + high-thinking practice", instruction: "Create 5 tricky/high-thinking questions from this chapter, focused on common traps and misconceptions. Include correct answer and why the trap is wrong." },
 };
 
-const chapterLists: Record<string, string[]> = {
+
+function cleanMath(text: string) {
+  return text.replace(/\$\s*\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}\s*\$/g, "$1/$2").replace(/\$([^$]+)\$/g, "$1").replace(/\^2/g, "²").replace(/\^3/g, "³");
+}
+
+function renderAIAnswer(text: string) {
+  const lines = text.split(/\r?\n/);
+  const nodes: React.ReactNode[] = [];
+  let optionGroup: { letter: string; value: string }[] = [];
+  const flushOptions = () => {
+    if (!optionGroup.length) return;
+    nodes.push(<div className="option-grid" key={"options-" + nodes.length}>{optionGroup.map(o => <div className="option-box" key={o.letter}><span className="option-letter">{o.letter}</span><span>{cleanMath(o.value)}</span></div>)}</div>);
+    optionGroup = [];
+  };
+  lines.forEach((raw, i) => {
+    const line = raw.trim();
+    if (!line) { flushOptions(); nodes.push(<div className="answer-space" key={i} />); return; }
+    const m = line.match(/^(?:[-•*]\s*)?([A-D])\)\s*(.+)$/i);
+    if (m) { optionGroup.push({ letter: m[1].toUpperCase(), value: m[2].replace(/^\*+|\*+$/g, "") }); return; }
+    flushOptions();
+    const correct = line.match(/^\**(?:Correct Answer|सही उत्तर)\**\s*:\s*(.+)$/i);
+    if (correct) { nodes.push(<div className="correct-answer" key={i}><span>✓</span><div><small>CORRECT ANSWER</small><b>{cleanMath(correct[1].replace(/\*+/g, ""))}</b></div></div>); return; }
+    const isHeading = /^#{1,3}\s/.test(line);
+    const heading = line.replace(/^#{1,3}\s+/, "").replace(/\*\*/g, "");
+    if (isHeading) { nodes.push(<h3 className="answer-heading" key={i}>{heading}</h3>); return; }
+    nodes.push(<p className="answer-line" key={i}>{cleanMath(line.replace(/\*\*/g, ""))}</p>);
+  });
+  flushOptions();
+  return nodes;
+}
+\nconst chapterLists: Record<string, string[]> = {
   Physics: ["Electric Charges and Fields", "Electrostatic Potential and Capacitance", "Current Electricity", "Moving Charges and Magnetism", "Magnetism and Matter", "Electromagnetic Induction", "Alternating Current", "Electromagnetic Waves", "Ray Optics and Optical Instruments", "Wave Optics", "Dual Nature of Radiation and Matter", "Atoms", "Nuclei", "Semiconductor Electronics"],
   Chemistry: ["Solutions", "Electrochemistry", "Chemical Kinetics", "d- and f-Block Elements", "Coordination Compounds", "Haloalkanes and Haloarenes", "Alcohols, Phenols and Ethers", "Aldehydes, Ketones and Carboxylic Acids", "Amines", "Biomolecules", "Polymers", "Chemistry in Everyday Life"],
   Biology: ["Sexual Reproduction in Flowering Plants", "Human Reproduction", "Reproductive Health", "Principles of Inheritance and Variation", "Molecular Basis of Inheritance", "Evolution", "Human Health and Disease", "Biotechnology: Principles and Processes", "Biotechnology and its Applications", "Ecology and Environment"],
@@ -120,7 +150,7 @@ export default function AIChapterPage() {
 
     <section className="card materialHero"><div><span className="badge">{current.icon} {current.title}</span><h2>{chapter} के लिए AI {current.title}</h2><p>{current.description}. AI content इसी chapter workspace में save होगा — दूसरे chapter में mix नहीं होगा।</p></div><button className="generate" disabled={generating !== null} onClick={() => void generateMaterial(selectedMaterial)}>{generating === selectedMaterial ? "AI बना रहा है…" : `✦ AI से ${current.title} बनाएं`}</button></section>
 
-    <section className="card ai" id="ai"><div className="aiHead"><div><span className="badge">✦ LAKSHYA AI • CHAPTER MODE</span><h2>पूछो → समझो → उसी material में Save करो</h2><p>Flashcard पढ़ते समय सवाल पूछो, Quiz explain कराओ, Notes improve करो और answer को इसी chapter के material में save करो।</p></div><div className="orb">✦<small>AI</small></div></div><textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder={`${chapter} के बारे में AI से पूछें… / इस ${current.title} को समझने में मदद चाहिए?`} /><div className="actions"><button className="ask" disabled={!question.trim() || loading} onClick={() => void askAI()}>{loading ? "AI सोच रहा है…" : "✦ Ask Lakshya AI"}</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem(selectedMaterial, answer)}>＋ इसी {current.title} में Save</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem("summary", answer)}>＋ Quick Revision</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem("flashcards", answer)}>＋ Flashcard</button></div>{answer && <div className="answer"><b>AI Explanation / AI उत्तर</b><textarea value={answer} onChange={e => setAnswer(e.target.value)} /></div>}</section>
+    <section className="card ai" id="ai"><div className="aiHead"><div><span className="badge">✦ LAKSHYA AI • CHAPTER MODE</span><h2>पूछो → समझो → उसी material में Save करो</h2><p>Flashcard पढ़ते समय सवाल पूछो, Quiz explain कराओ, Notes improve करो और answer को इसी chapter के material में save करो।</p></div><div className="orb">✦<small>AI</small></div></div><textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder={`${chapter} के बारे में AI से पूछें… / इस ${current.title} को समझने में मदद चाहिए?`} /><div className="actions"><button className="ask" disabled={!question.trim() || loading} onClick={() => void askAI()}>{loading ? "AI सोच रहा है…" : "✦ Ask Lakshya AI"}</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem(selectedMaterial, answer)}>＋ इसी {current.title} में Save</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem("summary", answer)}>＋ Quick Revision</button><button disabled={!answer.trim() || saving} onClick={() => void saveItem("flashcards", answer)}>＋ Flashcard</button></div>{answer && <div className="answer"><div className="answer-title"><span>✦</span><b>AI Explanation / AI उत्तर</b></div><div className="answer-content">{renderAIAnswer(answer)}</div><textarea className="raw-edit" value={answer} onChange={e => setAnswer(e.target.value)} aria-label="Edit AI answer" /></div>}</section>
 
     <section className="card ncert"><div><span className="badge">🇮🇳 OFFICIAL NCERT • HINDI MEDIUM</span><h2>Hindi NCERT Chapter</h2><p>Physics और Biology में Download button अब सीधे official NCERT PDF पर जाता है, NCERT textbook listing page पर नहीं। Chemistry के लिए official Hindi NCERT listing अभी रखी गई है क्योंकि उसका direct PDF endpoint verify नहीं मिला।</p></div><div className="ncertActions"><a href={hindiNcertUrl} target="_blank" rel="noreferrer">📖 Hindi NCERT खोलें</a><a href={hindiNcertUrl} download={`NCERT-Hindi-${subject}-${chapter}.pdf`}>⬇ PDF / Download</a></div></section>
 
