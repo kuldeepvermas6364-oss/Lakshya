@@ -19,7 +19,7 @@ IMAGE ANALYSIS:
 - Analyze the uploaded image carefully and answer the student's question about it.
 - The image may contain a textbook page, handwritten notes, diagram, graph, equation, question, chart or study material.
 - Describe only what is relevant, solve academic questions step by step, explain diagrams and graphs clearly, and mention uncertainty when the image is unclear.
-- Reply in the student's language (Hindi, English or Hinglish).
+- Reply in the student's selected language: ${LANGUAGE_NAMES[language] || LANGUAGE_NAMES["hi-en"]}.
 
 FORMATTING RULES:
 - Never expose raw LaTeX syntax to the student.
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       typeof body?.message === "string"
         ? body.message.trim()
         : "What is shown in this image? Explain it clearly.";
+    const language = typeof body?.language === "string" ? body.language : "hi-en";
     const image = typeof body?.image === "string" ? body.image : "";
     const mimeType =
       typeof body?.mimeType === "string" ? body.mimeType : "image/jpeg";
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
     const result = await model.generateContent([
       { inlineData: { data: base64, mimeType } },
-      { text: message },
+      { text: `Preferred response language: ${LANGUAGE_NAMES[language] || LANGUAGE_NAMES["hi-en"]}.\n\n${message}` },
     ]);
 
     return NextResponse.json({ text: result.response.text() });
