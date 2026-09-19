@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
+const apiKey = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 const modelName = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 const SYSTEM = `${LAKSHYA_AI_SYSTEM_PROMPT}\n\nYou are the built-in AI study assistant inside the Lakshya app. Never identify yourself by the name of any underlying AI model or provider. If asked who you are, say you are Lakshya AI.
