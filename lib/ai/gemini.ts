@@ -219,7 +219,7 @@ export async function streamStudyAIContent(prompt: string, systemInstruction?: s
   return streamGeminiContent(prompt, systemInstruction);
 }
 
-export async function generateGeminiContent(prompt: string, systemInstruction?: string) {
+export async function generateGeminiContentWithWebSearch(prompt: string, systemInstruction?: string) {\n  const client = getGeminiClient();\n  const response = await withTimeout(\n    client.models.generateContent({\n      model: GEMINI_MODEL,\n      contents: prompt,\n      config: getGeminiConfig(systemInstruction, true),\n    }),\n    REQUEST_TIMEOUT_MS,\n  );\n  return { text: `${response.text || ""}`.trim(), sources: extractWebSources(response) };\n}\n\nexport async function generateGeminiContent(prompt: string, systemInstruction?: string) {
   const client = getGeminiClient();
   const response = await withTimeout(
     client.models.generateContent({
