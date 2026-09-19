@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { LAKSHYA_AI_SYSTEM_PROMPT } from "../../../../lib/ai/prompts";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  "hi-en": "Hindi + English (natural Hinglish)",
+  hi: "Hindi", en: "English", bn: "Bengali", mr: "Marathi", te: "Telugu",
+  ta: "Tamil", gu: "Gujarati", kn: "Kannada", ml: "Malayalam", pa: "Punjabi",
+  or: "Odia", as: "Assamese", ur: "Urdu",
+};
+
 const apiKey = process.env.GEMINI_IMAGE_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 const modelName = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
