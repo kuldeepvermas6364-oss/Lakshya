@@ -33,22 +33,25 @@ export async function POST(request: Request) {
 
     const hf = new InferenceClient(token);
 
-    const response = await hf.textToImage({
-      model: MODEL,
-      inputs: prompt,
-      provider: "auto",
-      parameters: {
-        width: 1024,
-        height: 1024,
+    const imageDataUrl = await hf.textToImage(
+      {
+        model: MODEL,
+        inputs: prompt,
+        provider: "auto",
+        parameters: {
+          target_size: {
+            width: 1024,
+            height: 1024,
+          },
+        },
       },
-    });
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const contentType = response.type || "image/png";
+      {
+        outputType: "dataUrl",
+      },
+    );
 
     return NextResponse.json({
-      image: `data:${contentType};base64,${buffer.toString("base64")}`,
+      image: imageDataUrl,
       model: MODEL,
     });
   } catch (error) {
