@@ -101,8 +101,8 @@ export default function ImageAIPage() {
           <div className="image-provider-tabs" role="tablist" aria-label="Image AI">
             <button type="button" role="tab" aria-selected={imageProvider === "lakshya"} className={imageProvider === "lakshya" ? "active" : ""} onClick={() => setImageProvider("lakshya")} disabled={loading}>✦ Lakshya Image</button>
             <button type="button" role="tab" aria-selected={imageProvider === "qwen"} className={imageProvider === "qwen" ? "active qwen" : "qwen"} onClick={() => setImageProvider("qwen")} disabled={loading}>◉ Qwen Image AI</button>
-            <button type="button" role="tab" aria-selected={imageProvider === "flux"} className={imageProvider === "flux" ? "active flux" : "flux"} onClick={() => setImageProvider("flux")} disabled={loading}>⚡ Hugging Face FLUX</button>\
-            <button type="button" role="tab" aria-selected={imageProvider === "stable"} className={imageProvider === "stable" ? "active stable" : "stable"} onClick={() => setImageProvider("stable")} disabled={loading}>◈ Stable Diffusion 3.5</button>\
+            <button type="button" role="tab" aria-selected={imageProvider === "flux"} className={imageProvider === "flux" ? "active flux" : "flux"} onClick={() => setImageProvider("flux")} disabled={loading}>⚡ Hugging Face FLUX</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "stable"} className={imageProvider === "stable" ? "active stable" : "stable"} onClick={() => setImageProvider("stable")} disabled={loading}>◈ Stable Diffusion 3.5</button>
             <button type="button" role="tab" aria-selected={imageProvider === "pollinations"} className={imageProvider === "pollinations" ? "active pollinations" : "pollinations"} onClick={() => setImageProvider("pollinations")} disabled={loading}>✺ Pollinations AI</button>
           </div>
         </div>
@@ -180,8 +180,8 @@ export default function ImageAIPage() {
 
       <style jsx>{`
         .lakshya-image-page{max-width:1180px;overflow:hidden}
-        .image-provider-tabs{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(105,88,175,.12);border-radius:14px;background:rgba(247,244,255,.78)}
-        .image-provider-tabs button{border:0;border-radius:10px;padding:8px 11px;background:transparent;color:#777184;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap}
+        .image-provider-tabs{display:flex;gap:6px;align-items:center;padding:4px;overflow-x:auto;max-width:100%;scrollbar-width:none;overscroll-behavior-x:contain;border:1px solid rgba(105,88,175,.12);border-radius:14px;background:rgba(247,244,255,.78)}
+        .image-provider-tabs::-webkit-scrollbar{display:none}.image-provider-tabs button{border:0;border-radius:10px;padding:8px 11px;background:transparent;color:#777184;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap;flex:0 0 auto}
         .image-provider-tabs button.active{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;box-shadow:0 7px 18px rgba(105,80,225,.16)}
         .image-provider-tabs button.qwen.active{background:linear-gradient(135deg,#1677ff,#5b4df5)}.image-provider-tabs button.flux.active{background:linear-gradient(135deg,#ff7a18,#ef3f8f)}.image-provider-tabs button.stable.active{background:linear-gradient(135deg,#4f46e5,#0ea5e9)}.image-provider-tabs button.pollinations.active{background:linear-gradient(135deg,#0f766e,#14b8a6)}
         .image-provider-tabs button:disabled{opacity:.5;cursor:not-allowed}
