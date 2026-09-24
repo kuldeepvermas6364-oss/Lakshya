@@ -301,7 +301,7 @@ export default function AIPage() {
               <option>General</option><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Biology</option><option>English</option>
             </select>
           </label>
-          <Link href="/ai/image" className="ai-image-top">✦ <span>Study Image</span></Link>
+          <Link href="/ai/image" className="ai-image-top">✦ <span>Study Image</span></Link><Link href="/qwen-ai" className="ai-image-top ai-openrouter-top">◉ <span>OpenRouter AI</span></Link>
         </div>
       </header>
 
@@ -440,7 +440,7 @@ export default function AIPage() {
         .ai-context{display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7)}
         .ai-context span{font-size:7px;font-weight:900;letter-spacing:.12em;color:#9693a2}.ai-context select{border:0;background:transparent;outline:0;font-size:10px;font-weight:800;color:var(--ink)}
         .ai-image-top{padding:9px 12px;border-radius:12px;background:linear-gradient(135deg,#f6f2ff,#fff1fa);border:1px solid #ded7f8;color:#604fe0;text-decoration:none;font-size:9px;font-weight:900;transition:.2s}
-        .ai-image-top:hover{transform:translateY(-1px)}
+        .ai-image-top:hover{transform:translateY(-1px)}.ai-openrouter-top{background:linear-gradient(135deg,#eef7ff,#eef1ff);border-color:#cfdcf5;color:#365ea8}
         .ai-main-shell{width:min(1080px,calc(100% - 28px));margin:0 auto;padding:30px 0 0}
         .ai-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}
         .ai-kicker{font-size:8px;letter-spacing:.18em;font-weight:950;color:#7867dc}.ai-intro h1{margin:7px 0 6px;font-size:clamp(28px,4vw,44px);letter-spacing:-.045em;line-height:1.05;color:#201b34}
