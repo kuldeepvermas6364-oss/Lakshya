@@ -9,7 +9,7 @@ type Message = {
 };
 
 const starter = [
-  "Hello Qwen, give me a short test response.",
+  "Hello OpenRouter, give me a short test response.",
   "Explain Newton's second law in simple Hindi.",
   "Give me one Class 12 Physics MCQ.",
 ];
@@ -93,7 +93,7 @@ export default function QwenTestPage() {
           <div className="qwen-test-empty">
             <div className="qwen-orb">Q</div>
             <h2>OpenRouter connection ready to test</h2>
-            <p>Send a message below. If the key is connected in Vercel, the reply will come from Qwen through OpenRouter.</p>
+            <p>Send a message below. If the key is connected in Vercel, the reply will come through OpenRouter.</p>
             <div className="qwen-starters">
               {starter.map((item) => (
                 <button key={item} type="button" onClick={() => void send(item)} disabled={loading}>{item}</button>
@@ -106,7 +106,7 @@ export default function QwenTestPage() {
               <article key={message.id} className={`qwen-message ${message.role}`}>
                 <span className="qwen-avatar">{message.role === "user" ? "K" : "Q"}</span>
                 <div>
-                  <small>{message.role === "user" ? "YOU" : "QWEN AI"}</small>
+                  <small>{message.role === "user" ? "YOU" : "OPENROUTER AI"}</small>
                   <p>{message.content}</p>
                 </div>
               </article>
@@ -114,7 +114,7 @@ export default function QwenTestPage() {
             {loading && (
               <article className="qwen-message assistant">
                 <span className="qwen-avatar">Q</span>
-                <div><small>QWEN AI</small><p className="qwen-thinking">Thinking…</p></div>
+                <div><small>OPENROUTER AI</small><p className="qwen-thinking">Thinking…</p></div>
               </article>
             )}
             <div ref={endRef} />
