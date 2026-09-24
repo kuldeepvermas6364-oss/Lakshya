@@ -77,10 +77,10 @@ export default function QwenTestPage() {
       <header className="qwen-test-header">
         <div>
           <span className="qwen-test-kicker">AI CONNECTION TEST</span>
-          <h1>Qwen AI Test</h1>
-          <p>Temporary test tab for checking the OpenRouter → Qwen connection.</p>
+          <h1>OpenRouter AI Test</h1>
+          <p>Temporary test tab for checking the OpenRouter → OpenRouter connection.</p>
         </div>
-        <div className="qwen-test-status"><i /> Qwen3 Coder · Free</div>
+        <div className="qwen-test-status"><i /> OpenRouter Free · openrouter/free</div>
       </header>
 
       <section className="qwen-test-card">
@@ -92,7 +92,7 @@ export default function QwenTestPage() {
         {messages.length === 0 ? (
           <div className="qwen-test-empty">
             <div className="qwen-orb">Q</div>
-            <h2>Qwen connection ready to test</h2>
+            <h2>OpenRouter connection ready to test</h2>
             <p>Send a message below. If the key is connected in Vercel, the reply will come from Qwen through OpenRouter.</p>
             <div className="qwen-starters">
               {starter.map((item) => (
@@ -127,7 +127,7 @@ export default function QwenTestPage() {
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
-            placeholder="Test Qwen here…"
+            placeholder="Test OpenRouter here…"
             rows={2}
             disabled={loading}
           />
