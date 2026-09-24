@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODEL = "qwen/qwen3-coder:free";
+const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -29,9 +29,13 @@ export async function POST(request: Request) {
     }
 
     const history: ChatMessage[] = incoming
-      .filter((item: unknown): item is { role: "user" | "assistant"; content: string } => {\n        if (typeof item !== "object" || item === null) return false;\n        const candidate = item as { role?: unknown; content?: unknown };\n        return (candidate.role === "user" || candidate.role === "assistant") && typeof candidate.content === "string";\n      })
+      .filter((item: unknown): item is { role: "user" | "assistant"; content: string } => {
+        if (typeof item !== "object" || item === null) return false;
+        const candidate = item as { role?: unknown; content?: unknown };
+        return (candidate.role === "user" || candidate.role === "assistant") && typeof candidate.content === "string";
+      })
       .slice(-10)
-      .map((item: any) => ({ role: item.role, content: item.content.slice(0, 6000) }));
+      .map((item) => ({ role: item.role, content: item.content.slice(0, 6000) }));
 
     const messages = [
       {
