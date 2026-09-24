@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     }
 
     const history: ChatMessage[] = incoming
-      .filter((item: any) => (item?.role === "user" || item?.role === "assistant") && typeof item?.content === "string")
+      .filter((item: unknown): item is { role: "user" | "assistant"; content: string } => {\n        if (typeof item !== "object" || item === null) return false;\n        const candidate = item as { role?: unknown; content?: unknown };\n        return (candidate.role === "user" || candidate.role === "assistant") && typeof candidate.content === "string";\n      })
       .slice(-10)
       .map((item: any) => ({ role: item.role, content: item.content.slice(0, 6000) }));
 
