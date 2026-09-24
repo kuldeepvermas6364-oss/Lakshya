@@ -431,7 +431,7 @@ export default function AIPage() {
         .ai-back:hover{transform:translateX(-2px);box-shadow:0 8px 22px rgba(70,55,130,.10)}
         .ai-brand{display:flex;align-items:center;gap:10px;min-width:0}
         .ai-brand-orb{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#705cf5,#df4eb5);box-shadow:0 8px 22px rgba(106,79,226,.23);animation:brandPulse 3s ease-in-out infinite}
-        .ai-brand div{display:flex;flex-direction:column}.ai-brand b{font-size:14px;color:var(--ink)}.ai-brand small{font-size:9px;color:#92909e;margin-top:2px}
+        .ai-brand div{display:flex;flex-direction:column}.ai-brand b{font-size:14px;color:var(--ink);font-weight:950}.ai-brand small{font-size:9px;color:#92909e;margin-top:2px}
         .ai-chat-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
         .ai-history-btn,.ai-new-btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);border-radius:11px;padding:8px 10px;font-size:9px;font-weight:850;cursor:pointer;white-space:nowrap}
         .ai-new-btn{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;border-color:transparent}
@@ -508,7 +508,48 @@ export default function AIPage() {
         .ai-disclaimer{text-align:center;color:#9995a2;font-size:8px;margin:9px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
         @keyframes aiBg{from{background-position:0 0}to{background-position:100% 100%}}@keyframes orbFloat{from{transform:translate(0,0) scale(.9)}to{transform:translate(70px,45px) scale(1.1)}}@keyframes orbFloat2{from{transform:translate(0,0)}to{transform:translate(-55px,-40px) scale(.85)}}@keyframes brandPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}@keyframes welcomeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes spark{0%,100%{transform:scale(.88) rotate(-8deg)}50%{transform:scale(1.12) rotate(10deg)}}@keyframes particle{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-7px);opacity:1}}@keyframes statusPulse{0%,100%{box-shadow:0 0 0 3px rgba(67,184,135,.08)}50%{box-shadow:0 0 0 6px rgba(67,184,135,.04)}}@keyframes messageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
         @media(max-width:760px){
-          .lakshya-ai-page{padding-bottom:14px!important}.ai-topbar{height:62px;padding:0 8px;gap:7px}.ai-back{width:34px;height:34px;border-radius:11px;font-size:19px}.ai-brand-orb{width:32px;height:32px;border-radius:10px}.ai-brand b{font-size:12px}.ai-brand small{font-size:7px}.ai-context{padding:5px 7px}.ai-context span{display:none}.ai-context select{font-size:8px;max-width:74px}.ai-history-btn,.ai-new-btn{padding:7px 8px;font-size:0}.ai-history-btn:first-letter,.ai-new-btn:first-letter{font-size:12px}.ai-image-top{font-size:0;padding:8px 9px}.ai-image-top:first-letter{font-size:12px}.ai-main-shell{width:100%;padding:19px 10px 0}.ai-intro{align-items:flex-start;margin:0 5px 13px}.ai-intro h1{font-size:27px}.ai-intro p{font-size:9px;max-width:330px}.ai-status{font-size:0;padding:8px}.ai-status i{margin:0}.ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-top:9px;scrollbar-width:none}.ai-action-rail-bottom{margin-bottom:0}.ai-action-rail::-webkit-scrollbar{display:none}.ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}.ai-action b{font-size:9px}.ai-action small{font-size:7px}.ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 335px);min-height:390px;padding:22px 12px 15px}.ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}.ai-welcome h2{font-size:21px}.ai-welcome p{font-size:9px;padding:0 15px}.ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px}.ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}.ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}.ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}.ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}.ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}.ai-disclaimer{display:none}
+          .lakshya-ai-page{padding-bottom:14px!important}
+          .ai-topbar{
+            min-height:108px;height:auto;padding:8px 9px 7px;gap:7px;
+            flex-wrap:wrap;align-items:center;
+          }
+          .ai-back{width:34px;height:34px;border-radius:11px;font-size:19px;flex:0 0 34px}
+          .ai-brand{flex:1 1 auto;min-width:120px}
+          .ai-brand-orb{width:34px;height:34px;border-radius:11px}
+          .ai-brand b{font-size:14px;font-weight:950;line-height:1.05}
+          .ai-brand small{font-size:7px}
+          .ai-chat-actions{margin-left:0;gap:5px}
+          .ai-history-btn,.ai-new-btn{width:34px;height:34px;padding:0;font-size:0;display:grid;place-items:center;border-radius:11px}
+          .ai-history-btn:first-letter,.ai-new-btn:first-letter{font-size:14px}
+          .ai-top-actions{
+            order:5;width:100%;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;
+            padding:6px 2px 1px;border-top:1px solid rgba(88,75,150,.08);
+          }
+          .ai-top-actions::-webkit-scrollbar{display:none}
+          .ai-context,.ai-image-top{flex:0 0 auto}
+          .ai-context{padding:7px 10px;border-radius:11px}
+          .ai-context span{display:none}
+          .ai-context select{font-size:10px;max-width:90px;font-weight:950}
+          .ai-image-top{font-size:9px;padding:8px 11px;border-radius:11px;font-weight:950;white-space:nowrap}
+          .ai-main-shell{width:100%;padding:19px 10px 0}
+          .ai-intro{align-items:flex-start;margin:0 5px 13px}
+          .ai-intro h1{font-size:27px}
+          .ai-intro p{font-size:9px;max-width:330px}
+          .ai-status{font-size:0;padding:8px}.ai-status i{margin:0}
+          .ai-action-rail{display:flex;overflow-x:auto;gap:7px;padding:1px 4px 5px;margin-top:9px;scrollbar-width:none}
+          .ai-action-rail-bottom{margin-bottom:0}.ai-action-rail::-webkit-scrollbar{display:none}
+          .ai-action{min-width:132px;padding:8px;border-radius:14px}.ai-action-icon{width:27px;height:27px;flex-basis:27px}
+          .ai-action b{font-size:9px;font-weight:950}.ai-action small{font-size:7px}
+          .ai-chat-stage{border-radius:21px}.ai-conversation{height:calc(100dvh - 385px);min-height:390px;padding:22px 12px 15px}
+          .ai-welcome-orb{width:70px;height:70px;border-radius:23px}.ai-welcome-orb span{font-size:26px}
+          .ai-welcome h2{font-size:21px;font-weight:950}.ai-welcome p{font-size:9px;padding:0 15px}
+          .ai-welcome-hints{padding:0 7px}.ai-welcome-hints button{font-size:7px;font-weight:900}
+          .ai-message{gap:7px;margin-bottom:19px}.ai-avatar{width:26px;height:26px;flex-basis:26px;border-radius:9px;font-size:10px}
+          .ai-message-body{max-width:86%}.ai-message.user .ai-message-body>p{font-size:10px;padding:9px 11px}
+          .ai-rich-response{font-size:10px;line-height:1.75}.ai-rich-heading{font-size:13px}.ai-source-grid{grid-template-columns:1fr}
+          .ai-composer{padding:9px 8px 8px}.ai-composer-meta{margin-top:5px}.ai-composer-meta>span{display:none}
+          .ai-composer-meta div{overflow:hidden;flex-wrap:nowrap}.ai-composer-meta button,.ai-composer-meta a{font-size:7px;white-space:nowrap}
+          .ai-disclaimer{display:none}
         }
         @media(prefers-reduced-motion:reduce){.lakshya-ai-page:before,.lakshya-ai-page:after,.ai-brand-orb,.ai-welcome-orb,.ai-welcome-orb span,.ai-welcome-orb i,.ai-message,.thinking-avatar,.ai-status i,.ai-thinking i{animation:none}}
       `}</style>
