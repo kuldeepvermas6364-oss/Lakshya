@@ -21,7 +21,7 @@ export default function ImageAIPage() {
   const [error, setError] = useState("");
   const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
   const [saved, setSaved] = useState(false);
-  const [imageProvider, setImageProvider] = useState<"lakshya" | "qwen">("lakshya");
+  const [imageProvider, setImageProvider] = useState<"lakshya" | "qwen" | "flux">("lakshya");
 
   useEffect(() => {
     try {
@@ -57,7 +57,7 @@ export default function ImageAIPage() {
     setImage("");
     setSaved(false);
     try {
-      const response = await fetch(imageProvider === "qwen" ? "/api/ai/qwen-image" : "/api/ai/image", {
+      const response = await fetch(imageProvider === "qwen" ? "/api/ai/qwen-image" : imageProvider === "flux" ? "/api/ai/huggingface-image" : "/api/ai/image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: value }),
@@ -91,6 +91,7 @@ export default function ImageAIPage() {
           <div className="image-provider-tabs" role="tablist" aria-label="Image AI">
             <button type="button" role="tab" aria-selected={imageProvider === "lakshya"} className={imageProvider === "lakshya" ? "active" : ""} onClick={() => setImageProvider("lakshya")} disabled={loading}>✦ Lakshya Image</button>
             <button type="button" role="tab" aria-selected={imageProvider === "qwen"} className={imageProvider === "qwen" ? "active qwen" : "qwen"} onClick={() => setImageProvider("qwen")} disabled={loading}>◉ Qwen Image AI</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "flux"} className={imageProvider === "flux" ? "active flux" : "flux"} onClick={() => setImageProvider("flux")} disabled={loading}>⚡ Hugging Face FLUX</button>
           </div>
         </div>
 
@@ -108,7 +109,7 @@ export default function ImageAIPage() {
             {loading && <div className="prompt-shimmer" />}
           </div>
           <div className="image-form-foot">
-            <span>{prompt.length}/2000 · {imageProvider === "qwen" ? "Qwen Image 3 via OpenRouter" : "Educational image generation"}</span>
+            <span>{prompt.length}/2000 · {imageProvider === "qwen" ? "Qwen Image 3 via OpenRouter" : imageProvider === "flux" ? "FLUX.1-schnell via Hugging Face" : "Educational image generation"}</span>
             <button className="generate-image-btn" type="submit" disabled={!prompt.trim() || loading}>
               <span className="btn-spark">✦</span>{loading ? "Creating…" : "Create Image"}<span className="btn-arrow">→</span>
             </button>
@@ -170,7 +171,7 @@ export default function ImageAIPage() {
         .image-provider-tabs{display:flex;gap:6px;align-items:center;padding:4px;border:1px solid rgba(105,88,175,.12);border-radius:14px;background:rgba(247,244,255,.78)}
         .image-provider-tabs button{border:0;border-radius:10px;padding:8px 11px;background:transparent;color:#777184;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap}
         .image-provider-tabs button.active{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;box-shadow:0 7px 18px rgba(105,80,225,.16)}
-        .image-provider-tabs button.qwen.active{background:linear-gradient(135deg,#1677ff,#5b4df5)}
+        .image-provider-tabs button.qwen.active{background:linear-gradient(135deg,#1677ff,#5b4df5)}.image-provider-tabs button.flux.active{background:linear-gradient(135deg,#ff7a18,#ef3f8f)}
         .image-provider-tabs button:disabled{opacity:.5;cursor:not-allowed}
         .image-hero{position:relative;min-height:270px;margin:0 0 14px;padding:34px 30px;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 78% 25%,rgba(168,85,247,.22),transparent 30%),radial-gradient(circle at 25% 80%,rgba(109,93,252,.13),transparent 34%),linear-gradient(135deg,#101322,#1b1630 58%,#21163a);color:#fff;box-shadow:0 22px 60px rgba(38,25,80,.2)}
         .image-hero-copy{position:relative;z-index:2;max-width:720px}.image-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;opacity:.78}.spark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);box-shadow:0 0 24px rgba(217,70,239,.45)}
