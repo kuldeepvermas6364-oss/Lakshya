@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Qwen test AI is not connected on this deployment yet. Add OPENROUTER_API_KEY in Vercel." },
+        { error: "OpenRouter AI is not connected on this deployment yet. Add OPENROUTER_API_KEY in Vercel." },
         { status: 503 },
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       {
         role: "system",
         content:
-          "You are the Qwen test assistant inside Lakshya. Answer clearly and concisely. Match the student's language (Hindi, Hinglish, or English). This page is only for testing the connected Qwen model.",
+          "You are the OpenRouter test assistant inside Lakshya. Answer clearly and concisely. Match the student's language (Hindi, Hinglish, or English). This page is only for testing the connected OpenRouter model.",
       },
       ...history,
       { role: "user", content: message.slice(0, 8000) },
@@ -77,23 +77,23 @@ export async function POST(request: Request) {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      console.error("Qwen/OpenRouter error", response.status, data);
+      console.error("OpenRouter error", response.status, data);
       return NextResponse.json(
-        { error: "Qwen test AI could not respond right now. Check the OpenRouter key/model connection." },
+        { error: "OpenRouter AI could not respond right now. Check the OpenRouter key/model connection." },
         { status: 502 },
       );
     }
 
     const text = data?.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) {
-      return NextResponse.json({ error: "Qwen returned an empty response. Please try again." }, { status: 502 });
+      return NextResponse.json({ error: "OpenRouter returned an empty response. Please try again." }, { status: 502 });
     }
 
     return NextResponse.json({ text: text.trim(), model: MODEL });
   } catch (error) {
-    console.error("Qwen test route error", error);
+    console.error("OpenRouter test route error", error);
     return NextResponse.json(
-      { error: "Qwen test AI is temporarily unavailable. Please try again." },
+      { error: "OpenRouter AI is temporarily unavailable. Please try again." },
       { status: 503 },
     );
   }
