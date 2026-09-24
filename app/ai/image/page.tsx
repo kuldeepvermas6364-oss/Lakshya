@@ -57,8 +57,16 @@ export default function ImageAIPage() {
     setImage("");
     setSaved(false);
     try {
-      const response = await fetch(\
-        imageProvider === "qwen" ? "/api/ai/qwen-image" : imageProvider === "flux" ? "/api/ai/huggingface-image" : imageProvider === "stable" ? "/api/ai/stable-diffusion" : imageProvider === "pollinations" ? "/api/ai/pollinations-image" : "/api/ai/image",\
+      const response = await fetch(
+        imageProvider === "qwen"
+          ? "/api/ai/qwen-image"
+          : imageProvider === "flux"
+            ? "/api/ai/huggingface-image"
+            : imageProvider === "stable"
+              ? "/api/ai/stable-diffusion"
+              : imageProvider === "pollinations"
+                ? "/api/ai/pollinations-image"
+                : "/api/ai/image",
         {
         method: "POST",
         headers: { "Content-Type": "application/json" },
