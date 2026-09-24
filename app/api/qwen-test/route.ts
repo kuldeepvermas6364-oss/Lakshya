@@ -10,6 +10,11 @@ type ChatMessage = {
   content: string;
 };
 
+type IncomingChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -29,13 +34,19 @@ export async function POST(request: Request) {
     }
 
     const history: ChatMessage[] = incoming
-      .filter((item: unknown): item is { role: "user" | "assistant"; content: string } => {
+      .filter((item: unknown): item is IncomingChatMessage => {
         if (typeof item !== "object" || item === null) return false;
         const candidate = item as { role?: unknown; content?: unknown };
-        return (candidate.role === "user" || candidate.role === "assistant") && typeof candidate.content === "string";
+        return (
+          (candidate.role === "user" || candidate.role === "assistant") &&
+          typeof candidate.content === "string"
+        );
       })
       .slice(-10)
-      .map((item) => ({ role: item.role, content: item.content.slice(0, 6000) }));
+      .map((item: IncomingChatMessage): ChatMessage => ({
+        role: item.role,
+        content: item.content.slice(0, 6000),
+      }));
 
     const messages = [
       {
