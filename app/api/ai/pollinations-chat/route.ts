@@ -6,6 +6,7 @@ export const maxDuration = 60;
 
 const POLLINATIONS_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
 const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
+const POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
 
 type FeatureType = "chat" | "code" | "reasoning" | "image";
 
@@ -72,6 +73,10 @@ export async function POST(request: Request) {
 
     const selectedModel = process.env.POLLINATIONS_MODEL?.trim() || modelByFeature[featureType];
 
+    if (!POLLINATIONS_SECRET_KEY) {
+      return NextResponse.json({ error: "Pollinations AI is not configured on the server yet." }, { status: 503 });
+    }
+
     if (featureType === "image") {
       const imageUrl =
         POLLINATIONS_IMAGE_ENDPOINT +
@@ -83,7 +88,11 @@ export async function POST(request: Request) {
 
       const imageResponse = await fetch(imageUrl, {
         cache: "no-store",
-        headers: { Accept: "image/*", "User-Agent": "Lakshya-AI/1.0" },
+        headers: {
+          Accept: "image/*",
+          Authorization: "Bearer " + POLLINATIONS_SECRET_KEY,
+          "User-Agent": "Lakshya-AI/1.0",
+        },
         signal: AbortSignal.timeout(55000),
       });
 
@@ -108,10 +117,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const apiKey = process.env.POLLINATIONS_API_KEY?.trim();
-    if (!apiKey) {
-      return NextResponse.json({ error: "Pollinations AI is not configured on the server yet." }, { status: 503 });
-    }
+    const apiKey = POLLINATIONS_SECRET_KEY;
 
     const modeInstruction =
       featureType === "code"
