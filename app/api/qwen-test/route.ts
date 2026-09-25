@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
+const MODEL = process.env.OPENROUTER_MODEL || "cohere/north-mini-code:free";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       {
         role: "system",
         content:
-          "You are the OpenRouter test assistant inside Lakshya. Answer clearly and concisely. Match the student's language (Hindi, Hinglish, or English). This page is only for testing the connected OpenRouter model.",
+          "You are the OpenRouter AI assistant inside Lakshya. Answer clearly and concisely. Match the student's language (Hindi, Hinglish, or English). This page is for testing the connected OpenRouter model.",
       },
       ...history,
       { role: "user", content: message.slice(0, 8000) },
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://lakshya.vercel.app",
-        "X-Title": "Lakshya Qwen Test",
+        "X-Title": "Lakshya OpenRouter AI",
       },
       body: JSON.stringify({
         model: MODEL,
@@ -86,7 +86,10 @@ export async function POST(request: Request) {
 
     const text = data?.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) {
-      return NextResponse.json({ error: "OpenRouter returned an empty response. Please try again." }, { status: 502 });
+      return NextResponse.json(
+        { error: "OpenRouter returned an empty response. Please try again." },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({ text: text.trim(), model: MODEL });
