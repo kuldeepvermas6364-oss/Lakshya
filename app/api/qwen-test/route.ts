@@ -15,6 +15,12 @@ type IncomingChatMessage = {
   content: string;
 };
 
+type WebResult = {
+  title?: unknown;
+  url?: unknown;
+  content?: unknown;
+};
+
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -61,16 +67,13 @@ export async function POST(request: Request) {
 
     let webContext = "";
     let sources: { title: string; url: string }[] = [];
-    type WebResult = { title?: unknown; url?: unknown; content?: unknown };
 
     const tavilyKey = process.env.TAVILY_API_KEY;
     if (tavilyKey) {
       try {
         const searchResponse = await fetch("https://api.tavily.com/search", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             api_key: tavilyKey,
             query: message.slice(0, 1200),
@@ -83,7 +86,7 @@ export async function POST(request: Request) {
 
         const searchData = await searchResponse.json().catch(() => null);
         if (searchResponse.ok && Array.isArray(searchData?.results)) {
-          const validResults = searchData.results.filter(
+          const validResults: WebResult[] = searchData.results.filter(
             (item: unknown): item is WebResult => {
               if (typeof item !== "object" || item === null) return false;
               const candidate = item as WebResult;
@@ -91,18 +94,18 @@ export async function POST(request: Request) {
             },
           );
 
-          sources = validResults.slice(0, 5).map((item) => ({
+          sources = validResults.slice(0, 5).map((item: WebResult) => ({
             title:
               typeof item.title === "string" && item.title.trim()
                 ? item.title.trim()
-                : item.url as string,
-            url: item.url as string,
+                : String(item.url),
+            url: String(item.url),
           }));
 
           webContext = validResults
             .slice(0, 5)
             .map(
-              (result, index) =>
+              (result: WebResult, index: number) =>
                 `[Web source ${index + 1}] ${typeof result.title === "string" ? result.title : result.url}
 URL: ${result.url}
 Snippet: ${String(result.content || "").slice(0, 2200)}`,
