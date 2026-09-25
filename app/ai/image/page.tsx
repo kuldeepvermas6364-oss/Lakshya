@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
-type SavedImage = { id: string; image: string; prompt: string; savedAt: string };
+type SavedImage = { id: string; image: string; prompt: string; savedAt: string };\ntype PollinationsImageModel = { id: string; name: string; type: "image" };
 
 const presets = [
   ["⚡ Physics Diagram", "Create a clean, accurate educational diagram for a Class 12 Physics concept. Use clear labels, simple shapes, textbook-style presentation."],
@@ -21,7 +21,7 @@ export default function ImageAIPage() {
   const [error, setError] = useState("");
   const [savedImages, setSavedImages] = useState<SavedImage[]>([]);
   const [saved, setSaved] = useState(false);
-  const [imageProvider, setImageProvider] = useState<"lakshya" | "qwen" | "flux" | "stable" | "pollinations">("lakshya");
+  const [imageProvider, setImageProvider] = useState<"lakshya" | "qwen" | "flux" | "stable" | "pollinations">("lakshya");\n  const [pollinationsModels, setPollinationsModels] = useState<PollinationsImageModel[]>([]);\n  const [pollinationsModel, setPollinationsModel] = useState("");
 
   useEffect(() => {
     try {
@@ -73,7 +73,7 @@ export default function ImageAIPage() {
         {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: value }),
+        body: JSON.stringify({ prompt: value, model: imageProvider === "pollinations" ? pollinationsModel : undefined }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Image generation failed.");
@@ -110,7 +110,7 @@ export default function ImageAIPage() {
           </div>
         </div>
 
-        <div className="image-presets">
+        {imageProvider === "pollinations" && pollinationsModels.length > 0 && (\n          <div className="pollinations-image-models">\n            <div><b>Pollinations Image Models</b><small>{pollinationsModels.length} image models available from your Pollinations setup</small></div>\n            <select value={pollinationsModel} onChange={(e) => setPollinationsModel(e.target.value)} disabled={loading}>\n              {pollinationsModels.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}\n            </select>\n          </div>\n        )}\n\n        <div className="image-presets">
           {presets.map(([label, text]) => (
             <button key={label} className="image-preset" type="button" onClick={() => setPrompt(text)} disabled={loading}>
               <span>{label}</span><small>Use template</small>
@@ -187,7 +187,7 @@ export default function ImageAIPage() {
         .image-provider-tabs::-webkit-scrollbar{display:none}.image-provider-tabs button{border:0;border-radius:10px;padding:8px 11px;background:transparent;color:#777184;font-size:9px;font-weight:900;cursor:pointer;white-space:nowrap;flex:0 0 auto}
         .image-provider-tabs button.active{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;box-shadow:0 7px 18px rgba(105,80,225,.16)}
         .image-provider-tabs button.qwen.active{background:linear-gradient(135deg,#1677ff,#5b4df5)}.image-provider-tabs button.flux.active{background:linear-gradient(135deg,#ff7a18,#ef3f8f)}.image-provider-tabs button.stable.active{background:linear-gradient(135deg,#4f46e5,#0ea5e9)}.image-provider-tabs button.pollinations.active{background:linear-gradient(135deg,#0f766e,#14b8a6)}
-        .image-provider-tabs button:disabled{opacity:.5;cursor:not-allowed}
+        .image-provider-tabs button:disabled{opacity:.5;cursor:not-allowed}\n        .pollinations-image-models{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:11px 13px;border:1px solid rgba(20,184,166,.2);border-radius:14px;background:rgba(20,184,166,.05)}.pollinations-image-models b{display:block;font-size:10px}.pollinations-image-models small{display:block;margin-top:3px;color:#888394;font-size:8px}.pollinations-image-models select{max-width:55%;border:1px solid rgba(20,184,166,.28);border-radius:10px;background:#fff;color:#353143;padding:8px 10px;font-size:9px;font-weight:800}
         .image-hero{position:relative;min-height:270px;margin:0 0 14px;padding:34px 30px;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 78% 25%,rgba(168,85,247,.22),transparent 30%),radial-gradient(circle at 25% 80%,rgba(109,93,252,.13),transparent 34%),linear-gradient(135deg,#101322,#1b1630 58%,#21163a);color:#fff;box-shadow:0 22px 60px rgba(38,25,80,.2)}
         .image-hero-copy{position:relative;z-index:2;max-width:720px}.image-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;opacity:.78}.spark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);box-shadow:0 0 24px rgba(217,70,239,.45)}
         .image-hero h1{font-size:clamp(34px,6vw,68px);line-height:.98;letter-spacing:-.055em;margin:17px 0 13px}.image-hero h1 span{background:linear-gradient(90deg,#fff,#d8b4fe,#f0abfc);-webkit-background-clip:text;color:transparent}.image-hero p{max-width:610px;margin:0;color:rgba(255,255,255,.72);font-size:13px;line-height:1.7}.image-back{position:absolute;z-index:3;right:24px;top:22px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);padding:10px 14px;border-radius:13px;font-size:11px;font-weight:800;backdrop-filter:blur(10px)}
