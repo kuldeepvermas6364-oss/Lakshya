@@ -118,8 +118,7 @@ export async function POST(request: Request) {
       modeInstruction,
     ]
       .filter(Boolean)
-      .join("
-");
+      .join("\n");
 
     const response = await fetch(POLLINATIONS_ENDPOINT, {
       method: "POST",
