@@ -34,6 +34,27 @@ export default function ImageAIPage() {
 
     const provider = new URLSearchParams(window.location.search).get("provider");
     if (provider === "pollinations") setImageProvider("pollinations");
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/ai/pollinations-models", { cache: "no-store" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) return;
+        const models = Array.isArray(data.models)
+          ? data.models.filter(
+              (model: PollinationsImageModel) =>
+                model &&
+                typeof model.id === "string" &&
+                typeof model.name === "string" &&
+                model.type === "image",
+            )
+          : [];
+        setPollinationsModels(models);
+        if (models.length) setPollinationsModel(models[0].id);
+      } catch {
+        // Pollinations model discovery is optional; the provider still remains available.
+      }
+    })();
   }, []);
 
   function persistSaved(next: SavedImage[]) {
@@ -112,6 +133,32 @@ export default function ImageAIPage() {
             <button type="button" role="tab" aria-selected={imageProvider === "pollinations"} className={imageProvider === "pollinations" ? "active pollinations" : "pollinations"} onClick={() => setImageProvider("pollinations")} disabled={loading}>✺ Pollinations AI</button>
           </div>
         </div>
+
+        {pollinationsModels.length > 0 && (
+          <div className="pollinations-model-rail" aria-label="Pollinations image models">
+            <div className="pollinations-model-rail-head">
+              <b>Pollinations Image Models</b>
+              <span>{pollinationsModels.length} models</span>
+            </div>
+            <div className="pollinations-model-chips">
+              {pollinationsModels.map((model) => (
+                <button
+                  key={model.id}
+                  type="button"
+                  className={pollinationsModel === model.id && imageProvider === "pollinations" ? "selected" : ""}
+                  onClick={() => {
+                    setImageProvider("pollinations");
+                    setPollinationsModel(model.id);
+                  }}
+                  disabled={loading}
+                  title={model.id}
+                >
+                  {model.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {imageProvider === "pollinations" && pollinationsModels.length > 0 && (
           <div className="pollinations-image-models">
@@ -200,6 +247,9 @@ export default function ImageAIPage() {
         .image-provider-tabs button.active{background:linear-gradient(135deg,#705cf5,#df4eb5);color:#fff;box-shadow:0 7px 18px rgba(105,80,225,.16)}
         .image-provider-tabs button.qwen.active{background:linear-gradient(135deg,#1677ff,#5b4df5)}.image-provider-tabs button.flux.active{background:linear-gradient(135deg,#ff7a18,#ef3f8f)}.image-provider-tabs button.stable.active{background:linear-gradient(135deg,#4f46e5,#0ea5e9)}.image-provider-tabs button.pollinations.active{background:linear-gradient(135deg,#0f766e,#14b8a6)}
         .image-provider-tabs button:disabled{opacity:.5;cursor:not-allowed}
+        .pollinations-model-rail{margin:12px 0 10px;padding:11px 12px;border:1px solid rgba(20,184,166,.2);border-radius:14px;background:linear-gradient(180deg,rgba(20,184,166,.07),rgba(20,184,166,.03))}
+        .pollinations-model-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.pollinations-model-rail-head b{font-size:10px;color:#353143}.pollinations-model-rail-head span{font-size:8px;color:#7b7f8e;font-weight:800}
+        .pollinations-model-chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.pollinations-model-chips::-webkit-scrollbar{display:none}.pollinations-model-chips button{flex:0 0 auto;border:1px solid #dfeae8;border-radius:999px;background:#fff;color:#4b5354;padding:8px 10px;font-size:8px;font-weight:900;white-space:nowrap;cursor:pointer}.pollinations-model-chips button.selected{border-color:#14b8a6;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;box-shadow:0 6px 15px rgba(20,184,166,.2)}.pollinations-model-chips button:disabled{opacity:.5;cursor:not-allowed}
         .pollinations-image-models{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;padding:11px 13px;border:1px solid rgba(20,184,166,.2);border-radius:14px;background:rgba(20,184,166,.05)}.pollinations-image-models b{display:block;font-size:10px}.pollinations-image-models small{display:block;margin-top:3px;color:#888394;font-size:8px}.pollinations-image-models select{max-width:55%;border:1px solid rgba(20,184,166,.28);border-radius:10px;background:#fff;color:#353143;padding:8px 10px;font-size:9px;font-weight:800}
         .image-hero{position:relative;min-height:270px;margin:0 0 14px;padding:34px 30px;border-radius:28px;overflow:hidden;background:radial-gradient(circle at 78% 25%,rgba(168,85,247,.22),transparent 30%),radial-gradient(circle at 25% 80%,rgba(109,93,252,.13),transparent 34%),linear-gradient(135deg,#101322,#1b1630 58%,#21163a);color:#fff;box-shadow:0 22px 60px rgba(38,25,80,.2)}
         .image-hero-copy{position:relative;z-index:2;max-width:720px}.image-kicker{font-size:10px;font-weight:900;letter-spacing:.16em;opacity:.78}.spark{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#d946ef);box-shadow:0 0 24px rgba(217,70,239,.45)}
