@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       messages?: unknown;
       context?: unknown;
       language?: unknown;
-      featureType?: unknown;
+      featureType?: unknown;\n      model?: unknown;
     } | null;
 
     const message = typeof body?.message === "string" ? body.message.trim() : "";
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       image: "flux",
     };
 
-    const selectedModel = modelByFeature[featureType];
+    const selectedModel = requestedModel || modelByFeature[featureType];
 
     if (featureType === "image") {
       // Keep Pollinations' original direct image server flow.
