@@ -3,7 +3,13 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODEL = process.env.OPENROUTER_MODEL || "cohere/north-mini-code:free";
+const MODELS = {
+  chat: "meta-llama/llama-3.3-70b-instruct:free",
+  code: "qwen/qwen3-coder:free",
+  reasoning: "nvidia/nemotron-3-ultra-550b-a55b:free",
+} as const;
+
+type FeatureType = keyof typeof MODELS;
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -26,7 +32,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const message = typeof body?.message === "string" ? body.message.trim() : "";
+    const message =
+      typeof body?.message === "string"
+        ? body.message.trim()
+        : typeof body?.prompt === "string"
+          ? body.prompt.trim()
+          : "";
+    const featureType: FeatureType =
+      body?.featureType === "code" || body?.featureType === "reasoning"
+        ? body.featureType
+        : "chat";
+    const model = MODELS[featureType];
     const incoming = Array.isArray(body?.messages) ? body.messages : [];
 
     if (!message) {
@@ -116,7 +132,7 @@ export async function POST(request: Request) {
         "X-Title": "Lakshya OpenRouter AI",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages,
         temperature: 0.4,
         max_tokens: 1200,
@@ -141,7 +157,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ text: text.trim(), model: MODEL, webAccess: Boolean(tavilyKey), sources });
+    return NextResponse.json({ text: text.trim(), output: text.trim(), type: "text", model, featureType, webAccess: Boolean(tavilyKey), sources });
   } catch (error) {
     console.error("OpenRouter test route error", error);
     return NextResponse.json(
