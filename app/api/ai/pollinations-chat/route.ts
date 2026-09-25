@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         : "chat";
 
     const context = typeof body?.context === "string" ? body.context.trim() : "";
+    const requestedModel = typeof body?.model === "string" ? body.model.trim() : "";
     const language = typeof body?.language === "string" ? body.language : "hi-en";
 
     const languageName: Record<string, string> = {
@@ -87,7 +88,8 @@ export async function POST(request: Request) {
         POLLINATIONS_IMAGE_ENDPOINT +
         "/" +
         encodeURIComponent(message) +
-        "?width=1024&height=1024&nologo=true";
+        "?width=1024&height=1024&nologo=true" +
+        (selectedModel ? "&model=" + encodeURIComponent(selectedModel) : "");
 
       return NextResponse.json({
         image: imageUrl,
@@ -107,8 +109,8 @@ export async function POST(request: Request) {
           : "You are Pollinations AI Chat using OpenAI. Give clear, friendly and accurate educational answers.";
 
     const system = [
-      "You are Pollinations AI inside the Lakshya student education app.",
-      "Help students with learning, explanations, practice, revision and study planning.",
+      "You are Pollinations AI inside the Lakshya app.",
+      "Help with general questions, writing, coding, reasoning, creativity and study tasks.",
       "Be accurate, concise, friendly and student-safe. Never pretend to have performed an action you did not perform.",
       "Preferred response language: " + (languageName[language] || languageName["hi-en"]) + ".",
       context ? "Current Lakshya study context: " + context : "",
