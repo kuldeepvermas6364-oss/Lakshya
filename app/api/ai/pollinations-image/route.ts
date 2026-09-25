@@ -4,12 +4,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";\nconst POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
+const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
+const POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null) as { prompt?: unknown; model?: unknown } | null;
-    const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";\n    const model = typeof body?.model === "string" ? body.model.trim() : "";
+    const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
+    const model = typeof body?.model === "string" ? body.model.trim() : "";
 
     if (!prompt) {
       return NextResponse.json({ error: "Please enter an image prompt." }, { status: 400 });
