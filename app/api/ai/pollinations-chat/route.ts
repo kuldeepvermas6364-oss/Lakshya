@@ -10,7 +10,7 @@ const POLLINATIONS_SECRET_KEY =
   process.env.POLLINATIONS_SECRET_KEY?.trim() ||
   process.env.POLLINATIONS_API_KEY?.trim();
 
-type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint";
+type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint" | "bonsai512";
 
 export async function POST(request: Request) {
   try {
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       image: "ideogram-v4-turbo",
   // Additional image provider requested for the Image Creator selector.
   sanaSprint: "sana-sprint",
+  bonsai512: "bonsai",
     };
 
     const selectedModel = modelByFeature[featureType];
