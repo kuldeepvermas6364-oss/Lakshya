@@ -24,6 +24,7 @@ export default function PollinationsAIPage() {
         const live = Array.isArray(data.models) ? data.models as Model[] : [];
         const requested = [
           { id: "sana", name: "Sana Sprint (Free)", type: "image" as const },
+          { id: "openrouter/free", name: "OpenRouter Free Router", type: "text" as const },
           { id: "bonsai", name: "Bonsai Image 512p (Free, 4-Step)", type: "image" as const },
           { id: "deepseek/deepseek-v4-flash:free", name: "DeepSeek V3 (FreeChat)", type: "text" as const },
           { id: "z-ai/glm-5.3-flash-search:free", name: "GLM 5.3 Flash (FREE)", type: "text" as const },
