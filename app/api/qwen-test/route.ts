@@ -50,6 +50,7 @@ export async function POST(request: Request) {
 
     let webContext = "";
     let sources: { title: string; url: string }[] = [];
+    type WebResult = { title?: unknown; url?: unknown; content?: unknown };
 
     const tavilyKey = process.env.TAVILY_API_KEY;
     if (tavilyKey) {
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
               return typeof candidate.url === "string" && typeof candidate.content === "string";
             })
             .slice(0, 5)
-            .map((item) => ({
+            .map((item: WebResult) => ({
               title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : item.url as string,
               url: item.url as string,
             }));
