@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const POLLINATIONS_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
-const LEGACY_ENDPOINT = "https://text.pollinations.ai/openai";
 
 export async function POST(request: Request) {
   try {
@@ -31,12 +30,14 @@ export async function POST(request: Request) {
       .map((item) => ({ role: item.role === "assistant" ? "assistant" : "user", content: item.content }));
     const messages = [{ role: "system", content: system }, ...cleanHistory, { role: "user", content: message }];
     const apiKey = process.env.POLLINATIONS_API_KEY?.trim();
-    const endpoint = apiKey ? POLLINATIONS_ENDPOINT : LEGACY_ENDPOINT;
+    if (!apiKey) {
+      return NextResponse.json({ error: "Pollinations AI is not configured on the server yet." }, { status: 503 });
+    }
 
-    const response = await fetch(endpoint, {
+    const response = await fetch(POLLINATIONS_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(apiKey ? { Authorization: "Bearer " + apiKey } : {}) },
-      body: JSON.stringify({ model: apiKey ? (process.env.POLLINATIONS_MODEL?.trim() || "openai") : "openai", messages, stream: false }),
+      body: JSON.stringify({ model: process.env.POLLINATIONS_MODEL?.trim() || "openai", messages, stream: false }),
       cache: "no-store",
       signal: AbortSignal.timeout(55000),
     });
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     try { data = JSON.parse(raw); } catch { return NextResponse.json({ text: raw.trim(), provider: "Pollinations AI" }); }
     const text = data.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) return NextResponse.json({ error: "Pollinations AI returned an empty response." }, { status: 502 });
-    return NextResponse.json({ text, provider: "Pollinations AI", model: apiKey ? (process.env.POLLINATIONS_MODEL?.trim() || "openai") : "openai" });
+    return NextResponse.json({ text, provider: "Pollinations AI", model: process.env.POLLINATIONS_MODEL?.trim() || "openai" });
   } catch (error) {
     console.error("Pollinations chat route error", error);
     return NextResponse.json({ error: "Pollinations AI is temporarily unavailable. Please try again." }, { status: 503 });
