@@ -32,7 +32,7 @@ export default function QwenTestPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedModel, setSelectedModel] = useState(models[0][0]);
+  const [selectedModel, setSelectedModel] = useState<string>(models[0][0]);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
