@@ -301,7 +301,7 @@ export default function AIPage() {
               <option>General</option><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Biology</option><option>English</option>
             </select>
           </label>
-          <Link href="/ai/image" className="ai-image-top">✦ <span>Study Image</span></Link><Link href="/qwen-ai" className="ai-image-top ai-openrouter-top">◉ <span>OpenRouter AI</span></Link><Link href="/ai/image?provider=pollinations" className="ai-image-top ai-pollinations-top">✺ <span>Pollinations AI</span></Link>
+          <Link href="/ai/image" className="ai-image-top">✦ <span>Study Image</span></Link><Link href="/qwen-ai" className="ai-image-top ai-openrouter-top">◉ <span>OpenRouter AI</span></Link><Link href="/pollinations-ai" className="ai-image-top ai-pollinations-top">✺ <span>Pollinations AI</span></Link>
         </div>
       </header>
 
