@@ -4,12 +4,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
+const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";\nconst POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => null) as { prompt?: unknown } | null;
-    const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
+    const body = await request.json().catch(() => null) as { prompt?: unknown; model?: unknown } | null;
+    const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";\n    const model = typeof body?.model === "string" ? body.model.trim() : "";
 
     if (!prompt) {
       return NextResponse.json({ error: "Please enter an image prompt." }, { status: 400 });
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const encodedPrompt = encodeURIComponent(prompt);
     const imageUrl =
-      `${POLLINATIONS_IMAGE_ENDPOINT}/${encodedPrompt}?width=1024&height=1024&nologo=true`;
+      `${POLLINATIONS_IMAGE_ENDPOINT}/${encodedPrompt}?width=1024&height=1024&nologo=true${model ? `&model=${encodeURIComponent(model)}` : ""}`;
 
     // Proxy the generated image through Lakshya so the browser does not depend
     // on Pollinations' external image response/headers after generation.
