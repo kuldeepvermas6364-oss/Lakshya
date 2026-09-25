@@ -8,6 +8,19 @@ type Message = {
   content: string;
 };
 
+const models = [
+  ["deepseek/deepseek-v4-flash:free", "DeepSeek V3 (FreeChat)"],
+  ["z-ai/glm-5.3-flash-search:free", "GLM 5.3 Flash (FREE)"],
+  ["openai/gpt-5.6-luna", "GPT 5.6 Luna"],
+  ["openai/gpt-5.6-sol", "GPT 5.6 Sol"],
+  ["openai/gpt-oss-20b:free", "GPT-OSS 20B (Free, Slow)"],
+  ["kilo-auto/free", "Kilo Auto (free)"],
+  ["poolside/laguna-s-2.1:free", "Laguna S 2.1 (free)"],
+  ["inclusionai/ling-3.0-flash-sante:free", "Ling 3.0 Flash Sante (free)"],
+  ["meta/muse-glimmer-30b:free", "Muse Glimmer (Free)"],
+  ["meta/muse-spark-1.2-contributor", "Muse Spark 1.2 (FREE; CONTRIBUTOR)"],
+] as const;
+
 const starter = [
   "Hello OpenRouter, give me a short test response.",
   "Explain Newton's second law in simple Hindi.",
@@ -19,6 +32,7 @@ export default function QwenTestPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedModel, setSelectedModel] = useState(models[0][0]);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,6 +57,7 @@ export default function QwenTestPage() {
         body: JSON.stringify({
           message: value,
           messages: messages.map(({ role, content }) => ({ role, content })),
+          model: selectedModel,
         }),
       });
 
@@ -84,6 +99,8 @@ export default function QwenTestPage() {
       </header>
 
       <section className="qwen-test-card">
+        <div className="qwen-model-picker"><label>Model</label><select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} disabled={loading}>{models.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div>
+
         <div className="qwen-test-toolbar">
           <div><b>Chat test</b><small>Messages stay in this page only.</small></div>
           <button type="button" onClick={clearChat} disabled={loading}>Clear</button>
@@ -146,7 +163,7 @@ export default function QwenTestPage() {
         .qwen-test-status{white-space:nowrap;border:1px solid rgba(34,211,238,.25);background:rgba(34,211,238,.08);border-radius:999px;padding:9px 12px;font-size:10px;font-weight:800}
         .qwen-test-status i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34d399;margin-right:6px}
         .qwen-test-card{max-width:1100px;min-height:620px;margin:auto;display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(20,19,44,.96),rgba(8,9,23,.98));border:1px solid rgba(255,255,255,.09);border-radius:24px;box-shadow:0 22px 70px rgba(0,0,0,.32);overflow:hidden}
-        .qwen-test-toolbar{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
+        .qwen-model-picker{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}.qwen-model-picker label{font-size:9px;color:#9f9ab1;font-weight:900}.qwen-model-picker select{flex:1;max-width:520px;border:1px solid rgba(255,255,255,.1);background:#121127;color:#fff;border-radius:10px;padding:9px;font-size:10px;outline:0}.qwen-test-toolbar{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
         .qwen-test-toolbar b,.qwen-test-toolbar small{display:block}.qwen-test-toolbar b{font-size:13px}.qwen-test-toolbar small{font-size:9px;color:#858197;margin-top:3px}
         .qwen-test-toolbar button{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#ddd6fe;border-radius:9px;padding:8px 11px;font-size:9px;font-weight:800}
         .qwen-test-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:45px 20px}
