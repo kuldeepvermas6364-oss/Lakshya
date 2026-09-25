@@ -28,6 +28,9 @@ export default function ImageAIPage() {
       const raw = localStorage.getItem(SAVED_KEY);
       if (raw) setSavedImages(JSON.parse(raw));
     } catch { /* ignore unavailable/corrupt local storage */ }
+
+    const provider = new URLSearchParams(window.location.search).get("provider");
+    if (provider === "pollinations") setImageProvider("pollinations");
   }, []);
 
   function persistSaved(next: SavedImage[]) {
