@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint";
+type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint" | "bonsai512";
 type Message = { id: number; role: "user" | "assistant"; content: string; image?: string };
 
 const modes: Array<[FeatureType, string]> = [
@@ -11,6 +11,7 @@ const modes: Array<[FeatureType, string]> = [
   ["reasoning", "Reasoning"],
   ["image", "Image Creator"],
   ["sanaSprint", "Sana Sprint (Free)"],
+  ["bonsai512", "Bonsai Image 512p (Free, 4-Step)"],
 ];
 
 const starters = [
@@ -92,7 +93,7 @@ export default function PollinationsAIPage() {
         </div>
 
         <div className="polli-toolbar">
-          <div><b>Pollinations AI</b><small>{featureType === "chat" ? "Student chat" : featureType === "code" ? "Qwen3 Coder 30B" : featureType === "reasoning" ? "NVIDIA Nemotron 3 Ultra"  : featureType === "sanaSprint" ? "Sana Sprint (Free)" : "Qwen Image 3 Pro"}</small></div>
+          <div><b>Pollinations AI</b><small>{featureType === "chat" ? "Student chat" : featureType === "code" ? "Qwen3 Coder 30B" : featureType === "reasoning" ? "NVIDIA Nemotron 3 Ultra"  : featureType === "sanaSprint" ? "Sana Sprint (Free)" : featureType === "bonsai512" ? "Bonsai Image 512p (Free, 4-Step)" : "Qwen Image 3 Pro"}</small></div>
           <button type="button" onClick={() => { if (!loading) { setMessages([]); setInput(""); setError(""); } }} disabled={loading}>New chat</button>
         </div>
 
@@ -121,7 +122,7 @@ export default function PollinationsAIPage() {
         {error && <div className="polli-error">⚠ {error}</div>}
 
         <form className="polli-composer" onSubmit={submit}>
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={featureType === "image" || featureType === "sanaSprint" ? "Describe the image you want…" : "Message Pollinations AI…"} rows={2} disabled={loading} />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={featureType === "image" || featureType === "sanaSprint" || featureType === "bonsai512" ? "Describe the image you want…" : "Message Pollinations AI…"} rows={2} disabled={loading} />
           <button type="submit" disabled={loading || !input.trim()}>{loading ? "…" : "Send →"}</button>
         </form>
       </section>
