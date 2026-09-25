@@ -80,49 +80,18 @@ export async function POST(request: Request) {
     const selectedModel = modelByFeature[featureType];
 
     if (featureType === "image") {
+      // Keep Pollinations' original direct image server flow.
+      // The browser receives the image.pollinations.ai URL directly instead of
+      // proxying the image through the Lakshya server as base64.
       const imageUrl =
         POLLINATIONS_IMAGE_ENDPOINT +
         "/" +
         encodeURIComponent(message) +
         "?width=1024&height=1024&nologo=true";
 
-      const imageResponse = await fetch(imageUrl, {
-        cache: "no-store",
-        headers: {
-          Accept: "image/*",
-          Authorization: "Bearer " + POLLINATIONS_SECRET_KEY,
-          "User-Agent": "Lakshya-AI/1.0",
-        },
-        signal: AbortSignal.timeout(55000),
-      });
-
-      if (!imageResponse.ok) {
-        const errorText = await imageResponse.text().catch(() => "");
-        console.error(
-          "Pollinations image failed:",
-          imageResponse.status,
-          errorText.slice(0, 1000),
-        );
-        return NextResponse.json(
-          {
-            error: `Pollinations image generation failed (HTTP ${imageResponse.status}).`,
-          },
-          { status: 502 },
-        );
-      }
-
-      const contentType = imageResponse.headers.get("content-type") || "image/png";
-      if (!contentType.startsWith("image/")) {
-        return NextResponse.json(
-          { error: "Pollinations returned an invalid image response." },
-          { status: 502 },
-        );
-      }
-
-      const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
       return NextResponse.json({
-        image: `data:${contentType};base64,${imageBuffer.toString("base64")}`,
-        output: `data:${contentType};base64,${imageBuffer.toString("base64")}`,
+        image: imageUrl,
+        output: imageUrl,
         type: "image",
         provider: "Pollinations AI",
         model: selectedModel,
