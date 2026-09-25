@@ -10,13 +10,16 @@ type Message = {
 
 const models = [
   ["openrouter/free", "OpenRouter Free Router"],
-  ["deepseek/deepseek-v4-flash:free", "DeepSeek V4 Flash (Free)"],
-  ["openai/gpt-oss-20b:free", "GPT-OSS 20B (Free)"],
-  ["poolside/laguna-s-2.1:free", "Laguna S 2.1 (Free)"],
-  ["inclusionai/ling-3.0-flash-sante:free", "Ling 3.0 Flash Sante (Free)"],
-  ["openai/gpt-5.6-luna", "GPT-5.6 Luna"],
-  ["openai/gpt-5.6-sol", "GPT-5.6 Sol"],
-  ["meta/muse-spark-1.2-contributor", "Muse Spark 1.2 Contributor"],
+  ["deepseek/deepseek-v4-flash:free", "DeepSeek V3 (FreeChat)"],
+  ["z-ai/glm-5.3-flash-search:free", "GLM 5.3 Flash (FREE)"],
+  ["openai/gpt-5.6-luna", "GPT 5.6 Luna (FREE)"],
+  ["openai/gpt-5.6-sol", "GPT 5.6 Sol (FREE)"],
+  ["openai/gpt-oss-20b:free", "GPT-OSS 20B (Free, Slow)"],
+  ["kilo-auto/free", "Kilo Auto (free)"],
+  ["poolside/laguna-s-2.1:free", "Laguna S 2.1 (free)"],
+  ["inclusionai/ling-3.0-flash-sante:free", "ling-3.0-flash-sante:free"],
+  ["meta/muse-glimmer-30b:free", "Muse Glimmer (Free)"],
+  ["meta/muse-spark-1.2-contributor", "Muse Spark 1.2 (FREE ; CONTRIBUTOR)"],
 ] as const;
 
 const starter = [
