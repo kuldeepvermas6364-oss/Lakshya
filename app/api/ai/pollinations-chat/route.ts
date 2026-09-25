@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const POLLINATIONS_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
-const POLLINATIONS_IMAGE_ENDPOINT = "https://gen.pollinations.ai/image";
+const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
 const POLLINATIONS_SECRET_KEY =
   process.env.POLLINATIONS_SECRET_KEY?.trim() ||
   process.env.POLLINATIONS_API_KEY?.trim();
@@ -79,27 +79,17 @@ export async function POST(request: Request) {
 
     const selectedModel = modelByFeature[featureType];
 
-    if (!POLLINATIONS_SECRET_KEY) {
-      return NextResponse.json(
-        { error: "Pollinations AI is not configured on the server yet." },
-        { status: 503 },
-      );
-    }
-
     if (featureType === "image") {
       const imageUrl =
         POLLINATIONS_IMAGE_ENDPOINT +
         "/" +
         encodeURIComponent(message) +
-        "?model=" +
-        encodeURIComponent(selectedModel) +
-        "&width=1024&height=1024&nologo=true";
+        "?width=1024&height=1024&nologo=true";
 
       const imageResponse = await fetch(imageUrl, {
         cache: "no-store",
         headers: {
           Accept: "image/*",
-          Authorization: "Bearer " + POLLINATIONS_SECRET_KEY,
           "User-Agent": "Lakshya-AI/1.0",
         },
         signal: AbortSignal.timeout(55000),
