@@ -6,13 +6,15 @@ export const maxDuration = 60;
 
 const POLLINATIONS_ENDPOINT = "https://gen.pollinations.ai/v1/chat/completions";
 const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
-const POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
+const POLLINATIONS_SECRET_KEY =
+  process.env.POLLINATIONS_SECRET_KEY?.trim() ||
+  process.env.POLLINATIONS_API_KEY?.trim();
 
 type FeatureType = "chat" | "code" | "reasoning" | "image";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json().catch(() => null) as {
+    const body = (await request.json().catch(() => null)) as {
       message?: unknown;
       messages?: unknown;
       context?: unknown;
@@ -21,10 +23,10 @@ export async function POST(request: Request) {
     } | null;
 
     const message = typeof body?.message === "string" ? body.message.trim() : "";
-    if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
+    if (!message) {
+      return NextResponse.json({ error: "Message is required." }, { status: 400 });
+    }
 
-    const context = typeof body?.context === "string" ? body.context.trim() : "";
-    const language = typeof body?.language === "string" ? body.language : "hi-en";
     const featureType: FeatureType =
       body?.featureType === "code" ||
       body?.featureType === "reasoning" ||
@@ -32,7 +34,9 @@ export async function POST(request: Request) {
         ? body.featureType
         : "chat";
 
-    const history = Array.isArray(body?.messages) ? body.messages : [];
+    const context = typeof body?.context === "string" ? body.context.trim() : "";
+    const language = typeof body?.language === "string" ? body.language : "hi-en";
+
     const languageName: Record<string, string> = {
       "hi-en": "Hindi + English (natural Hinglish)",
       hi: "Hindi",
@@ -50,6 +54,7 @@ export async function POST(request: Request) {
       ur: "Urdu",
     };
 
+    const history = Array.isArray(body?.messages) ? body.messages : [];
     const cleanHistory = history
       .filter(
         (item): item is { role: string; content: string } =>
@@ -64,17 +69,21 @@ export async function POST(request: Request) {
         content: item.content,
       }));
 
+    // Keep the exact Pollinations model slugs requested for each UI mode.
     const modelByFeature: Record<FeatureType, string> = {
       chat: "deepseek-v3",
-      code: "qwen3-coder-30b",
-      reasoning: "nvidia-nemotron-3-ultra",
-      image: "qwen-image-3-pro",
+      code: "qwen3-coder",
+      reasoning: "deepseek-r1",
+      image: "qwen-image",
     };
 
-    const selectedModel = process.env.POLLINATIONS_MODEL?.trim() || modelByFeature[featureType];
+    const selectedModel = modelByFeature[featureType];
 
     if (!POLLINATIONS_SECRET_KEY) {
-      return NextResponse.json({ error: "Pollinations AI is not configured on the server yet." }, { status: 503 });
+      return NextResponse.json(
+        { error: "Pollinations AI is not configured on the server yet." },
+        { status: 503 },
+      );
     }
 
     if (featureType === "image") {
@@ -97,34 +106,45 @@ export async function POST(request: Request) {
       });
 
       if (!imageResponse.ok) {
+        const errorText = await imageResponse.text().catch(() => "");
+        console.error(
+          "Pollinations image failed:",
+          imageResponse.status,
+          errorText.slice(0, 1000),
+        );
         return NextResponse.json(
-          { error: `Pollinations image generation failed (HTTP ${imageResponse.status}).` },
+          {
+            error: `Pollinations image generation failed (HTTP ${imageResponse.status}).`,
+          },
           { status: 502 },
         );
       }
 
       const contentType = imageResponse.headers.get("content-type") || "image/png";
       if (!contentType.startsWith("image/")) {
-        return NextResponse.json({ error: "Pollinations returned an invalid image response." }, { status: 502 });
+        return NextResponse.json(
+          { error: "Pollinations returned an invalid image response." },
+          { status: 502 },
+        );
       }
 
       const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
       return NextResponse.json({
         image: `data:${contentType};base64,${imageBuffer.toString("base64")}`,
+        output: `data:${contentType};base64,${imageBuffer.toString("base64")}`,
         type: "image",
         provider: "Pollinations AI",
         model: selectedModel,
+        featureType,
       });
     }
 
-    const apiKey = POLLINATIONS_SECRET_KEY;
-
     const modeInstruction =
       featureType === "code"
-        ? "You are in Code Expert mode. Use Qwen3 Coder for production-quality code. Give complete working solutions and briefly explain important choices."
+        ? "You are a Senior Code Expert using Qwen3 Coder. Write clean, production-quality code and briefly explain important choices."
         : featureType === "reasoning"
-          ? "You are in Reasoning mode. Work through difficult problems carefully, verify assumptions, and present a clear step-by-step conclusion without exposing private chain-of-thought."
-          : "You are in Chat mode. Give clear, friendly educational answers for students.";
+          ? "You are a reasoning expert using DeepSeek R1. Solve difficult problems carefully and present the useful reasoning summary and conclusion without exposing private chain-of-thought."
+          : "You are Pollinations AI Chat using DeepSeek V3. Give clear, friendly and accurate educational answers.";
 
     const system = [
       "You are Pollinations AI inside the Lakshya student education app.",
@@ -133,23 +153,23 @@ export async function POST(request: Request) {
       "Preferred response language: " + (languageName[language] || languageName["hi-en"]) + ".",
       context ? "Current Lakshya study context: " + context : "",
       modeInstruction,
-    ].filter(Boolean).join("\n");
-
-    const messages = [
-      { role: "system", content: system },
-      ...cleanHistory,
-      { role: "user", content: message },
-    ];
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const response = await fetch(POLLINATIONS_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + apiKey,
+        Authorization: "Bearer " + POLLINATIONS_SECRET_KEY,
       },
       body: JSON.stringify({
         model: selectedModel,
-        messages,
+        messages: [
+          { role: "system", content: system },
+          ...cleanHistory,
+          { role: "user", content: message },
+        ],
         stream: false,
       }),
       cache: "no-store",
@@ -157,34 +177,57 @@ export async function POST(request: Request) {
     });
 
     const raw = await response.text();
+
     if (!response.ok) {
-      console.error("Pollinations chat failed:", response.status, raw.slice(0, 1000));
+      console.error(
+        "Pollinations chat failed:",
+        response.status,
+        raw.slice(0, 1000),
+      );
       return NextResponse.json(
-        { error: "Pollinations AI request failed (HTTP " + response.status + "). Please try again." },
+        {
+          error: `Pollinations AI request failed (HTTP ${response.status}). Please try again.`,
+        },
         { status: 502 },
       );
     }
 
-    let data: { choices?: Array<{ message?: { content?: unknown } }> };
+    let data: {
+      choices?: Array<{ message?: { content?: unknown } }>;
+    };
+
     try {
       data = JSON.parse(raw);
     } catch {
-      return NextResponse.json({ text: raw.trim(), provider: "Pollinations AI", model: selectedModel });
+      return NextResponse.json({
+        text: raw.trim(),
+        output: raw.trim(),
+        provider: "Pollinations AI",
+        model: selectedModel,
+        featureType,
+      });
     }
 
     const text = data.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) {
-      return NextResponse.json({ error: "Pollinations AI returned an empty response." }, { status: 502 });
+      return NextResponse.json(
+        { error: "Pollinations AI returned an empty response." },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({
       text,
+      output: text,
       provider: "Pollinations AI",
       model: selectedModel,
       featureType,
     });
   } catch (error) {
     console.error("Pollinations chat route error", error);
-    return NextResponse.json({ error: "Pollinations AI is temporarily unavailable. Please try again." }, { status: 503 });
+    return NextResponse.json(
+      { error: "Pollinations AI is temporarily unavailable. Please try again." },
+      { status: 503 },
+    );
   }
 }
