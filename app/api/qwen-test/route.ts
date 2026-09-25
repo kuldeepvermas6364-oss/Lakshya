@@ -3,13 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MODELS = {
-  chat: "meta-llama/llama-3.3-70b-instruct:free",
-  code: "qwen/qwen3-coder:free",
-  reasoning: "nvidia/nemotron-3-ultra-550b-a55b:free",
-} as const;
-
-type FeatureType = keyof typeof MODELS;
+const DEFAULT_MODEL = "cohere/north-mini-code:free";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -38,11 +32,12 @@ export async function POST(request: Request) {
         : typeof body?.prompt === "string"
           ? body.prompt.trim()
           : "";
-    const featureType: FeatureType =
-      body?.featureType === "code" || body?.featureType === "reasoning"
-        ? body.featureType
-        : "chat";
-    const model = MODELS[featureType];
+
+    const model =
+      typeof process.env.OPENROUTER_MODEL === "string" && process.env.OPENROUTER_MODEL.trim()
+        ? process.env.OPENROUTER_MODEL.trim()
+        : DEFAULT_MODEL;
+
     const incoming = Array.isArray(body?.messages) ? body.messages : [];
 
     if (!message) {
@@ -88,23 +83,30 @@ export async function POST(request: Request) {
 
         const searchData = await searchResponse.json().catch(() => null);
         if (searchResponse.ok && Array.isArray(searchData?.results)) {
-          sources = searchData.results
-            .filter((item: unknown): item is { title?: unknown; url?: unknown; content?: unknown } => {
+          const validResults = searchData.results.filter(
+            (item: unknown): item is WebResult => {
               if (typeof item !== "object" || item === null) return false;
-              const candidate = item as { title?: unknown; url?: unknown; content?: unknown };
+              const candidate = item as WebResult;
               return typeof candidate.url === "string" && typeof candidate.content === "string";
-            })
-            .slice(0, 5)
-            .map((item: WebResult) => ({
-              title: typeof item.title === "string" && item.title.trim() ? item.title.trim() : item.url as string,
-              url: item.url as string,
-            }));
+            },
+          );
 
-          webContext = sources
-            .map((source, index) => {
-              const result = searchData.results[index];
-              return `[Web source ${index + 1}] ${source.title}\nURL: ${source.url}\nSnippet: ${String(result?.content || "").slice(0, 2200)}`;
-            })
+          sources = validResults.slice(0, 5).map((item) => ({
+            title:
+              typeof item.title === "string" && item.title.trim()
+                ? item.title.trim()
+                : item.url as string,
+            url: item.url as string,
+          }));
+
+          webContext = validResults
+            .slice(0, 5)
+            .map(
+              (result, index) =>
+                `[Web source ${index + 1}] ${typeof result.title === "string" ? result.title : result.url}
+URL: ${result.url}
+Snippet: ${String(result.content || "").slice(0, 2200)}`,
+            )
             .join("\n\n");
         }
       } catch (searchError) {
@@ -144,7 +146,13 @@ export async function POST(request: Request) {
     if (!response.ok) {
       console.error("OpenRouter error", response.status, data);
       return NextResponse.json(
-        { error: "OpenRouter AI could not respond right now. Check the OpenRouter key/model connection." },
+        {
+          error:
+            typeof data?.error?.message === "string"
+              ? `OpenRouter error: ${data.error.message}`
+              : "OpenRouter AI could not respond right now. Check the OpenRouter key/model connection.",
+          model,
+        },
         { status: 502 },
       );
     }
@@ -152,12 +160,19 @@ export async function POST(request: Request) {
     const text = data?.choices?.[0]?.message?.content;
     if (typeof text !== "string" || !text.trim()) {
       return NextResponse.json(
-        { error: "OpenRouter returned an empty response. Please try again." },
+        { error: "OpenRouter returned an empty response. Please try again.", model },
         { status: 502 },
       );
     }
 
-    return NextResponse.json({ text: text.trim(), output: text.trim(), type: "text", model, featureType, webAccess: Boolean(tavilyKey), sources });
+    return NextResponse.json({
+      text: text.trim(),
+      output: text.trim(),
+      type: "text",
+      model,
+      webAccess: Boolean(tavilyKey),
+      sources,
+    });
   } catch (error) {
     console.error("OpenRouter test route error", error);
     return NextResponse.json(
