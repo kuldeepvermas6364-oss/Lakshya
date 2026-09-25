@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-type FeatureType = "chat" | "code" | "reasoning" | "image";
+type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint";
 type Message = { id: number; role: "user" | "assistant"; content: string; image?: string };
 
 const modes: Array<[FeatureType, string]> = [
@@ -10,6 +10,7 @@ const modes: Array<[FeatureType, string]> = [
   ["code", "Code Expert"],
   ["reasoning", "Reasoning"],
   ["image", "Image Creator"],
+  ["sanaSprint", "Sana Sprint (Free)"],
 ];
 
 const starters = [
@@ -91,7 +92,7 @@ export default function PollinationsAIPage() {
         </div>
 
         <div className="polli-toolbar">
-          <div><b>Pollinations AI</b><small>{featureType === "chat" ? "Student chat" : featureType === "code" ? "Qwen3 Coder 30B" : featureType === "reasoning" ? "NVIDIA Nemotron 3 Ultra" : "Qwen Image 3 Pro"}</small></div>
+          <div><b>Pollinations AI</b><small>{featureType === "chat" ? "Student chat" : featureType === "code" ? "Qwen3 Coder 30B" : featureType === "reasoning" ? "NVIDIA Nemotron 3 Ultra"  : featureType === "sanaSprint" ? "Sana Sprint (Free)" : "Qwen Image 3 Pro"}</small></div>
           <button type="button" onClick={() => { if (!loading) { setMessages([]); setInput(""); setError(""); } }} disabled={loading}>New chat</button>
         </div>
 
@@ -100,7 +101,7 @@ export default function PollinationsAIPage() {
             <div className="polli-empty">
               <div className="polli-orb">✺</div>
               <h1>What do you want to learn?</h1>
-              <p>Choose Chat, Code Expert, Reasoning or Image Creator.</p>
+              <p>Choose Chat, Code Expert, Reasoning, Image Creator or Sana Sprint.</p>
               <div className="polli-starters">{starters.map((item) => <button key={item} onClick={() => void send(item)} disabled={loading}>{item}</button>)}</div>
             </div>
           ) : messages.map((m) => (
@@ -120,7 +121,7 @@ export default function PollinationsAIPage() {
         {error && <div className="polli-error">⚠ {error}</div>}
 
         <form className="polli-composer" onSubmit={submit}>
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={featureType === "image" ? "Describe the image you want…" : "Message Pollinations AI…"} rows={2} disabled={loading} />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={featureType === "image" || featureType === "sanaSprint" ? "Describe the image you want…" : "Message Pollinations AI…"} rows={2} disabled={loading} />
           <button type="submit" disabled={loading || !input.trim()}>{loading ? "…" : "Send →"}</button>
         </form>
       </section>
