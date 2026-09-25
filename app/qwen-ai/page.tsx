@@ -9,16 +9,14 @@ type Message = {
 };
 
 const models = [
-  ["deepseek/deepseek-v4-flash:free", "DeepSeek V3 (FreeChat)"],
-  ["z-ai/glm-5.3-flash-search:free", "GLM 5.3 Flash (FREE)"],
-  ["openai/gpt-5.6-luna", "GPT 5.6 Luna"],
-  ["openai/gpt-5.6-sol", "GPT 5.6 Sol"],
-  ["openai/gpt-oss-20b:free", "GPT-OSS 20B (Free, Slow)"],
-  ["kilo-auto/free", "Kilo Auto (free)"],
-  ["poolside/laguna-s-2.1:free", "Laguna S 2.1 (free)"],
-  ["inclusionai/ling-3.0-flash-sante:free", "Ling 3.0 Flash Sante (free)"],
-  ["meta/muse-glimmer-30b:free", "Muse Glimmer (Free)"],
-  ["meta/muse-spark-1.2-contributor", "Muse Spark 1.2 (FREE; CONTRIBUTOR)"],
+  ["openrouter/free", "OpenRouter Free Router"],
+  ["deepseek/deepseek-v4-flash:free", "DeepSeek V4 Flash (Free)"],
+  ["openai/gpt-oss-20b:free", "GPT-OSS 20B (Free)"],
+  ["poolside/laguna-s-2.1:free", "Laguna S 2.1 (Free)"],
+  ["inclusionai/ling-3.0-flash-sante:free", "Ling 3.0 Flash Sante (Free)"],
+  ["openai/gpt-5.6-luna", "GPT-5.6 Luna"],
+  ["openai/gpt-5.6-sol", "GPT-5.6 Sol"],
+  ["meta/muse-spark-1.2-contributor", "Muse Spark 1.2 Contributor"],
 ] as const;
 
 const starter = [
@@ -95,7 +93,7 @@ export default function QwenTestPage() {
           <h1>OpenRouter AI Test</h1>
           <p>Temporary test tab for checking the OpenRouter → OpenRouter connection.</p>
         </div>
-        <div className="qwen-test-status"><i /> OpenRouter Free · openrouter/free</div>
+        <div className="qwen-test-status"><i /> OpenRouter · verified catalog</div>
       </header>
 
       <section className="qwen-test-card">
