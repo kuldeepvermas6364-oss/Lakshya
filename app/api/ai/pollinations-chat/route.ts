@@ -19,7 +19,8 @@ export async function POST(request: Request) {
       messages?: unknown;
       context?: unknown;
       language?: unknown;
-      featureType?: unknown;\n      model?: unknown;
+      featureType?: unknown;
+      model?: unknown;
     } | null;
 
     const message = typeof body?.message === "string" ? body.message.trim() : "";
@@ -117,7 +118,8 @@ export async function POST(request: Request) {
       modeInstruction,
     ]
       .filter(Boolean)
-      .join("\n");
+      .join("
+");
 
     const response = await fetch(POLLINATIONS_ENDPOINT, {
       method: "POST",
