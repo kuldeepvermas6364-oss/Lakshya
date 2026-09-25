@@ -10,7 +10,7 @@ const POLLINATIONS_SECRET_KEY =
   process.env.POLLINATIONS_SECRET_KEY?.trim() ||
   process.env.POLLINATIONS_API_KEY?.trim();
 
-type FeatureType = "chat" | "code" | "reasoning" | "image" | "sanaSprint" | "bonsai512";
+type FeatureType = "chat" | "code" | "reasoning" | "image";
 
 export async function POST(request: Request) {
   try {
@@ -71,13 +71,10 @@ export async function POST(request: Request) {
 
     // Keep the exact Pollinations model slugs requested for each UI mode.
     const modelByFeature: Record<FeatureType, string> = {
-      chat: "deepseek",
-      code: "qwen-coder",
+      chat: "openai",
+      code: "laguna",
       reasoning: "deepseek-pro",
-      image: "ideogram-v4-turbo",
-  // Additional image provider requested for the Image Creator selector.
-  sanaSprint: "sana-sprint",
-  bonsai512: "bonsai",
+      image: "flux",
     };
 
     const selectedModel = modelByFeature[featureType];
@@ -93,6 +90,7 @@ export async function POST(request: Request) {
         cache: "no-store",
         headers: {
           Accept: "image/*",
+          Authorization: "Bearer " + POLLINATIONS_SECRET_KEY,
           "User-Agent": "Lakshya-AI/1.0",
         },
         signal: AbortSignal.timeout(55000),
@@ -134,10 +132,10 @@ export async function POST(request: Request) {
 
     const modeInstruction =
       featureType === "code"
-        ? "You are a Senior Code Expert using Qwen Coder. Write clean, production-quality code and briefly explain important choices."
+        ? "You are a Senior Code Expert using Laguna. Write clean, production-quality code and briefly explain important choices."
         : featureType === "reasoning"
           ? "You are a reasoning expert using DeepSeek Pro. Solve difficult problems carefully and present the useful reasoning summary and conclusion without exposing private chain-of-thought."
-          : "You are Pollinations AI Chat using DeepSeek. Give clear, friendly and accurate educational answers.";
+          : "You are Pollinations AI Chat using OpenAI. Give clear, friendly and accurate educational answers.";
 
     const system = [
       "You are Pollinations AI inside the Lakshya student education app.",
