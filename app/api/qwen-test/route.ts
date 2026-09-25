@@ -39,10 +39,12 @@ export async function POST(request: Request) {
           ? body.prompt.trim()
           : "";
 
-    const model =
+    const requestedModel = typeof body?.model === "string" ? body.model.trim() : "";
+    const model = requestedModel || (
       typeof process.env.OPENROUTER_MODEL === "string" && process.env.OPENROUTER_MODEL.trim()
         ? process.env.OPENROUTER_MODEL.trim()
-        : DEFAULT_MODEL;
+        : DEFAULT_MODEL
+    );
 
     const incoming = Array.isArray(body?.messages) ? body.messages : [];
 
