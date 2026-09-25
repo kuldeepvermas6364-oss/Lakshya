@@ -21,7 +21,22 @@ export default function PollinationsAIPage() {
         const r = await fetch("/api/ai/pollinations-models", { cache: "no-store" });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(data.error || "Pollinations models could not be loaded.");
-        const list = Array.isArray(data.models) ? data.models as Model[] : [];
+        const live = Array.isArray(data.models) ? data.models as Model[] : [];
+        const requested = [
+          { id: "sana", name: "Sana Sprint (Free)", type: "image" as const },
+          { id: "bonsai", name: "Bonsai Image 512p (Free, 4-Step)", type: "image" as const },
+          { id: "deepseek/deepseek-v4-flash:free", name: "DeepSeek V3 (FreeChat)", type: "text" as const },
+          { id: "z-ai/glm-5.3-flash-search:free", name: "GLM 5.3 Flash (FREE)", type: "text" as const },
+          { id: "openai/gpt-5.6-luna", name: "GPT 5.6 Luna (FREE)", type: "text" as const },
+          { id: "openai/gpt-5.6-sol", name: "GPT 5.6 Sol (FREE)", type: "text" as const },
+          { id: "openai/gpt-oss-20b:free", name: "GPT-OSS 20B (Free, Slow)", type: "text" as const },
+          { id: "kilo-auto/free", name: "Kilo Auto (free)", type: "text" as const },
+          { id: "poolside/laguna-s-2.1:free", name: "Laguna S 2.1 (free)", type: "text" as const },
+          { id: "inclusionai/ling-3.0-flash-sante:free", name: "ling-3.0-flash-sante:free", type: "text" as const },
+          { id: "meta/muse-glimmer-30b:free", name: "Muse Glimmer (Free)", type: "text" as const },
+          { id: "meta/muse-spark-1.2-contributor", name: "Muse Spark 1.2 (FREE; CONTRIBUTOR)", type: "text" as const },
+        ];
+        const list = [...live, ...requested].filter((item, index, array) => array.findIndex((x) => x.id === item.id) === index);
         setModels(list);
         if (list.length) setSelectedModel(list[0].id);
       } catch (e) {
