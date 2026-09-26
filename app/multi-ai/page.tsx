@@ -77,20 +77,20 @@ export default function MultiAIPage() {
 
   async function runAll() {
     const prompt = task.trim();
-    if (!prompt || !selected.length || running) return;
+    if (!prompt || !modelIds.length || running) return;
 
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     setRunning(true);
     setError("");
-    setResults(Object.fromEntries(selected.map((id) => [id, { modelId: id, status: "idle", text: "" }])));
+    setResults((current) => ({ ...current, ...Object.fromEntries(modelIds.map((id) => [id, { modelId: id, status: "idle", text: "" }])) }));
 
     try {
       const response = await fetch("/api/ai/multi-model", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" },
-        body: JSON.stringify({ task: prompt, models: selected, language: localStorage.getItem("lakshya_ai_language") || "hi-en" }),
+        body: JSON.stringify({ task: prompt, models: modelIds, language: localStorage.getItem("lakshya_ai_language") || "hi-en" }),
         signal: controller.signal,
       });
 
@@ -176,7 +176,7 @@ export default function MultiAIPage() {
         </div>
         <div className="multi-ai-models">
           <div className="multi-ai-section-head">
-            <div><b>Select models</b><small>Choose up to five real configured models.</small></div>
+            <div><b>Select models</b><small>Choose up to five available models.</small></div>
             <button onClick={selectVisibleCategory} disabled={running || selected.length >= 5}>Add visible</button>
           </div>
           <div className="multi-ai-filters">
@@ -192,7 +192,7 @@ export default function MultiAIPage() {
                 </button>
               );
             })}
-            {!visibleModels.length && <div className="multi-ai-empty">No configured models in this category. Add model IDs to OPENROUTER_MODELS in Vercel.</div>}
+            {!visibleModels.length && <div className="multi-ai-empty">No models are available in this category right now.</div>}
           </div>
         </div>
       </section>
@@ -212,7 +212,7 @@ export default function MultiAIPage() {
                   {result.status === "idle" && <div className="result-placeholder">Ready</div>}
                   {result.status === "running" && !result.text && <div className="result-placeholder"><i></i><i></i><i></i> Generating…</div>}
                   {result.text && <pre>{result.text}</pre>}
-                  {result.status === "failed" && <div className="result-failure">⚠ {result.error || "Request failed."}<button onClick={() => void runAll()}>Retry all</button></div>}
+                  {result.status === "failed" && <div className="result-failure">⚠ {result.error || "Request failed."}<button onClick={() => void runAll([id])}>Retry</button></div>}
                   {result.status === "cancelled" && <div className="result-placeholder">Cancelled</div>}
                 </div>
                 <footer>
