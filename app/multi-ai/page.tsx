@@ -75,7 +75,7 @@ export default function MultiAIPage() {
     if (!running) setResults({});
   }
 
-  async function runAll() {
+  async function runAll(modelIds = selected) {
     const prompt = task.trim();
     if (!prompt || !modelIds.length || running) return;
 
