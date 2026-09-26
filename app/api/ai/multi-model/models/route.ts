@@ -1,11 +1,11 @@
-import { getConfiguredModels } from "@/lib/ai/multi-model";
+import { getAvailableModels } from "@/lib/ai/multi-model";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   return Response.json({
-    models: getConfiguredModels(),
+    models: await getAvailableModels(),
     maxSelected: 5,
     provider: "OpenRouter",
   }, {
