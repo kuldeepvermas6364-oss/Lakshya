@@ -56,6 +56,37 @@ export function openRouterHeaders() {
   };
 }
 
+export async function getAvailableModels(): Promise<MultiModelConfig[]> {
+  const configured = getConfiguredModels();
+  try {
+    const response = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { "User-Agent": "Lakshya-Multi-Model-AI" },
+      next: { revalidate: 300 },
+    });
+    if (!response.ok) return configured;
+    const json = await response.json();
+    const rows = Array.isArray(json?.data) ? json.data : [];
+    const models = rows
+      .filter((row: any) => Array.isArray(row?.architecture?.input_modalities) ? row.architecture.input_modalities.includes("text") : true)
+      .filter((row: any) => Array.isArray(row?.architecture?.output_modalities) ? row.architecture.output_modalities.includes("text") : true)
+      .map((row: any) => {
+        const id = typeof row?.id === "string" ? row.id : "";
+        return id ? {
+          id,
+          name: typeof row?.name === "string" ? row.name : prettyName(id),
+          provider: "OpenRouter" as const,
+          category: categoryFor(id),
+          capabilities: ["text", "stream"],
+        } : null;
+      })
+      .filter(Boolean) as MultiModelConfig[];
+    const byId = new Map([...configured, ...models].map((m) => [m.id, m]));
+    return [...byId.values()];
+  } catch {
+    return configured;
+  }
+}
+
 export type MultiModelMessage = { role: "user" | "system" | "assistant"; content: string };
 
 export async function streamOpenRouterModel(
