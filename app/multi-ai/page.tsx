@@ -84,7 +84,7 @@ export default function MultiAIPage() {
     abortRef.current = controller;
     setRunning(true);
     setError("");
-    setResults((current) => ({ ...current, ...Object.fromEntries(modelIds.map((id) => [id, { modelId: id, status: "idle", text: "" }])) }));
+    const resetResults: Record<string, Result> = {};\n    modelIds.forEach((id) => { resetResults[id] = { modelId: id, status: "idle", text: "" }; });\n    setResults((current) => ({ ...current, ...resetResults }));
 
     try {
       const response = await fetch("/api/ai/multi-model", {
