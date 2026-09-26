@@ -1,4 +1,4 @@
-import { getConfiguredModels, getModelMap, streamOpenRouterModel, type MultiModelMessage } from "@/lib/ai/multi-model";
+import { getAvailableModels, getModelMap, streamOpenRouterModel, type MultiModelMessage } from "@/lib/ai/multi-model";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Select between 1 and 5 models." }, { status: 400 });
   }
 
-  const modelMap = getModelMap();
+  const availableModels = await getAvailableModels();\n  const modelMap = new Map(availableModels.map((model) => [model.id, model]));
   const models = [...new Set(requestedModels)];
   const unknown = models.filter((id) => !modelMap.has(id));
   if (unknown.length) {
