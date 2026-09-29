@@ -12,3 +12,4 @@ input,textarea,select{background:rgba(255,255,255,.045)!important;color:#f4f1ff!
 @media(max-width:520px){.stats-grid{grid-template-columns:1fr}.hero-row h1,.simple-head h1,.community-header h1{font-size:27px}.lakshya-ai-actions{grid-template-columns:repeat(4,1fr)}.lakshya-ai-answer{min-height:170px}}
 @media(min-width:901px){.frame-mobile-nav{display:none!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+\n/* Equation Visualizer mobile layout */\n.equation-visualizer-layout{width:100%;}\n@media(max-width:720px){.equation-visualizer-layout{grid-template-columns:1fr!important}.equation-visualizer-layout button{min-height:40px}.equation-visualizer-layout input{font-size:16px!important}}\n
