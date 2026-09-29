@@ -108,6 +108,7 @@ export default function StudyPage(){
     <nav className="study-tabs" aria-label="Study sections">
       <button className={tab==="chapters"?"active":""} onClick={()=>setTab("chapters")}>Chapters</button>
       <button className={tab==="materials"?"active":""} onClick={()=>setTab("materials")}>Study Material</button>
+      <Link href="/study/visualizer" className="visualizer-tab">📈 Equation Visualizer</Link>
     </nav>
 
     {tab==="chapters"?<>
