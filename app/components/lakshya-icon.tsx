@@ -2,17 +2,7 @@
 
 import type { ReactElement } from "react";
 
-type IconName =
-  | "home" | "book" | "practice" | "timer" | "note" | "chart" | "users" | "user-plus"
-  | "message" | "groups" | "target" | "refresh" | "trophy" | "bell" | "briefcase"
-  | "settings" | "search" | "sparkles" | "help" | "notebook" | "map" | "calendar"
-  | "graduation" | "location" | "clock" | "image" | "download" | "save" | "lightbulb"
-  | "brain" | "list" | "pen" | "bolt" | "file" | "chevron-down" | "chevron-right"
-  | "chevron-left" | "arrow-right" | "arrow-up-right" | "close" | "more" | "check"
-  | "alert" | "external" | "lock" | "crown" | "heart" | "comment" | "share"
-  | "send" | "rotate" | "user" | "folder";
-
-const paths: Record<IconName, ReactElement[]> = {
+const paths: Record<string, ReactElement[]> = {
   home: [<path key="1" d="m3 10 9-7 9 7" />, <path key="2" d="M5 9.5V21h14V9.5" />, <path key="3" d="M9 21v-7h6v7" />],
   book: [<path key="1" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22z" />, <path key="2" d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22z" />],
   practice: [<rect key="1" x="4.5" y="3.5" width="15" height="17" rx="2.5" />, <path key="2" d="m8 12 2.3 2.3L16.5 8" />, <path key="3" d="M8 7h2M8 17h2" />],
@@ -68,10 +58,10 @@ const paths: Record<IconName, ReactElement[]> = {
   folder: [<path key="1" d="M3 6h7l2 2h9v10.5A2.5 2.5 0 0 1 18.5 21h-14A2.5 2.5 0 0 1 2 18.5V6z" />],
 };
 
-export function LakshyaIcon({ name, size = 20, strokeWidth = 1.9, label }: { name: IconName; size?: number; strokeWidth?: number; label?: string }) {
+export function LakshyaIcon({ name, size = 20, strokeWidth = 1.9, label }: { name: string; size?: number; strokeWidth?: number; label?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden={label ? undefined : true} aria-label={label}>
-      {paths[name]}
+      {paths[name] || []}
     </svg>
   );
 }
