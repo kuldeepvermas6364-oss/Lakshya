@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, update } from "firebase/database";
 import { auth, realtimeDb } from "../../lib/firebase";
+import { LakshyaIcon } from "../components/lakshya-icon";
 
 const subjects = ["Physics", "Chemistry", "Mathematics", "Biology", "English"];
 
