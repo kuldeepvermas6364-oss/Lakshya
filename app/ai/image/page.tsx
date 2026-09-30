@@ -209,8 +209,8 @@ export default function ImageAIPage() {
             <div className="image-frame"><img src={image} alt="AI generated study visual" /></div>
             <div className="result-actions">
               <a className="result-btn result-primary" href={image} download="lakshya-study-image.png"><LakshyaIcon name="download" size={14}/> Download</a>
-              <button className={`result-btn ${saved ? "saved-btn" : ""}`} type="button" onClick={saveImage}>{saved ? "✓ Saved to Lakshya" : "♡ Save to Lakshya"}</button>
-              <button className="result-btn" type="button" onClick={() => void generate()}>↻ Regenerate</button>
+              <button className={`result-btn ${saved ? "saved-btn" : ""}`} type="button" onClick={saveImage}>{saved ? "✓ Saved to Lakshya" : <><LakshyaIcon name="save" size={14}/> Save to Lakshya</>}</button>
+              <button className="result-btn" type="button" onClick={() => void generate()}><LakshyaIcon name="refresh" size={14}/> Regenerate</button>
               <Link className="result-btn" href="/ai">Ask AI about it →</Link>
             </div>
             <p className="save-hint">Save keeps a copy on this device in Lakshya. Download saves the image to your device.</p>
@@ -231,7 +231,7 @@ export default function ImageAIPage() {
             {savedImages.map((item) => (
               <article className="saved-card" key={item.id}>
                 <img src={item.image} alt="Saved Lakshya AI image" />
-                <div className="saved-card-foot"><span title={item.prompt}>{item.prompt}</span><button type="button" onClick={() => removeSaved(item.id)} aria-label="Remove saved image">×</button></div>
+                <div className="saved-card-foot"><span title={item.prompt}>{item.prompt}</span><button type="button" onClick={() => removeSaved(item.id)} aria-label="Remove saved image"><LakshyaIcon name="close" size={15}/></button></div>
                 <a href={item.image} download="lakshya-saved-study-image.png" className="saved-download">↓ Download</a>
               </article>
             ))}
