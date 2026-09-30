@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { LakshyaIcon } from "../../components/lakshya-icon";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { onValue, ref, remove, set } from "firebase/database";
@@ -12,13 +13,13 @@ type Workspace = Record<Category, Record<string, SavedItem>>;
 
 const emptyWorkspace = (): Workspace => ({ quiz: {}, notes: {}, summary: {}, flashcards: {}, practice: {}, pyq: {}, tricky: {} });
 const materialInfo: Record<Category, { icon: string; title: string; description: string; instruction: string }> = {
-  quiz: { icon: "🧠", title: "Quiz / क्विज़", description: "AI chapter MCQs + explanations", instruction: "Create 5 exam-quality MCQs from this chapter. Give four options A-D, correct answer and a short explanation. Clearly label them as AI-generated practice, not official past-paper questions." },
-  notes: { icon: "📝", title: "Notes / नोट्स", description: "AI-assisted detailed chapter notes", instruction: "Create concise but complete Class 12 chapter notes. Include definitions, concepts, important formulas/reactions, diagrams to remember, common mistakes and exam tips. Use Hindi as primary language with necessary English scientific terms." },
-  summary: { icon: "📄", title: "Summary / सारांश", description: "Quick chapter revision", instruction: "Create a high-value quick revision summary: key concepts, formulas/reactions, important facts and last-minute exam reminders. Keep it compact and Hindi-first." },
-  flashcards: { icon: "🗂️", title: "Flashcards / फ्लैशकार्ड", description: "Active recall cards", instruction: "Create 8 active-recall flashcards. Format each as Front: question/concept and Back: answer. Hindi-first, with scientific terms in English where useful." },
-  practice: { icon: "✍️", title: "Practice / अभ्यास", description: "Concept + JEE-level practice", instruction: "Create 5 chapter practice questions progressing from concept to JEE-level. Include answer and short solution. Do not invent an official exam source." },
-  pyq: { icon: "📚", title: "PYQ / पिछले वर्ष के प्रश्न", description: "PYQ-style chapter practice", instruction: "Create 5 PYQ-style questions based on this chapter. Do NOT claim they are real official PYQs unless supplied in the prompt. Label them AI-generated PYQ-style practice and include answers with short explanations." },
-  tricky: { icon: "⚡", title: "Tricky Questions / ट्रिकी प्रश्न", description: "Common traps + high-thinking practice", instruction: "Create 5 tricky/high-thinking questions from this chapter, focused on common traps and misconceptions. Include correct answer and why the trap is wrong." },
+  quiz: { icon: "brain", title: "Quiz / क्विज़", description: "AI chapter MCQs + explanations", instruction: "Create 5 exam-quality MCQs from this chapter. Give four options A-D, correct answer and a short explanation. Clearly label them as AI-generated practice, not official past-paper questions." },
+  notes: { icon: "note", title: "Notes / नोट्स", description: "AI-assisted detailed chapter notes", instruction: "Create concise but complete Class 12 chapter notes. Include definitions, concepts, important formulas/reactions, diagrams to remember, common mistakes and exam tips. Use Hindi as primary language with necessary English scientific terms." },
+  summary: { icon: "file", title: "Summary / सारांश", description: "Quick chapter revision", instruction: "Create a high-value quick revision summary: key concepts, formulas/reactions, important facts and last-minute exam reminders. Keep it compact and Hindi-first." },
+  flashcards: { icon: "list", title: "Flashcards / फ्लैशकार्ड", description: "Active recall cards", instruction: "Create 8 active-recall flashcards. Format each as Front: question/concept and Back: answer. Hindi-first, with scientific terms in English where useful." },
+  practice: { icon: "pen", title: "Practice / अभ्यास", description: "Concept + JEE-level practice", instruction: "Create 5 chapter practice questions progressing from concept to JEE-level. Include answer and short solution. Do not invent an official exam source." },
+  pyq: { icon: "book", title: "PYQ / पिछले वर्ष के प्रश्न", description: "PYQ-style chapter practice", instruction: "Create 5 PYQ-style questions based on this chapter. Do NOT claim they are real official PYQs unless supplied in the prompt. Label them AI-generated PYQ-style practice and include answers with short explanations." },
+  tricky: { icon: "bolt", title: "Tricky Questions / ट्रिकी प्रश्न", description: "Common traps + high-thinking practice", instruction: "Create 5 tricky/high-thinking questions from this chapter, focused on common traps and misconceptions. Include correct answer and why the trap is wrong." },
 };
 
 const chapterLists: Record<string, string[]> = {
@@ -111,7 +112,7 @@ export default function AIChapterPage() {
   function exportWorkspace() { const blob = new Blob([JSON.stringify({ app: "Lakshya", subject, chapter, exportedAt: new Date().toISOString(), workspace }, null, 2)], { type: "application/json;charset=utf-8" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `${subject}-${chapter}-Lakshya-study-material.json`; a.click(); URL.revokeObjectURL(url); }
 
   return <main className="page">
-    <header className="hero"><Link href={`/study/${subject.toLowerCase()}`} className="back">← Study / पढ़ाई</Link><div className="eyebrow">LAKSHYA • AI CHAPTER STUDY ROOM</div><h1>{chapter}</h1><p>{subject} · AI से पढ़ो → बनाओ → Save करो · {savedCount} saved items</p><div className="heroActions"><button onClick={() => document.getElementById("ai")?.scrollIntoView({ behavior: "smooth" })}>✦ Lakshya AI</button><a href={hindiNcertUrl} target="_blank" rel="noreferrer">📖 Hindi NCERT</a><a href={hindiNcertUrl} download={`NCERT-Hindi-${subject}-${chapter}.pdf`}>⬇ Download NCERT PDF</a><button onClick={exportWorkspace}>↗ Export Saved</button></div></header>
+    <header className="hero"><Link href={`/study/${subject.toLowerCase()}`} className="back">← Study / पढ़ाई</Link><div className="eyebrow">LAKSHYA • AI CHAPTER STUDY ROOM</div><h1>{chapter}</h1><p>{subject} · AI से पढ़ो → बनाओ → Save करो · {savedCount} saved items</p><div className="heroActions"><button onClick={() => document.getElementById("ai")?.scrollIntoView({ behavior: "smooth" })}><LakshyaIcon name="sparkles" size={14}/> Lakshya AI</button><a href={hindiNcertUrl} target="_blank" rel="noreferrer"><LakshyaIcon name="book" size={14}/> Hindi NCERT</a><a href={hindiNcertUrl} download={`NCERT-Hindi-${subject}-${chapter}.pdf`}><LakshyaIcon name="download" size={14}/> Download NCERT PDF</a><button onClick={exportWorkspace}><LakshyaIcon name="external" size={14}/> Export Saved</button></div></header>
     <nav className="nav"><button disabled={index <= 0} onClick={() => index > 0 && changeChapter(chapters[index - 1])}>← Previous</button><select value={chapter} onChange={e => changeChapter(e.target.value)}>{chapters.map((c, i) => <option key={c} value={c}>{i + 1}. {c}</option>)}</select><button disabled={index >= chapters.length - 1} onClick={() => index < chapters.length - 1 && changeChapter(chapters[index + 1])}>Next →</button></nav>
     {message && <div className="notice">{message}</div>}
     {!user && <div className="signin">Sign in करें ताकि AI से बनाए हुए Quiz, Notes, Summary, Flashcards, Practice, PYQ और Tricky Questions Firebase में इसी chapter के अंदर हमेशा सुरक्षित रहें।</div>}
