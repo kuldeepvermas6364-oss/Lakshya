@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { LakshyaIcon } from "@/app/components/lakshya-icon";
 
 const subjects = {
   Physics: ["Electric Charges & Fields","Electrostatic Potential & Capacitance","Current Electricity","Moving Charges & Magnetism","Magnetism & Matter","Electromagnetic Induction","Alternating Current","Electromagnetic Waves","Ray Optics & Optical Instruments","Wave Optics","Dual Nature of Radiation & Matter","Atoms","Nuclei","Semiconductor Electronics"],
@@ -15,21 +16,21 @@ type Subject = keyof typeof subjects;
 type MaterialKey = "quiz" | "notes" | "summary" | "flashcards" | "practice" | "pyq" | "tricky";
 
 const subjectMeta: Record<Subject,{icon:string;className:string;subtitle:string}> = {
-  Physics:{icon:"⚛",className:"physics",subtitle:"Class 12 Physics"},
-  Chemistry:{icon:"⚗",className:"chemistry",subtitle:"Class 12 Chemistry"},
-  Mathematics:{icon:"π",className:"mathematics",subtitle:"Class 12 Mathematics"},
-  English:{icon:"Aa",className:"english",subtitle:"Class 12 English"},
-  Hindi:{icon:"अ",className:"hindi",subtitle:"Class 12 Hindi"}
+  Physics:{icon:"bolt",className:"physics",subtitle:"Class 12 Physics"},
+  Chemistry:{icon:"flask",className:"chemistry",subtitle:"Class 12 Chemistry"},
+  Mathematics:{icon:"chart",className:"mathematics",subtitle:"Class 12 Mathematics"},
+  English:{icon:"book",className:"english",subtitle:"Class 12 English"},
+  Hindi:{icon:"notebook",className:"hindi",subtitle:"Class 12 Hindi"}
 };
 
 const materials: {key:MaterialKey;icon:string;title:string;desc:string}[] = [
-  {key:"quiz",icon:"🧠",title:"Quiz / क्विज़",desc:"Chapter-wise MCQs & timed tests"},
-  {key:"notes",icon:"📝",title:"Notes / नोट्स",desc:"Detailed study notes"},
-  {key:"summary",icon:"📄",title:"Summary / सारांश",desc:"Quick revision summaries"},
-  {key:"flashcards",icon:"🗂",title:"Flashcards / फ्लैशकार्ड",desc:"Active-recall revision"},
-  {key:"practice",icon:"✍",title:"Practice / अभ्यास",desc:"Concept & JEE-level questions"},
-  {key:"pyq",icon:"🧠",title:"PYQ Intelligence / PYQ विश्लेषण",desc:"AI से PYQ patterns analyze करके Important Practice Paper"},
-  {key:"tricky",icon:"⚡",title:"Tricky Questions / ट्रिकी प्रश्न",desc:"High-thinking questions & traps"}
+  {key:"quiz",icon:"brain",title:"Quiz / क्विज़",desc:"Chapter-wise MCQs & timed tests"},
+  {key:"notes",icon:"note",title:"Notes / नोट्स",desc:"Detailed study notes"},
+  {key:"summary",icon:"file",title:"Summary / सारांश",desc:"Quick revision summaries"},
+  {key:"flashcards",icon:"folder",title:"Flashcards / फ्लैशकार्ड",desc:"Active-recall revision"},
+  {key:"practice",icon:"pen",title:"Practice / अभ्यास",desc:"Concept & JEE-level questions"},
+  {key:"pyq",icon:"chart",title:"PYQ Intelligence / PYQ विश्लेषण",desc:"AI से PYQ patterns analyze करके Important Practice Paper"},
+  {key:"tricky",icon:"bolt",title:"Tricky Questions / ट्रिकी प्रश्न",desc:"High-thinking questions & traps"}
 ];
 
 const chapterId = (subject:Subject,chapter:string) => `${subject.toLowerCase()}-${chapter.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}`;
@@ -94,15 +95,15 @@ export default function StudyPage(){
 
   return <main className="study-library">
     <header className="study-topbar">
-      <Link href="/" className="study-back">←</Link>
+      <Link href="/" className="study-back" aria-label="Back"><LakshyaIcon name="chevron-left" size={18}/></Link>
       <div><h1>Study / पढ़ाई</h1><p>Class 12 • PCM + Languages</p></div>
       <div className="xp-pill"><span>✦</span><b>{overallProgress}%</b><small>progress</small></div>
     </header>
 
     <Link href="/pyq" className="study-ai-menu" aria-label="Open AI Intelligence">
-      <span className="study-ai-menu-icon">✦</span>
+      <span className="study-ai-menu-icon"><LakshyaIcon name="sparkles" size={19}/></span>
       <span className="study-ai-menu-copy"><b>AI Intelligence</b><small>PYQ analysis • important concepts • trend-based practice paper</small></span>
-      <strong>→</strong>
+      <strong><LakshyaIcon name="arrow-right" size={18}/></strong>
     </Link>
 
     <nav className="study-tabs" aria-label="Study sections">
@@ -130,13 +131,13 @@ export default function StudyPage(){
       <section className="material-head"><p>STUDY MATERIAL / पढ़ाई सामग्री</p><h2>Learn, practise & revise</h2><span>Quiz, Notes, Summary, Flashcards, Practice, PYQ और Tricky Questions — सब एक ही clean format में.</span></section>
       <div className="material-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search chapters / chapters खोजें..."/></div>
       <div className="special-materials">
-        <Link href="/study/ncert" className="special-card"><span>📚</span><div><b>NCERT Library / NCERT लाइब्रेरी</b><small>Class 12 official chapter material</small></div><strong>→</strong></Link>
+        <Link href="/study/ncert" className="special-card"><span><LakshyaIcon name="notebook" size={20}/></span><div><b>NCERT Library / NCERT लाइब्रेरी</b><small>Class 12 official chapter material</small></div><strong><LakshyaIcon name="arrow-right" size={18}/></strong></Link>
       </div>
       <section className="material-list">
         {materials.map(item=>{
           const isOpen=openMaterial===item.key;
           return <div className={`material-card ${isOpen?"open":""}`} key={item.key}>
-            <button className="material-row" onClick={()=>toggleMaterial(item.key)}><span className="material-icon">{item.icon}</span><span className="material-copy"><b>{item.title}</b><small>{item.desc}</small></span><span className="material-arrow">{isOpen?"⌄":"›"}</span></button>
+            <button className="material-row" onClick={()=>toggleMaterial(item.key)}><span className="material-icon"><LakshyaIcon name={item.icon} size={20}/></span><span className="material-copy"><b>{item.title}</b><small>{item.desc}</small></span><span className="material-arrow">{isOpen?"⌄":"›"}</span></button>
             {isOpen&&<div className="material-body">
               {(Object.keys(subjects) as Subject[]).map(subject=>{
                 const visible=subjects[subject].filter(ch=>ch.toLowerCase().includes(search.toLowerCase()));
@@ -149,7 +150,7 @@ export default function StudyPage(){
                     const done=progress[chapterId(subject,chapter)]>=100;
                     const workspace=chapterUrl(subject,chapter);
                     const action=item.key==="quiz"?`/quiz?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}`:workspace;
-                    return <div className={`material-chapter ${done?"done":""}`} key={chapter}><Link href={action} className="chapter-link"><span>{done?"✓":"📄"}</span><b>{chapter}</b></Link>{item.key==="quiz"?<Link href={action} className="start-button">Start MCQ</Link>:<div className="chapter-actions"><span>{done?"Completed":"Not started"}</span><button onClick={()=>toggleComplete(subject,chapter)}>{done?"Reopen":"Mark done"}</button></div>}</div>
+                    return <div className={`material-chapter ${done?"done":""}`} key={chapter}><Link href={action} className="chapter-link"><span>{done?<LakshyaIcon name="check" size={13}/>:<LakshyaIcon name="file" size={13}/>}</span><b>{chapter}</b></Link>{item.key==="quiz"?<Link href={action} className="start-button">Start MCQ</Link>:<div className="chapter-actions"><span>{done?"Completed":"Not started"}</span><button onClick={()=>toggleComplete(subject,chapter)}>{done?"Reopen":"Mark done"}</button></div>}</div>
                   })}{visible.length===0&&<p className="empty-material">No matching chapters / कोई matching chapter नहीं मिला।</p>}</div>}
                 </div>
               })}
@@ -160,7 +161,7 @@ export default function StudyPage(){
     </>}
 
     {message&&<p className="study-message">{message}</p>}
-    <section className="workspace-tip"><span>✦</span><div><b>Chapter Workspace / अध्याय वर्कस्पेस</b><p>Chapter खोलकर Lakshya AI से पढ़ो और useful explanations को MCQ, Flashcard, Key Point या Quick Revision में save करो.</p></div></section>
+    <section className="workspace-tip"><span><LakshyaIcon name="sparkles" size={17}/></span><div><b>Chapter Workspace / अध्याय वर्कस्पेस</b><p>Chapter खोलकर Lakshya AI से पढ़ो और useful explanations को MCQ, Flashcard, Key Point या Quick Revision में save करो.</p></div></section>
 
     <style jsx>{`
       .study-library{max-width:1080px;margin:0 auto;padding:18px 28px 130px;min-height:100vh;background:linear-gradient(145deg,#fbfaff 0%,#f5f2ff 48%,#fff4fb 100%);animation:studyIn .35s ease both}
