@@ -270,9 +270,9 @@ export default function AIPage() {
           <aside className="ai-history-panel" onClick={(e) => e.stopPropagation()}>
             <div className="ai-history-head">
               <div><b>Chat history</b><small>Your recent Lakshya AI chats</small></div>
-              <button type="button" onClick={() => setShowHistory(false)} aria-label="Close history">×</button>
+              <button type="button" onClick={() => setShowHistory(false)} aria-label="Close history"><LakshyaIcon name="close" size={15}/></button>
             </div>
-            <button type="button" className="ai-history-new" onClick={startNewChat}>＋ <span>New chat</span></button>
+            <button type="button" className="ai-history-new" onClick={startNewChat}><LakshyaIcon name="plus" size={15}/> <span>New chat</span></button>
             <div className="ai-history-list">
               {chatHistory.length === 0 ? (
                 <div className="ai-history-empty">No previous chats yet.</div>
@@ -293,7 +293,7 @@ export default function AIPage() {
         </div>
         <div className="ai-chat-actions">
           <button type="button" className="ai-history-btn" onClick={() => setShowHistory(true)} aria-label="Open chat history"><LakshyaIcon name="list" size={16}/> <span>History</span></button>
-          <button type="button" className="ai-new-btn" onClick={startNewChat} disabled={loading}>＋ <span>New chat</span></button>
+          <button type="button" className="ai-new-btn" onClick={startNewChat} disabled={loading}><LakshyaIcon name="plus" size={15}/> <span>New chat</span></button>
         </div>
         <div className="ai-top-actions">
           <label className="ai-context">
@@ -351,7 +351,7 @@ export default function AIPage() {
             )}
           </div>
 
-          {error && <div className="ai-error" role="alert"><span>⚠</span>{error}<button onClick={() => setError("")}>Dismiss</button></div>}
+          {error && <div className="ai-error" role="alert"><LakshyaIcon name="alert" size={16}/>{error}<button onClick={() => setError("")}>Dismiss</button></div>}
 
           <form onSubmit={submit} className="ai-composer">
             {imageData && (
@@ -390,9 +390,9 @@ export default function AIPage() {
                   </div>
                 )}
               </div>
-              <button type="button" className="ai-upload-direct" onClick={() => fileRef.current?.click()} disabled={loading} aria-label="Upload image">▧</button>
+              <button type="button" className="ai-upload-direct" onClick={() => fileRef.current?.click()} disabled={loading} aria-label="Upload image"><LakshyaIcon name="image" size={16}/></button>
               <textarea value={input} onChange={(e) => setInput(e.target.value)} placeholder={imageData ? "Ask something about this image…" : "Ask Lakshya AI anything about your studies…"} rows={1} maxLength={4000} disabled={loading} />
-              <button className="ai-send" disabled={(!input.trim() && !imageData) || loading} aria-label="Send">{loading ? "…" : "↑"}</button>
+              <button className="ai-send" disabled={(!input.trim() && !imageData) || loading} aria-label="Send">{loading ? "…" : <LakshyaIcon name="arrow-up-right" size={15}/> }</button>
             </div>
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) chooseImage(f); e.currentTarget.value = ""; }} />
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/heic" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) chooseImage(f); e.currentTarget.value = ""; }} />
