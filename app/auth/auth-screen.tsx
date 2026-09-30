@@ -64,11 +64,11 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
       <p className="auth-kicker">LAKSHYA · STUDY OS</p>
       <h1>Turn your effort<br /><span>into your Lakshya.</span></h1>
       <p>One focused space for study, practice, revision and progress — built around your real activity.</p>
-      <div className="auth-pills"><span>✦ AI Study Copilot</span><span>◈ Real Progress</span><span>◫ Smart Revision</span></div>
+      <div className="auth-pills"><span><LakshyaIcon name="sparkles" size={14}/> AI Study Copilot</span><span><LakshyaIcon name="chart" size={14}/> Real Progress</span><span><LakshyaIcon name="notebook" size={14}/> Smart Revision</span></div>
     </section>
 
     <section className="auth-card-premium" aria-labelledby="auth-title">
-      <div className="auth-card-top"><span>{mode === "login" ? "WELCOME BACK" : mode === "register" ? "GET STARTED" : "ACCOUNT RECOVERY"}</span><div className="secure-badge">⌁ Secure</div></div>
+      <div className="auth-card-top"><span>{mode === "login" ? "WELCOME BACK" : mode === "register" ? "GET STARTED" : "ACCOUNT RECOVERY"}</span><div className="secure-badge"><LakshyaIcon name="lock" size={13}/> Secure</div></div>
       <h2 id="auth-title">{title}</h2><p className="auth-subtitle">{subtitle}</p>
       <form onSubmit={handleSubmit} className="auth-form-premium">
         {mode === "register" && <label><span>Name</span><input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" autoComplete="name" required minLength={3} maxLength={30} /></label>}
@@ -76,7 +76,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
         {mode !== "reset" && <label><span>Password</span><div className="auth-password-wrap"><input value={password} onChange={e => setPassword(e.target.value)} type={showPassword ? "text" : "password"} placeholder="At least 6 characters" autoComplete={mode === "login" ? "current-password" : "new-password"} required minLength={6} maxLength={128} /><button type="button" className="auth-password-toggle" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button></div></label>}
         {error && <p className="auth-error-premium" role="alert">{error}</p>}
         {notice && <p className="auth-success-premium" role="status">{notice}</p>}
-        <button className="auth-submit-premium" disabled={busy} type="submit"><span>{busy ? "Working…" : mode === "login" ? "Enter Lakshya" : mode === "register" ? "Create my Lakshya" : "Send reset link"}</span><b>→</b></button>
+        <button className="auth-submit-premium" disabled={busy} type="submit"><span>{busy ? "Working…" : mode === "login" ? "Enter Lakshya" : mode === "register" ? "Create my Lakshya" : "Send reset link"}</span><b><LakshyaIcon name="arrow-right" size={15}/></b></button>
       </form>
 
       {mode === "login" && <Link className="auth-switch-premium" href="/auth/forgot-password">Forgot password?</Link>}
