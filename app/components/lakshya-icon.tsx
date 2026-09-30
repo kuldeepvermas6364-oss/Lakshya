@@ -1,4 +1,5 @@
-"use client";
+"use
+  flask: [<path key="f" d="M9 2h6M10 2v5l-4.5 8A3 3 0 0 0 8.2 19h7.6a3 3 0 0 0 2.7-4l-4.5-8V2M8 13h8"/>], client";
 
 import type { ReactElement } from "react";
 
