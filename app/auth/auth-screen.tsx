@@ -6,6 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { loginUser, logoutUser, registerUser, resetPassword } from "../../lib/auth";
 import { friendlyAuthError } from "../../lib/auth-errors";
 import { useAuth } from "../../lib/auth-context";
+import { LakshyaIcon } from "../components/lakshya-icon";
 
 export type AuthMode = "login" | "register" | "reset";
 
