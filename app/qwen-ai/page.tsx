@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { LakshyaIcon } from "../components/lakshya-icon";
 
 type Message = {
   id: number;
@@ -122,7 +123,7 @@ export default function QwenTestPage() {
           <div className="qwen-messages">
             {messages.map((message) => (
               <article key={message.id} className={`qwen-message ${message.role}`}>
-                <span className="qwen-avatar">{message.role === "user" ? "K" : "Q"}</span>
+                <span className="qwen-avatar">{message.role === "user" ? "K" : <LakshyaIcon name="brain" size={15}/>}</span>
                 <div>
                   <small>{message.role === "user" ? "YOU" : "OPENROUTER AI"}</small>
                   <p>{message.content}</p>
@@ -131,7 +132,7 @@ export default function QwenTestPage() {
             ))}
             {loading && (
               <article className="qwen-message assistant">
-                <span className="qwen-avatar">Q</span>
+                <span className="qwen-avatar"><LakshyaIcon name="brain" size={15}/></span>
                 <div><small>OPENROUTER AI</small><p className="qwen-thinking">Thinking…</p></div>
               </article>
             )}
@@ -139,7 +140,7 @@ export default function QwenTestPage() {
           </div>
         )}
 
-        {error && <div className="qwen-error">⚠ {error}</div>}
+        {error && <div className="qwen-error"><LakshyaIcon name="alert" size={14}/> {error}</div>}
 
         <form className="qwen-composer" onSubmit={submit}>
           <textarea
@@ -149,7 +150,7 @@ export default function QwenTestPage() {
             rows={2}
             disabled={loading}
           />
-          <button type="submit" disabled={loading || !input.trim()}>{loading ? "…" : "Send →"}</button>
+          <button type="submit" disabled={loading || !input.trim()}>{loading ? "…" : <>Send <LakshyaIcon name="arrow-right" size={13}/></>}</button>
         </form>
       </section>
 
