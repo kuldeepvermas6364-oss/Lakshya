@@ -1,6 +1,3 @@
-"use
-  flask: [<path key="f" d="M9 2h6M10 2v5l-4.5 8A3 3 0 0 0 8.2 19h7.6a3 3 0 0 0 2.7-4l-4.5-8V2M8 13h8"/>], client";
-
 import type { ReactElement } from "react";
 
 const paths: Record<string, ReactElement[]> = {
@@ -58,6 +55,7 @@ const paths: Record<string, ReactElement[]> = {
   rotate: [<path key="1" d="M20 11a8 8 0 0 0-13.8-4L4 10M4 10V5M4 10h5M4 13a8 8 0 0 0 13.8 4L20 14M20 14v5M20 14h-5" />],
   user: [<circle key="1" cx="12" cy="8" r="3.2" />, <path key="2" d="M5 21c.5-4.2 2.7-6.2 7-6.2s6.5 2 7 6.2" />],
   folder: [<path key="1" d="M3 6h7l2 2h9v10.5A2.5 2.5 0 0 1 18.5 21h-14A2.5 2.5 0 0 1 2 18.5V6z" />],
+  flask: [<path key="f" d="M9 2h6M10 2v5l-4.5 8A3 3 0 0 0 8.2 19h7.6a3 3 0 0 0 2.7-4l-4.5-8V2M8 13h8" />],
 };
 
 export function LakshyaIcon({ name, size = 20, strokeWidth = 1.9, label }: { name: string; size?: number; strokeWidth?: number; label?: string }) {
