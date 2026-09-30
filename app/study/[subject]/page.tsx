@@ -12,7 +12,7 @@ const curriculum = {
 } as const;
 
 type Material = "quiz" | "notes" | "summary" | "flashcards" | "practice" | "pyq" | "tricky";
-const materialInfo: { key: Material; icon: Parameters<typeof LakshyaIcon>[0]["name"]; title: string; desc: string }[] = [
+const materialInfo: { key: Material; icon: string; title: string; desc: string }[] = [
   { key: "quiz", icon: "brain", title: "Quiz / क्विज़", desc: "Chapter-wise MCQs & timed tests" },
   { key: "notes", icon: "note", title: "Notes / नोट्स", desc: "AI-assisted detailed chapter notes" },
   { key: "summary", icon: "file", title: "Summary / सारांश", desc: "AI quick revision summaries" },
