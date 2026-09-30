@@ -43,6 +43,7 @@ const paths: Record<string, ReactElement[]> = {
   "chevron-left": [<path key="1" d="m15 6-6 6 6 6" />],
   "arrow-right": [<path key="1" d="M4 12h16M13 6l6 6-6 6" />],
   "arrow-up-right": [<path key="1" d="M5 19 19 5M9 5h10v10" />],
+  plus: [<path key="p" d="M12 5v14M5 12h14"/>],
   close: [<path key="1" d="m6 6 12 12M18 6 6 18" />],
   more: [<circle key="1" cx="5" cy="12" r="1.1" fill="currentColor" stroke="none" />, <circle key="2" cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />, <circle key="3" cx="19" cy="12" r="1.1" fill="currentColor" stroke="none" />],
   check: [<path key="1" d="m5 12 4 4L19 6" />],
