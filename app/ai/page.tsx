@@ -2,6 +2,7 @@
 
 import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { LakshyaIcon } from "../components/lakshya-icon";
 import { cleanAIText } from "@/lib/ai/format";
 
 type Message = { id: number; role: "user" | "ai"; text: string; image?: string };
@@ -26,7 +27,7 @@ function InlineText({ text }: { text: string }) {
   const parts = cleaned.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
   return <>{parts.map((part, i) => {
     const link = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
-    if (link) return <a key={i} href={link[2]} target="_blank" rel="noreferrer" className="ai-source-link">{link[1]} ↗</a>;
+    if (link) return <a key={i} href={link[2]} target="_blank" rel="noreferrer" className="ai-source-link">{link[1]} <LakshyaIcon name="external" size={12}/></a>;
     return part.startsWith("**") && part.endsWith("**")
       ? <strong key={i}>{part.slice(2, -2)}</strong>
       : <span key={i}>{part}</span>;
@@ -70,7 +71,7 @@ function RichAIResponse({ text }: { text: string }) {
     const line = raw.trim();
     if (!line) { flush(); return; }
     const heading = line.match(/^#{1,3}\s+(.+)/);
-    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={`h-${index}`}><span>✦</span><InlineText text={heading[1]} /></h3>); return; }
+    if (heading) { flush(); nodes.push(<h3 className="ai-rich-heading" key={`h-${index}`}><span><LakshyaIcon name="sparkles" size={14}/></span><InlineText text={heading[1]} /></h3>); return; }
     const bullet = line.match(/^[-•*]\s+(.+)/);
     if (bullet) { list.push({ key: `${index}`, content: bullet[1] }); return; }
     const numbered = line.match(/^\d+[.)]\s+(.+)/);
@@ -92,13 +93,13 @@ function AIResponseContent({ text }: { text: string }) {
     <RichAIResponse text={answer} />
     {sources.length > 0 && (
       <section className="ai-sources" aria-label="Sources">
-        <div className="ai-sources-head"><span>✦</span><b>Sources</b><em>{sources.length}</em></div>
+        <div className="ai-sources-head"><span><LakshyaIcon name="external" size={14}/></span><b>Sources</b><em>{sources.length}</em></div>
         <div className="ai-source-grid">
           {sources.map((source) => (
             <a key={source.url} className="ai-source-card" href={source.url} target="_blank" rel="noreferrer">
               <span className="ai-source-favicon">{sourceDomain(source.url).slice(0, 1).toUpperCase()}</span>
               <span className="ai-source-copy"><b>{source.title}</b><small>{sourceDomain(source.url)}</small></span>
-              <span>↗</span>
+              <span><LakshyaIcon name="external" size={12}/></span>
             </a>
           ))}
         </div>
@@ -277,7 +278,7 @@ export default function AIPage() {
                 <div className="ai-history-empty">No previous chats yet.</div>
               ) : chatHistory.map((item) => (
                 <button key={item.id} type="button" className={item.id === chatId ? "ai-history-item active" : "ai-history-item"} onClick={() => openHistory(item.id)}>
-                  <span>✦</span><span><b>{item.title}</b><small>{new Date(item.updatedAt).toLocaleDateString()}</small></span>
+                  <span><LakshyaIcon name="external" size={13}/></span><span><b>{item.title}</b><small>{new Date(item.updatedAt).toLocaleDateString()}</small></span>
                 </button>
               ))}
             </div>
@@ -287,11 +288,11 @@ export default function AIPage() {
       <header className="ai-topbar">
         <Link href="/" className="ai-back" aria-label="Back to dashboard">←</Link>
         <div className="ai-brand">
-          <span className="ai-brand-orb">✦</span>
+          <span className="ai-brand-orb"><LakshyaIcon name="sparkles" size={20}/></span>
           <div><b>Lakshya AI</b><small>Study companion</small></div>
         </div>
         <div className="ai-chat-actions">
-          <button type="button" className="ai-history-btn" onClick={() => setShowHistory(true)} aria-label="Open chat history">☰ <span>History</span></button>
+          <button type="button" className="ai-history-btn" onClick={() => setShowHistory(true)} aria-label="Open chat history"><LakshyaIcon name="list" size={16}/> <span>History</span></button>
           <button type="button" className="ai-new-btn" onClick={startNewChat} disabled={loading}>＋ <span>New chat</span></button>
         </div>
         <div className="ai-top-actions">
@@ -301,7 +302,7 @@ export default function AIPage() {
               <option>General</option><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Biology</option><option>English</option>
             </select>
           </label>
-          <Link href="/ai/image" className="ai-image-top">✦ <span>Study Image</span></Link><Link href="/qwen-ai" className="ai-image-top ai-openrouter-top">◉ <span>OpenRouter AI</span></Link><Link href="/pollinations-ai" className="ai-image-top ai-pollinations-top">✺ <span>Pollinations AI</span></Link>
+          <Link href="/ai/image" className="ai-image-top"><LakshyaIcon name="image" size={14}/> <span>Study Image</span></Link><Link href="/qwen-ai" className="ai-image-top ai-openrouter-top"><LakshyaIcon name="brain" size={14}/> <span>OpenRouter AI</span></Link><Link href="/pollinations-ai" className="ai-image-top ai-pollinations-top"><LakshyaIcon name="sparkles" size={14}/> <span>Pollinations AI</span></Link>
         </div>
       </header>
 
@@ -319,7 +320,7 @@ export default function AIPage() {
           <div ref={conversationRef} className="ai-conversation" aria-live="polite">
             {messages.length === 0 && !loading ? (
               <div className="ai-welcome">
-                <div className="ai-welcome-orb"><span>✦</span><i></i><i></i></div>
+                <div className="ai-welcome-orb"><span><LakshyaIcon name="sparkles" size={24}/></span><i></i><i></i></div>
                 <span className="ai-welcome-kicker">LAKSHYA AI</span>
                 <h2>Ready when you are.</h2>
                 <p>Ask a question, paste a concept, upload a photo or choose an action above.</p>
@@ -331,7 +332,7 @@ export default function AIPage() {
               </div>
             ) : messages.map((message) => (
               <article key={message.id} className={`ai-message ${message.role}`}>
-                {message.role === "ai" && <span className="ai-avatar">✦</span>}
+                {message.role === "ai" && <span className="ai-avatar"><LakshyaIcon name="sparkles" size={15}/></span>}
                 <div className="ai-message-body">
                   <span className="ai-message-label">{message.role === "user" ? "YOU" : "LAKSHYA AI"}</span>
                   {message.image && <img className="ai-user-image" src={message.image} alt="Uploaded study material" />}
@@ -341,7 +342,7 @@ export default function AIPage() {
             ))}
             {loading && streamingId === null && (
               <article className="ai-message ai">
-                <span className="ai-avatar thinking-avatar">✦</span>
+                <span className="ai-avatar thinking-avatar"><LakshyaIcon name="sparkles" size={15}/></span>
                 <div className="ai-message-body">
                   <span className="ai-message-label">LAKSHYA AI</span>
                   <div className="ai-thinking"><b>Thinking through your question</b><small>Preparing a clear study answer…</small><span><i></i><i></i><i></i></span></div>
