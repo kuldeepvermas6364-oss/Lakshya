@@ -18,7 +18,7 @@ function fn(raw:string,v:number){
   let e=raw.trim().replace(/^y\s*=\s*/i,"").replace(/π/g,"Math.PI").replace(/\^/g,"**");
   e=e.replace(/\b(sin|cos|tan|sqrt|abs|log|exp)\b/g,"Math.$1").replace(/\bpi\b/gi,"Math.PI").replace(/\be\b/g,"Math.E").replace(/\b(a|m|c|r)\b/g,String(v));
   if(!/^[0-9x+\-*/%().,\sA-Za-z*]+$/.test(e)||/constructor|window|document|globalThis|Function|eval|import/i.test(e))throw new Error();
-  return new Function("x","return ("+e+");") as (x:number)=>number;
+  // The equation parser intentionally evaluates a tightly validated mathematical expression.\n  // eslint-disable-next-line no-new-func\n  return new Function("x","return ("+e+");") as (x:number)=>number;
 }
 const fmt=(n:number)=>Number(n.toFixed(2)).toString();
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
