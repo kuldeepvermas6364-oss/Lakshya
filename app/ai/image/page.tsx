@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { LakshyaIcon } from "../../components/lakshya-icon";
 
 type SavedImage = { id: string; image: string; prompt: string; savedAt: string };
 type PollinationsImageModel = { id: string; name: string; type: "image" };
@@ -115,22 +116,22 @@ export default function ImageAIPage() {
         <div className="image-orbit orbit-one" />
         <div className="image-orbit orbit-two" />
         <div className="image-hero-copy">
-          <div className="image-kicker"><span className="spark">✦</span> LAKSHYA · IMAGE STUDIO</div>
+          <div className="image-kicker"><span className="spark"><LakshyaIcon name="sparkles" size={14}/></span> LAKSHYA · IMAGE STUDIO</div>
           <h1>Create anything you need<br /><span>for your studies.</span></h1>
           <p>Describe a diagram, concept map, project visual or infographic. Lakshya turns your idea into a study-ready image.</p>
         </div>
-        <Link className="image-back" href="/ai">← Back to AI</Link>
+        <Link className="image-back" href="/ai"><LakshyaIcon name="chevron-left" size={15}/> Back to AI</Link>
       </section>
 
       <section className="image-create-card panel">
         <div className="create-head">
           <div><span className="section-eyebrow">CREATE IMAGE</span><h2>What do you want to see?</h2></div>
           <div className="image-provider-tabs" role="tablist" aria-label="Image AI">
-            <button type="button" role="tab" aria-selected={imageProvider === "lakshya"} className={imageProvider === "lakshya" ? "active" : ""} onClick={() => setImageProvider("lakshya")} disabled={loading}>✦ Lakshya Image</button>
-            <button type="button" role="tab" aria-selected={imageProvider === "qwen"} className={imageProvider === "qwen" ? "active qwen" : "qwen"} onClick={() => setImageProvider("qwen")} disabled={loading}>◉ Qwen Image AI</button>
-            <button type="button" role="tab" aria-selected={imageProvider === "flux"} className={imageProvider === "flux" ? "active flux" : "flux"} onClick={() => setImageProvider("flux")} disabled={loading}>⚡ Hugging Face FLUX</button>
-            <button type="button" role="tab" aria-selected={imageProvider === "stable"} className={imageProvider === "stable" ? "active stable" : "stable"} onClick={() => setImageProvider("stable")} disabled={loading}>◈ Stable Diffusion 3.5</button>
-            <button type="button" role="tab" aria-selected={imageProvider === "pollinations"} className={imageProvider === "pollinations" ? "active pollinations" : "pollinations"} onClick={() => setImageProvider("pollinations")} disabled={loading}>✺ Pollinations AI</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "lakshya"} className={imageProvider === "lakshya" ? "active" : ""} onClick={() => setImageProvider("lakshya")} disabled={loading}><LakshyaIcon name="sparkles" size={14}/> Lakshya Image</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "qwen"} className={imageProvider === "qwen" ? "active qwen" : "qwen"} onClick={() => setImageProvider("qwen")} disabled={loading}><LakshyaIcon name="brain" size={14}/> Qwen Image AI</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "flux"} className={imageProvider === "flux" ? "active flux" : "flux"} onClick={() => setImageProvider("flux")} disabled={loading}><LakshyaIcon name="bolt" size={14}/> Hugging Face FLUX</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "stable"} className={imageProvider === "stable" ? "active stable" : "stable"} onClick={() => setImageProvider("stable")} disabled={loading}><LakshyaIcon name="image" size={14}/> Stable Diffusion 3.5</button>
+            <button type="button" role="tab" aria-selected={imageProvider === "pollinations"} className={imageProvider === "pollinations" ? "active pollinations" : "pollinations"} onClick={() => setImageProvider("pollinations")} disabled={loading}><LakshyaIcon name="sparkles" size={14}/> Pollinations AI</button>
           </div>
         </div>
 
@@ -185,7 +186,7 @@ export default function ImageAIPage() {
           <div className="image-form-foot">
             <span>{prompt.length}/2000 · {imageProvider === "qwen" ? "Qwen Image 3 via OpenRouter" : imageProvider === "flux" ? "FLUX.1-schnell via Hugging Face" : imageProvider === "stable" ? "Stable Diffusion 3.5 via Hugging Face" : imageProvider === "pollinations" ? "Pollinations AI" : "Educational image generation"}</span>
             <button className="generate-image-btn" type="submit" disabled={!prompt.trim() || loading}>
-              <span className="btn-spark">✦</span>{loading ? "Creating…" : "Create Image"}<span className="btn-arrow">→</span>
+              <span className="btn-spark"><LakshyaIcon name="sparkles" size={14}/></span>{loading ? "Creating…" : "Create Image"}<span className="btn-arrow"><LakshyaIcon name="arrow-right" size={14}/></span>
             </button>
           </div>
         </form>
@@ -207,7 +208,7 @@ export default function ImageAIPage() {
             <div className="result-top"><div><span className="section-eyebrow">GENERATED IMAGE</span><h2>Your study visual is ready</h2></div><span className="ready-pill">● Ready</span></div>
             <div className="image-frame"><img src={image} alt="AI generated study visual" /></div>
             <div className="result-actions">
-              <a className="result-btn result-primary" href={image} download="lakshya-study-image.png">↓ Download</a>
+              <a className="result-btn result-primary" href={image} download="lakshya-study-image.png"><LakshyaIcon name="download" size={14}/> Download</a>
               <button className={`result-btn ${saved ? "saved-btn" : ""}`} type="button" onClick={saveImage}>{saved ? "✓ Saved to Lakshya" : "♡ Save to Lakshya"}</button>
               <button className="result-btn" type="button" onClick={() => void generate()}>↻ Regenerate</button>
               <Link className="result-btn" href="/ai">Ask AI about it →</Link>
