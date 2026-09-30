@@ -120,7 +120,7 @@ export default function StudyPage(){
           const done=subjects[subject].filter(ch=>progress[chapterId(subject,ch)]>=100).length;
           const pct=subjects[subject].length?Math.round(done/subjects[subject].length*100):0;
           return <Link href={`/study/${subject.toLowerCase()}`} className="subject-card" key={subject}>
-            <span className={`subject-icon ${meta.className}`}>{meta.icon}</span>
+            <span className={`subject-icon ${meta.className}`}><LakshyaIcon name={meta.icon} size={24}/></span>
             <span className="subject-main"><b>{subject}</b><small>{meta.subtitle} • {done}/{subjects[subject].length} chapters completed</small><i><em style={{width:`${pct}%`}}/></i></span>
             <span className="subject-percent">{pct}%</span>
             <span className="subject-arrow">›</span>
@@ -137,7 +137,7 @@ export default function StudyPage(){
         {materials.map(item=>{
           const isOpen=openMaterial===item.key;
           return <div className={`material-card ${isOpen?"open":""}`} key={item.key}>
-            <button className="material-row" onClick={()=>toggleMaterial(item.key)}><span className="material-icon"><LakshyaIcon name={item.icon} size={20}/></span><span className="material-copy"><b>{item.title}</b><small>{item.desc}</small></span><span className="material-arrow">{isOpen?"⌄":"›"}</span></button>
+            <button className="material-row" onClick={()=>toggleMaterial(item.key)}><span className="material-icon"><LakshyaIcon name={item.icon} size={20}/></span><span className="material-copy"><b>{item.title}</b><small>{item.desc}</small></span><span className="material-arrow"><LakshyaIcon name={isOpen?"chevron-down":"chevron-right"} size={18}/></span></button>
             {isOpen&&<div className="material-body">
               {(Object.keys(subjects) as Subject[]).map(subject=>{
                 const visible=subjects[subject].filter(ch=>ch.toLowerCase().includes(search.toLowerCase()));
@@ -145,7 +145,7 @@ export default function StudyPage(){
                 const subjectOpen=openSubject===subject;
                 const meta=subjectMeta[subject];
                 return <div className="material-subject" key={subject}>
-                  <button className="material-subject-row" onClick={()=>setOpenSubject(subjectOpen?null:subject)}><span className={`mini-subject ${meta.className}`}>{meta.icon}</span><b>{subject}</b><small>{subjectDone}/{subjects[subject].length} done</small><span>{subjectOpen?"⌄":"›"}</span></button>
+                  <button className="material-subject-row" onClick={()=>setOpenSubject(subjectOpen?null:subject)}><span className={`mini-subject ${meta.className}`}><LakshyaIcon name={meta.icon} size={15}/></span><b>{subject}</b><small>{subjectDone}/{subjects[subject].length} done</small><span><LakshyaIcon name={subjectOpen?"chevron-down":"chevron-right"} size={15}/></span></button>
                   {subjectOpen&&<div className="material-chapters">{visible.map(chapter=>{
                     const done=progress[chapterId(subject,chapter)]>=100;
                     const workspace=chapterUrl(subject,chapter);
