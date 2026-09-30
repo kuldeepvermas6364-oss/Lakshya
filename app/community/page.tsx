@@ -6,6 +6,7 @@ import { get, onValue, push, ref, set, update } from "firebase/database";
 import { auth, realtimeDb } from "../../lib/firebase";
 import { createCommunity, joinCommunity, listCommunities, type CommunityRecord } from "../../lib/community-storage";
 import { MediaGallery } from "../components/storage/media-gallery";
+import { LakshyaIcon } from "../components/lakshya-icon";
 import { MediaUploader } from "../components/storage/media-uploader";
 import type { MediaMetadata } from "../../lib/storage";
 
