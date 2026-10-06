@@ -177,7 +177,7 @@ export default function Home() {
         <div className="home-section-head"><div><span className="home-eyebrow">LEARNING LIBRARY</span><h2>Build your foundation</h2></div><Link href="/study">Explore all →</Link></div>
         <div className="home-subject-grid">
           {subjects.map((subject, index) => (
-            <Link href={subject.href} className="home-subject-card" key={subject.id}>
+            <Link href={subject.href} className="home-subject-card" key={subject.code}>
               <div className={`subject-badge subject-${index + 1}`}>{subject.code}</div>
               <strong>{subject.name}</strong>
               <small>{subject.tone}</small>
