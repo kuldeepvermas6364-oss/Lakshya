@@ -9,6 +9,7 @@ type DashboardStats = {
   bestStreak?: number;
   progressPercent?: number;
 };
+
 type PlannerItem = {
   id: string;
   title: string;
@@ -19,9 +20,9 @@ type PlannerItem = {
 };
 
 const subjects = [
-  { name: "Physics", code: "PHY", id: "physics", tone: "Concepts & problem solving", href: "/study/physics" },
-  { name: "Chemistry", code: "CHE", id: "chemistry", tone: "Concepts, reactions & revision", href: "/study/chemistry" },
-  { name: "Mathematics", code: "MAT", id: "mathematics", tone: "Practice & problem solving", href: "/study/mathematics" },
+  { name: "Physics", code: "PHY", tone: "Concepts & problem solving", href: "/study/physics" },
+  { name: "Chemistry", code: "CHE", tone: "Reactions & revision", href: "/study/chemistry" },
+  { name: "Mathematics", code: "MAT", tone: "Practice & problem solving", href: "/study/mathematics" },
 ];
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
@@ -54,10 +55,7 @@ export default function Home() {
           setName(user?.displayName || user?.email?.split("@")[0] || "Student");
         }, () => mounted && setUid(null));
       } catch {
-        if (mounted) {
-          setUid(null);
-          setMessage("Firebase is temporarily unavailable. You can still browse Lakshya.");
-        }
+        if (mounted) setMessage("Firebase is temporarily unavailable. You can still browse Lakshya.");
       }
     })();
     return () => { mounted = false; unsubscribe(); };
@@ -108,105 +106,90 @@ export default function Home() {
 
   const goalMinutes = Number(stats.dailyGoalMinutes) || 0;
   const goalProgress = goalMinutes ? Math.min(100, Math.round((studySeconds / 60 / goalMinutes) * 100)) : 0;
-  const streak = Number(stats.currentStreak) || 0;
-  const best = Number(stats.bestStreak) || 0;
   const progress = Math.min(100, Math.max(0, Number(stats.progressPercent) || 0));
+  const streak = Number(stats.currentStreak) || 0;
   const remainingTasks = useMemo(() => tasks.filter((task) => !task.completed).length, [tasks]);
   const m = String(Math.floor(seconds / 60)).padStart(2, "0");
   const s = String(seconds % 60).padStart(2, "0");
-  const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <main className="page lakshya-dashboard">
-      <section className="dashboard-hero">
-        <div className="hero-copy">
-          <div className="hero-kicker"><span className="status-pulse" /> {today.toUpperCase()}</div>
-          <h1>Good day, <span>{name}.</span></h1>
-          <p>One focused session at a time. Keep your momentum, practise what matters and let Lakshya guide your next step.</p>
-          <div className="hero-actions">
-            <Link className="primary hero-cta" href="/study">Start learning <span>→</span></Link>
-            <Link className="ghost-cta" href="/planner">View today&apos;s plan</Link>
-          </div>
+      <section className="home-welcome">
+        <div>
+          <span className="home-eyebrow">YOUR STUDY SPACE</span>
+          <h1>Good evening, <span>{name}</span> 👋</h1>
+          <p>Let&apos;s make today count.</p>
+          <div className="home-subline">Your study space, powered by AI.</div>
         </div>
-        <div className="hero-orbit" aria-hidden="true">
-          <div className="orbit-ring ring-one" />
-          <div className="orbit-ring ring-two" />
-          <div className="orbit-core"><b>L</b><span>LAKSHYA</span></div>
-        </div>
+        <Link className="home-avatar" href="/profile" aria-label="Open profile">{name.slice(0, 1).toUpperCase()}</Link>
       </section>
 
       {!uid && (
-        <section className="notice-card">
-          <div><strong>Make this dashboard yours.</strong><p>Sign in to sync your real study time, progress, plans and practice history.</p></div>
-          <Link className="primary" href="/auth">Sign in</Link>
+        <section className="home-signin">
+          <div><strong>Make Lakshya yours.</strong><span>Sign in to sync your study time, plans and progress.</span></div>
+          <Link href="/auth/sign-in" className="home-small-button">Sign in</Link>
         </section>
       )}
 
-      <section className="section-heading">
-        <div><span className="section-eyebrow">YOUR MOMENTUM</span><h2>Today at a glance</h2></div>
-        <Link href="/analytics">View analytics →</Link>
+      <section className="ai-study-card">
+        <div className="ai-study-orb" aria-hidden="true"><span>✦</span></div>
+        <div className="ai-study-copy">
+          <span className="ai-study-label">LAKSHYA AI · STUDY COACH</span>
+          <h2>Your personalized plan is ready.</h2>
+          <p>{tasks[0]?.title || "Continue Physics revision"} <b>•</b> {tasks[0]?.durationMinutes || 45} min</p>
+        </div>
+        <Link href={tasks[0] ? "/planner" : "/study"} className="ai-study-button">Start session <span>→</span></Link>
       </section>
 
-      <div className="stats-grid premium-stats">
-        <article className="stat-card featured-stat">
-          <div className="stat-label"><span className="metric-icon">↗</span><span>Overall progress</span></div>
-          <div className="metric-row"><strong>{progress}<small>%</small></strong><div className="ring progress-ring" style={{ "--progress": `${progress * 3.6}deg` } as React.CSSProperties}><span>{progress}%</span></div></div>
-          <small className="stat-foot">Based on your recorded learning activity</small>
-        </article>
-        <article className="stat-card">
-          <div className="stat-label"><span className="metric-icon">◷</span><span>Study time</span></div>
-          <strong>{fmt(studySeconds)}</strong>
-          {goalMinutes > 0 ? <><div className="bar"><i style={{ width: `${goalProgress}%` }} /></div><small className="stat-foot">Daily goal · {goalProgress}% complete</small></> : <small className="stat-foot">Set a daily goal in Planner</small>}
-        </article>
-        <article className="stat-card">
-          <div className="stat-label"><span className="metric-icon">✓</span><span>Questions</span></div>
-          <strong>{questions}</strong><small className="stat-foot">Questions solved today</small>
-          <Link className="mini-link" href="/practice">Practise now →</Link>
-        </article>
-        <article className="stat-card streak-stat">
-          <div className="stat-label"><span className="metric-icon">✦</span><span>Study streak</span></div>
-          <strong>{streak}<small> days</small></strong><small className="stat-foot">{best ? `Best streak: ${best} days` : "Start building your streak"}</small>
-          <div className="week-strip"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-        </article>
-      </div>
-
-      <div className="section-grid premium-grid">
-        <section className="panel schedule-panel">
-          <div className="panel-head"><div><span className="section-eyebrow">PLAN</span><h2>Today&apos;s schedule</h2></div><Link href="/planner">Open planner →</Link></div>
-          <div className="schedule-summary"><span>{remainingTasks} remaining</span><span>{tasks.length} planned today</span></div>
-          <div className="timeline">
-            {tasks.length ? tasks.slice(0, 5).map((task, i) => (
-              <div className={`timeline-item ${task.completed ? "is-done" : ""}`} key={task.id}>
-                <div className="time">{task.durationMinutes}m</div><div className="dot" /><div className="session"><span className={`tag ${i === 0 && !task.completed ? "active-tag" : ""}`}>{task.completed ? "Completed" : i === 0 ? "Next up" : "Planned"}</span><h3>{task.title}</h3><small>{task.subjectId || "Study task"}</small></div>
-              </div>
-            )) : <div className="empty-state"><div className="empty-icon">＋</div><div><h3>No plan for today</h3><p>Turn your goal into a simple, realistic study session.</p><Link className="secondary" href="/planner">Create today&apos;s plan</Link></div></div>}
-          </div>
-        </section>
-
-        <section className="panel focus-panel premium-focus">
-          <div className="panel-head"><div><span className="section-eyebrow">FOCUS MODE</span><h2>Deep work, distraction-free</h2></div><span className="live-dot">● {running ? "FOCUSING" : "READY"}</span></div>
-          <div className="timer"><div className="timer-circle premium-timer"><span>{m}:{s}</span><small>FOCUS</small></div></div>
-          <div className="timer-controls"><button onClick={() => setRunning(!running)} className="primary" disabled={!uid}>{running ? "Pause session" : "Start 25 min"}</button><button className="secondary" onClick={() => { setRunning(false); setSeconds(1500); }}>Reset</button></div>
-          <p className="muted center">Your completed session is saved to your study history.</p>
-        </section>
-      </div>
-
-      <section className="ai-spotlight">
-        <div className="ai-glow" aria-hidden="true" />
-        <div className="ai-copy"><span className="ai-badge">✦ LAKSHYA AI</span><h2>Your study copilot, whenever you need it.</h2><p>Get concepts explained simply, create practice questions, revise a chapter or build a realistic plan with Gemini-powered Lakshya AI.</p><div className="ai-chips"><span>Explain concepts</span><span>Generate a quiz</span><span>Make a study plan</span></div></div>
-        <Link className="ai-cta" href="/ai">Open Lakshya AI <span>→</span></Link>
-      </section>
-
-      <section className="subjects-section">
-        <div className="section-heading"><div><span className="section-eyebrow">LEARNING LIBRARY</span><h2>Keep building your foundation</h2></div><Link href="/study">Explore all →</Link></div>
-        <div className="subject-grid premium-subjects">
-          {subjects.map((subject) => <Link href={subject.href} className="subject premium-subject" key={subject.id}><div className="subject-top"><div className="subject-icon">{subject.code}</div><span>Explore</span></div><h3>{subject.name}</h3><small>{subject.tone}</small><div className="bar"><i style={{ width: "0%" }} /></div><span className="subject-link">Open subject →</span></Link>)}
+      <section className="home-section">
+        <div className="home-section-head"><div><span className="home-eyebrow">QUICK STUDY</span><h2>Pick up where you left off</h2></div><Link href="/study">View all →</Link></div>
+        <div className="quick-study-grid">
+          <Link href="/study" className="quick-study-card"><span className="quick-icon blue">↗</span><strong>Study</strong><small>Learn & revise</small><span className="quick-arrow">→</span></Link>
+          <Link href="/practice" className="quick-study-card"><span className="quick-icon violet">✓</span><strong>Practice</strong><small>{questions ? `${questions} solved today` : "Sharpen concepts"}</small><span className="quick-arrow">→</span></Link>
+          <Link href="/analytics" className="quick-study-card"><span className="quick-icon green">◔</span><strong>Progress</strong><small>{progress}% overall progress</small><span className="quick-arrow">→</span></Link>
         </div>
       </section>
 
-      <section className="quick-actions">
-        <div><span className="section-eyebrow">QUICK ACCESS</span><h2>Everything you need, one tap away.</h2></div>
-        <div className="quick-grid"><Link href="/practice"><b>✓</b><span>Practice</span><small>Sharpen your concepts</small></Link><Link href="/focus"><b>◷</b><span>Focus</span><small>Start a study session</small></Link><Link href="/community"><b>◎</b><span>Community</span><small>Learn with other students</small></Link><Link href="/messages"><b>◌</b><span>Friends</span><small>Discuss &amp; learn together</small></Link></div>
+      <section className="home-progress-grid">
+        <article className="home-progress-card">
+          <div className="home-card-title"><div><span className="home-eyebrow">TODAY&apos;S PROGRESS</span><h2>Keep the momentum going</h2></div><span className="progress-percent">{progress}%</span></div>
+          <div className="home-progress-track"><i style={{ width: `${progress}%` }} /></div>
+          <div className="progress-meta"><span>{fmt(studySeconds)} studied</span><span>{goalMinutes ? `${goalProgress}% of daily goal` : "Set a daily goal in Planner"}</span></div>
+        </article>
+        <article className="home-streak-card">
+          <span className="home-eyebrow">CURRENT STREAK</span>
+          <div className="streak-value">{streak}<small> days</small></div>
+          <p>{streak ? "Nice work — keep it alive today." : "Start your first focused session today."}</p>
+          <Link href="/focus">Focus now →</Link>
+        </article>
+      </section>
+
+      <section className="home-section">
+        <div className="home-section-head"><div><span className="home-eyebrow">FOR YOU</span><h2>Smart revision update</h2></div><Link href="/revision">Open revision →</Link></div>
+        <Link href="/revision" className="revision-card">
+          <span className="revision-icon">✦</span>
+          <div><strong>{tasks[0]?.title || "Build a stronger revision routine"}</strong><p>{remainingTasks ? `${remainingTasks} planned task${remainingTasks === 1 ? "" : "s"} waiting in your schedule.` : "Lakshya can turn your goals into a realistic daily plan."}</p></div>
+          <span className="revision-arrow">→</span>
+        </Link>
+      </section>
+
+      <section className="home-section">
+        <div className="home-section-head"><div><span className="home-eyebrow">LEARNING LIBRARY</span><h2>Build your foundation</h2></div><Link href="/study">Explore all →</Link></div>
+        <div className="home-subject-grid">
+          {subjects.map((subject, index) => (
+            <Link href={subject.href} className="home-subject-card" key={subject.id}>
+              <div className={`subject-badge subject-${index + 1}`}>{subject.code}</div>
+              <strong>{subject.name}</strong>
+              <small>{subject.tone}</small>
+              <span>Open subject →</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-focus-strip">
+        <div><span className="home-eyebrow">FOCUS TIMER</span><h2>{running ? "You&apos;re in a focus session." : "Ready for a focused 25 minutes?"}</h2><p>Stay distraction-free and your completed session will be saved to your study history.</p></div>
+        <div className="home-timer-actions"><span>{m}:{s}</span><button className="home-primary-button" onClick={() => setRunning(!running)} disabled={!uid}>{running ? "Pause" : "Start focus"}</button></div>
       </section>
 
       {message && <p className="muted center">{message}</p>}
