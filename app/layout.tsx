@@ -21,5 +21,16 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><AuthProvider><AppFrame>{children}</AppFrame></AuthProvider></body></html>;
+  // Preview-only inspection mode: Vercel marks non-production branch deployments as "preview".
+  // Production keeps the normal Firebase authentication gate unchanged.
+  const isPreviewDeployment = process.env.VERCEL_ENV === "preview";
+  return (
+    <html lang="en">
+      <body>
+        <AuthProvider>
+          <AppFrame previewMode={isPreviewDeployment}>{children}</AppFrame>
+        </AuthProvider>
+      </body>
+    </html>
+  );
 }
