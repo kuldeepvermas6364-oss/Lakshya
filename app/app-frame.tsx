@@ -43,20 +43,23 @@ function PremiumNavIcon({ type }: { type: "home" | "study" | "practice" | "ai" |
   return <LakshyaIcon name={map[type]} size={22} />;
 }
 
-export default function AppFrame({ children }: { children: ReactNode }) {
+export default function AppFrame({ children, previewMode = false }: { children: ReactNode; previewMode?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
 
   useEffect(() => {
+    // Preview mode exists only on Vercel Preview deployments. It never disables
+    // authentication on production and does not create a Firebase session.
+    if (previewMode) return;
     if (!loading && !user && !isAuthRoute) {
       router.replace(`/auth/sign-in?next=${encodeURIComponent(pathname || "/")}`);
     }
-  }, [loading, user, isAuthRoute, pathname, router]);
+  }, [loading, user, isAuthRoute, pathname, router, previewMode]);
 
   if (isAuthRoute) return <>{children}</>;
-  if (loading || !user) {
+  if (!previewMode && (loading || !user)) {
     return (
       <main className="auth-splash">
         <div className="auth-orbit">
@@ -73,6 +76,28 @@ export default function AppFrame({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-frame">
+      {previewMode && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            padding: "6px 12px",
+            textAlign: "center",
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: ".04em",
+            background: "rgba(255,255,255,.92)",
+            borderBottom: "1px solid rgba(0,0,0,.08)",
+          }}
+          role="status"
+        >
+          PREVIEW MODE · Testing only · Production authentication is unchanged
+        </div>
+      )}
+
       <aside className="frame-sidebar">
         <Link href="/" className="frame-brand">
           <img src="/lakshya-mark.svg" alt="" />
