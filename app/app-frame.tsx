@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import LakshyaAI from "./components/lakshya-ai";
 import { useAuth } from "../lib/auth-context";
 import { LakshyaIcon } from "./components/lakshya-icon";
@@ -47,16 +47,23 @@ export default function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [guest, setGuest] = useState(() => typeof window !== "undefined" && window.localStorage.getItem("lakshya_guest_mode") === "true");
   const isAuthRoute = pathname === "/auth" || pathname.startsWith("/auth/");
 
   useEffect(() => {
-    if (!loading && !user && !isAuthRoute) {
+    if (typeof window !== "undefined") {
+      setGuest(window.localStorage.getItem("lakshya_guest_mode") === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user && !guest && !isAuthRoute) {
       router.replace(`/auth/sign-in?next=${encodeURIComponent(pathname || "/")}`);
     }
-  }, [loading, user, isAuthRoute, pathname, router]);
+  }, [loading, user, guest, isAuthRoute, pathname, router]);
 
   if (isAuthRoute) return <>{children}</>;
-  if (loading || !user) {
+  if (loading || (!user && !guest)) {
     return (
       <main className="auth-splash">
         <div className="auth-orbit">
@@ -129,6 +136,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
             <Link href="/notifications" className="frame-icon" aria-label="Notifications">
               <LakshyaIcon name="bell" size={19} />
             </Link>
+            <span className="frame-guest-badge" aria-label="Guest mode">Guest</span>
             <Link href="/profile" className="frame-avatar">K</Link>
           </div>
         </header>
