@@ -22,6 +22,11 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
+  function continueAsGuest() {
+    if (typeof window !== "undefined") window.localStorage.setItem("lakshya_guest_mode", "true");
+    router.replace(nextPath);
+  }
+
   const nextPath = params.get("next")?.startsWith("/") ? params.get("next")! : "/";
 
   useEffect(() => {
@@ -82,6 +87,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
 
       {mode === "login" && <Link className="auth-switch-premium" href="/auth/forgot-password">Forgot password?</Link>}
       {mode === "reset" && <Link className="auth-switch-premium" href="/auth/sign-in">Back to sign in</Link>}
+      {mode === "login" && <button type="button" className="auth-switch-premium" onClick={continueAsGuest}>Continue as Guest</button>}
       {mode === "login" ? <Link className="auth-switch-premium" href="/auth/sign-up">New here? Create an account</Link> : mode === "register" ? <Link className="auth-switch-premium" href="/auth/sign-in">Already have an account? Sign in</Link> : null}
       <p className="auth-note-premium">Your password is handled by Firebase Authentication. Never share your password or OTP.</p>
     </section>
@@ -91,5 +97,5 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
 export function LogoutButton() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  return <button disabled={busy} onClick={async () => { setBusy(true); await logoutUser(); router.replace("/auth/sign-in"); }} className="auth-logout-button">{busy ? "Signing out…" : "Sign out"}</button>;
+  return <button disabled={busy} onClick={async () => { setBusy(true); if (typeof window !== "undefined") window.localStorage.removeItem("lakshya_guest_mode"); await logoutUser(); router.replace("/auth/sign-in"); }} className="auth-logout-button">{busy ? "Signing out…" : "Sign out"}</button>;
 }
