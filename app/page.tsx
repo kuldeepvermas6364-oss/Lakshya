@@ -31,6 +31,7 @@ const fmt = (seconds: number) => `${Math.floor(seconds / 3600)}h ${Math.floor((s
 export default function Home() {
   const [uid, setUid] = useState<string | null>(null);
   const [name, setName] = useState("Student");
+  const [greeting, setGreeting] = useState("Hello");
   const [stats, setStats] = useState<DashboardStats>({});
   const [tasks, setTasks] = useState<PlannerItem[]>([]);
   const [studySeconds, setStudySeconds] = useState(0);
@@ -38,6 +39,11 @@ export default function Home() {
   const [seconds, setSeconds] = useState(1500);
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening");
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -108,6 +114,7 @@ export default function Home() {
   const goalProgress = goalMinutes ? Math.min(100, Math.round((studySeconds / 60 / goalMinutes) * 100)) : 0;
   const progress = Math.min(100, Math.max(0, Number(stats.progressPercent) || 0));
   const streak = Number(stats.currentStreak) || 0;
+  const nextTask = useMemo(() => tasks.find((task) => !task.completed), [tasks]);
   const remainingTasks = useMemo(() => tasks.filter((task) => !task.completed).length, [tasks]);
   const m = String(Math.floor(seconds / 60)).padStart(2, "0");
   const s = String(seconds % 60).padStart(2, "0");
@@ -117,7 +124,7 @@ export default function Home() {
       <section className="home-welcome">
         <div>
           <span className="home-eyebrow">YOUR STUDY SPACE</span>
-          <h1>Good evening, <span>{name}</span> 👋</h1>
+          <h1>{greeting}, <span>{name}</span> 👋</h1>
           <p>Let&apos;s make today count.</p>
           <div className="home-subline">Your study space, powered by AI.</div>
         </div>
@@ -135,10 +142,10 @@ export default function Home() {
         <div className="ai-study-orb" aria-hidden="true"><span>✦</span></div>
         <div className="ai-study-copy">
           <span className="ai-study-label">LAKSHYA AI · STUDY COACH</span>
-          <h2>Your personalized plan is ready.</h2>
-          <p>{tasks[0]?.title || "Continue Physics revision"} <b>•</b> {tasks[0]?.durationMinutes || 45} min</p>
+          <h2>{nextTask ? "Your next study session" : "Plan your next study session"}</h2>
+          <p>{nextTask ? <>{nextTask.title} <b>•</b> {nextTask.durationMinutes} min</> : "No study session is scheduled for today. Add a task in Planner to build a plan around your goals."}</p>
         </div>
-        <Link href={tasks[0] ? "/planner" : "/study"} className="ai-study-button">Start session <span>→</span></Link>
+        <Link href="/planner" className="ai-study-button">{nextTask ? "View session" : "Create study plan"} <span>→</span></Link>
       </section>
 
       <section className="home-section">
@@ -168,7 +175,7 @@ export default function Home() {
         <div className="home-section-head"><div><span className="home-eyebrow">FOR YOU</span><h2>Smart revision update</h2></div><Link href="/revision">Open revision →</Link></div>
         <Link href="/revision" className="revision-card">
           <span className="revision-icon">✦</span>
-          <div><strong>{tasks[0]?.title || "Build a stronger revision routine"}</strong><p>{remainingTasks ? `${remainingTasks} planned task${remainingTasks === 1 ? "" : "s"} waiting in your schedule.` : "Lakshya can turn your goals into a realistic daily plan."}</p></div>
+          <div><strong>{nextTask?.title || "Your revision plan starts here"}</strong><p>{remainingTasks ? `${remainingTasks} planned task${remainingTasks === 1 ? "" : "s"} waiting in your schedule.` : "No tasks are scheduled yet. Add your first study task in Planner to get a revision plan based on your real schedule."}</p></div>
           <span className="revision-arrow">→</span>
         </Link>
       </section>
