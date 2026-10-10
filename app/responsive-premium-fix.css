@@ -31,3 +31,30 @@ html,body{width:100%;min-width:0;max-width:none;margin:0;padding:0;overflow-x:hi
   .frame-search{display:none!important}
   .page,.simple-page,.messages-page,.community-page{padding-left:14px!important;padding-right:14px!important}
 }
+
+
+/* Mobile dashboard clearance: keep the final cards reachable above fixed controls. */
+@media(max-width:900px){
+  .frame-mobile-nav{
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    height:76px!important;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .lakshya-ai-fab{
+    bottom:calc(92px + env(safe-area-inset-bottom))!important;
+  }
+  .lakshya-ai-panel{
+    bottom:calc(154px + env(safe-area-inset-bottom))!important;
+    max-height:calc(100dvh - 180px - env(safe-area-inset-bottom))!important;
+  }
+  .lakshya-dashboard{
+    padding-bottom:calc(190px + env(safe-area-inset-bottom))!important;
+    scroll-padding-bottom:calc(190px + env(safe-area-inset-bottom));
+  }
+  .lakshya-dashboard .home-focus-strip{
+    scroll-margin-bottom:calc(180px + env(safe-area-inset-bottom));
+  }
+}
+@media(max-width:520px){
+  .lakshya-dashboard{padding-left:14px!important;padding-right:14px!important}
+}
