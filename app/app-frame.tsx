@@ -57,7 +57,21 @@ export default function AppFrame({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!loading && !user && !guest && !isAuthRoute) {
+    if (loading || user || isAuthRoute) return;
+
+    // Guest mode is stored in localStorage by the sign-in screen. Read it here
+    // as well as from React state so a same-tab route transition cannot bounce
+    // the visitor straight back to sign-in with stale state.
+    const storedGuest =
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("lakshya_guest_mode") === "true";
+
+    if (storedGuest) {
+      if (!guest) setGuest(true);
+      return;
+    }
+
+    if (!guest) {
       router.replace(`/auth/sign-in?next=${encodeURIComponent(pathname || "/")}`);
     }
   }, [loading, user, guest, isAuthRoute, pathname, router]);
