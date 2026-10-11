@@ -25,7 +25,7 @@ const subjects = [
   { name: "Mathematics", code: "MAT", tone: "Practice & problem solving", href: "/study/mathematics" },
 ];
 
-const todayKey = () => new Date().toISOString().slice(0, 10);
+const todayKey = () => { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, "0"); const day = String(now.getDate()).padStart(2, "0"); return `${year}-${month}-${day}`; };
 const fmt = (seconds: number) => `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 
 export default function Home() {
