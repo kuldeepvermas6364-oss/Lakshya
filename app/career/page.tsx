@@ -45,7 +45,8 @@ export default function CareerPage(){
  const [liveVacancies,setLiveVacancies]=useState<Vacancy[]>([]);
  const [refreshing,setRefreshing]=useState(true);
  useEffect(()=>{let active=true;(async()=>{try{const r=await fetch("/api/career/vacancies?refresh=1",{cache:"no-store"});const d=await r.json();if(active&&d?.ok&&Array.isArray(d.vacancies))setLiveVacancies(d.vacancies)}catch(e){console.error("Career live feed failed",e)}finally{if(active)setRefreshing(false)}})();return()=>{active=false}},[]);
- const closedCycleTitles=new Set(["ibps rrb officers xv","ibps rrb office assistants xv"]);\n const allVacancies=useMemo(()=>[...liveVacancies.filter(l=>!closedCycleTitles.has(l.title.trim().toLowerCase())),...vacancies.filter(v=>closedCycleTitles.has(v.title.trim().toLowerCase())||!liveVacancies.some(l=>l.official===v.official))],[liveVacancies]);
+ const closedCycleTitles=new Set(["ibps rrb officers xv","ibps rrb office assistants xv"]);
+ const allVacancies=useMemo(()=>[...liveVacancies.filter(l=>!closedCycleTitles.has(l.title.trim().toLowerCase())),...vacancies.filter(v=>closedCycleTitles.has(v.title.trim().toLowerCase())||!liveVacancies.some(l=>l.official===v.official))],[liveVacancies]);
  const visible=useMemo(()=>{const q=query.toLowerCase().trim();return allVacancies.filter(v=>(filter==="All"||v.level.includes(filter)||v.sector===filter)&&(!q||Object.values(v).join(" ").toLowerCase().includes(q)))},[allVacancies,filter,query]);
  const toggle=(id:string)=>{setSaved(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])};
  return <main className="page career-page">
