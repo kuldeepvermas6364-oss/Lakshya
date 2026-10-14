@@ -106,6 +106,12 @@ export default function StudyPage(){
       <strong><LakshyaIcon name="arrow-right" size={18}/></strong>
     </Link>
 
+    <Link href="/study/learning-path" className="study-ai-menu" aria-label="Set your personal learning path">
+      <span className="study-ai-menu-icon"><LakshyaIcon name="book-open" size={19}/></span>
+      <span className="study-ai-menu-copy"><b>Personal Learning Path / अपना स्टडी प्लान</b><small>Choose class, board, JEE/NEET goal and Hindi/English preferences</small></span>
+      <strong><LakshyaIcon name="arrow-right" size={18}/></strong>
+    </Link>
+
     <nav className="study-tabs" aria-label="Study sections">
       <button className={tab==="chapters"?"active":""} onClick={()=>setTab("chapters")}>Chapters</button>
       <button className={tab==="materials"?"active":""} onClick={()=>setTab("materials")}>Study Material</button>
