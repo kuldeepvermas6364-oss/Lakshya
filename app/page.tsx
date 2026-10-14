@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import MusicPlayer from "@/components/music-player";
 import { useEffect, useMemo, useState } from "react";
 
 type DashboardStats = {
@@ -147,6 +148,8 @@ export default function Home() {
         </div>
         <Link href="/planner" className="ai-study-button">{nextTask ? "View session" : "Create study plan"} <span>→</span></Link>
       </section>
+
+      <MusicPlayer compact />
 
       <section className="home-section">
         <div className="home-section-head"><div><span className="home-eyebrow">QUICK STUDY</span><h2>Pick up where you left off</h2></div><Link href="/study">View all →</Link></div>
