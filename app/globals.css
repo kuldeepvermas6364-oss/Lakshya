@@ -254,3 +254,5 @@ body:has(.lakshya-dashboard) .lakshya-ai-fab{box-shadow:0 12px 30px rgba(67,86,2
  .music-art{width:74px}
 }
 @media(prefers-reduced-motion:reduce){.music-art-disc.is-playing,.music-art i{animation:none!important}}
+
+.music-open-link{display:inline-flex;margin-top:12px;color:#c4b5fd;font-size:10px;font-weight:850;text-decoration:none}.music-open-link:hover{color:#a5f3fc}
