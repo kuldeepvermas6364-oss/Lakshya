@@ -1,10 +1,15 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  RecaptchaVerifier,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  signInWithPopup,
   signOut,
   updateProfile,
+  type ConfirmationResult,
   type User,
 } from "firebase/auth";
 import { get, ref, serverTimestamp, set, update } from "firebase/database";
@@ -46,6 +51,49 @@ export async function loginUser(email: string, password: string) {
   assertCredentials(undefined, email, password, false);
   const credential = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
   void syncUserProfile(credential.user.uid, { isOnline: true, updatedAt: serverTimestamp() });
+  return credential.user;
+}
+
+export async function loginWithGoogle() {
+  const credential = await signInWithPopup(auth, new GoogleAuthProvider());
+  void syncUserProfile(credential.user.uid, {
+    uid: credential.user.uid,
+    displayName: credential.user.displayName ?? "Lakshya Student",
+    email: credential.user.email ?? "",
+    photoURL: credential.user.photoURL ?? "",
+    role: "student",
+    isOnline: true,
+    updatedAt: serverTimestamp(),
+  });
+  return credential.user;
+}
+
+export function createPhoneVerifier(containerId: string) {
+  return new RecaptchaVerifier(auth, containerId, { size: "invisible" });
+}
+
+export async function requestPhoneCode(phone: string, verifier: RecaptchaVerifier): Promise<ConfirmationResult> {
+  const normalizedPhone = phone.trim();
+  if (!/^\\+[1-9]\\d{7,14}$/.test(normalizedPhone)) {
+    throw new Error("Enter your phone number with country code, for example +919876543210.");
+  }
+  return signInWithPhoneNumber(auth, normalizedPhone, verifier);
+}
+
+export async function verifyPhoneCode(confirmation: ConfirmationResult, code: string) {
+  const normalizedCode = code.trim();
+  if (!/^\\d{6}$/.test(normalizedCode)) {
+    throw new Error("Enter the 6-digit verification code.");
+  }
+  const credential = await confirmation.confirm(normalizedCode);
+  void syncUserProfile(credential.user.uid, {
+    uid: credential.user.uid,
+    phoneNumber: credential.user.phoneNumber ?? "",
+    displayName: credential.user.displayName ?? "Lakshya Student",
+    role: "student",
+    isOnline: true,
+    updatedAt: serverTimestamp(),
+  });
   return credential.user;
 }
 
