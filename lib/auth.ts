@@ -74,7 +74,7 @@ export function createPhoneVerifier(containerId: string) {
 
 export async function requestPhoneCode(phone: string, verifier: RecaptchaVerifier): Promise<ConfirmationResult> {
   const normalizedPhone = phone.trim();
-  if (!/^\\+[1-9]\\d{7,14}$/.test(normalizedPhone)) {
+  if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
     throw new Error("Enter your phone number with country code, for example +919876543210.");
   }
   return signInWithPhoneNumber(auth, normalizedPhone, verifier);
@@ -82,7 +82,7 @@ export async function requestPhoneCode(phone: string, verifier: RecaptchaVerifie
 
 export async function verifyPhoneCode(confirmation: ConfirmationResult, code: string) {
   const normalizedCode = code.trim();
-  if (!/^\\d{6}$/.test(normalizedCode)) {
+  if (!/^\d{6}$/.test(normalizedCode)) {
     throw new Error("Enter the 6-digit verification code.");
   }
   const credential = await confirmation.confirm(normalizedCode);
