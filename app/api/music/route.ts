@@ -58,11 +58,11 @@ export async function GET(request: NextRequest) {
     // Bhojpuri and Haryanvi instead of exposing the worker's global default feed.
     if (!query && !requestedCategory) {
       const requests = [
-        fetchWorker({ category: "trending", page, limit: 8 }),
-        fetchWorker({ category: "bollywood", page, limit: 8 }),
-        fetchWorker({ category: "punjabi", page, limit: 8 }),
-        fetchWorker({ q: "Bhojpuri songs", page, limit: 8 }),
-        fetchWorker({ q: "Haryanvi songs", page, limit: 8 }),
+        fetchWorker({ category: "trending", page: 1, limit: 30 }),
+        fetchWorker({ category: "bollywood", page: 1, limit: 30 }),
+        fetchWorker({ category: "punjabi", page: 1, limit: 30 }),
+        fetchWorker({ q: "Bhojpuri songs", page: 1, limit: 30 }),
+        fetchWorker({ q: "Haryanvi songs", page: 1, limit: 30 }),
       ];
       const results = await Promise.allSettled(requests);
       const successful = results.filter((item): item is PromiseFulfilledResult<WorkerData> => item.status === "fulfilled");
