@@ -29,9 +29,10 @@ const extra: NavItem[] = [
   ["trophy", "Achievements", "/achievements"],
   ["bell", "Notifications", "/notifications"],
   ["briefcase", "Career", "/career"],
+  ["music", "Music", "/music"],
 ];
 
-function PremiumNavIcon({ type }: { type: "home" | "study" | "practice" | "ai" | "community" | "career" }) {
+function PremiumNavIcon({ type }: { type: "home" | "study" | "practice" | "ai" | "community" | "career" | "music" }) {
   const map = {
     home: "home",
     study: "book",
@@ -39,6 +40,7 @@ function PremiumNavIcon({ type }: { type: "home" | "study" | "practice" | "ai" |
     ai: "sparkles",
     community: "users",
     career: "briefcase",
+    music: "music",
   } as const;
   return <LakshyaIcon name={map[type]} size={22} />;
 }
@@ -155,6 +157,15 @@ export default function AppFrame({ children }: { children: ReactNode }) {
           </div>
         </header>
 
+        {pathname === "/" && (
+          <section className="home-music-promo-wrap" aria-label="Lakshya Music">
+            <Link href="/music" className="home-music-promo">
+              <span className="home-music-promo-art" aria-hidden="true">♫</span>
+              <span className="home-music-promo-copy"><small>YOUR SOUNDTRACK</small><strong>Study with your vibe.</strong><em>Explore songs, search artists and play previews — powered by Lakshya Music.</em></span>
+              <span className="home-music-promo-action">Open Music <b>→</b></span>
+            </Link>
+          </section>
+        )}
         {children}
       </div>
 
@@ -165,7 +176,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
           ["practice", "Practice", "/practice"],
           ["ai", "AI", "/ai"],
           ["community", "Community", "/community"],
-          ["career", "Career", "/career"],
+          ["music", "Music", "/music"],
         ] as const).map(([type, label, href]) => (
           <Link key={href} href={href} className={active(href) ? "active" : ""}>
             <b><PremiumNavIcon type={type} /></b>

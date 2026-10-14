@@ -4,6 +4,7 @@ const paths: Record<string, ReactElement[]> = {
   home: [<path key="1" d="m3 10 9-7 9 7" />, <path key="2" d="M5 9.5V21h14V9.5" />, <path key="3" d="M9 21v-7h6v7" />],
   book: [<path key="1" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22z" />, <path key="2" d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22z" />],
   practice: [<rect key="1" x="4.5" y="3.5" width="15" height="17" rx="2.5" />, <path key="2" d="m8 12 2.3 2.3L16.5 8" />, <path key="3" d="M8 7h2M8 17h2" />],
+  music: [<path key="1" d="M9 18V5l12-2v13M9 18a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3zM21 16a3 3 0 1 1-3-3c1.7 0 3 1.3 3 3z" />],
   timer: [<circle key="1" cx="12" cy="13" r="7.5" />, <path key="2" d="M9 2h6M12 2v3M17.5 7.5 19 6" />],
   note: [<path key="1" d="M6 3.5h9.5L19 7v13.5H6z" />, <path key="2" d="M15 3.5V8h4M9 12h7M9 16h5" />],
   chart: [<path key="1" d="M4 19.5V10M10 19.5V6M16 19.5V12M22 19.5V3.5" />],
