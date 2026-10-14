@@ -84,26 +84,44 @@ export default function MusicPage() {
     return () => requestRef.current?.abort();
   }, [loadTracks]);
 
-  useEffect(() => {
-    if (!currentTrack || !audioRef.current) return;
-    if (isPlaying) {
-      void audioRef.current.play().catch(() => {
-        setIsPlaying(false);
-        setError("This preview could not start. Try another song.");
-      });
-    } else audioRef.current.pause();
-  }, [currentTrack, isPlaying]);
-
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setShowFavorites(false);
     setSubmittedSearch(search.trim());
   }
+  function playbackError() {
+    setIsPlaying(false);
+    setError("This preview could not start. Try another song.");
+  }
+  function togglePlayback() {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+    if (!audio.paused) {
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+    setError("");
+    void audio.play().then(() => setIsPlaying(true)).catch(playbackError);
+  }
   function playTrack(track: Track) {
     setError("");
-    if (currentTrack?.id === track.id) { setIsPlaying((playing) => !playing); return; }
+    if (currentTrack?.id === track.id) {
+      togglePlayback();
+      return;
+    }
+    const audio = audioRef.current;
     setCurrentTrack(track);
+    if (!audio) {
+      setIsPlaying(false);
+      setError("The audio player is not ready. Please try again.");
+      return;
+    }
+    audio.pause();
+    audio.src = track.previewUrl;
+    audio.load();
     setIsPlaying(true);
+    void audio.play().then(() => setIsPlaying(true)).catch(playbackError);
   }
   function toggleFavorite(track: Track) {
     setFavoriteTracks((previous) => {
@@ -175,9 +193,9 @@ export default function MusicPage() {
       {currentTrack&&<aside className="music-player-bar" aria-label="Music player">
         {currentTrack.albumArt?<img src={currentTrack.albumArt} alt=""/>:<span className="music-player-fallback">♫</span>}
         <div className="music-player-track"><strong>{currentTrack.name}</strong><span>{currentTrack.artist}</span></div>
-        <div className="music-player-controls"><button type="button" onClick={()=>setIsPlaying((playing)=>!playing)} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><span>{isPlaying?"Preview playing":"Preview paused"}</span></div>
+        <div className="music-player-controls"><button type="button" onClick={togglePlayback} aria-label={isPlaying?"Pause":"Play"}>{isPlaying?"Ⅱ":"▶"}</button><span>{isPlaying?"Preview playing":"Preview paused"}</span></div>
         {currentTrack.spotifyUrl&&<a href={currentTrack.spotifyUrl} target="_blank" rel="noreferrer" className="music-open-source">Open track ↗</a>}
-        <button type="button" className="music-player-close" onClick={()=>{setIsPlaying(false);setCurrentTrack(null);}} aria-label="Close player">×</button>
+        <button type="button" className="music-player-close" onClick={()=>{audioRef.current?.pause();setIsPlaying(false);setCurrentTrack(null);}} aria-label="Close player">×</button>
       </aside>}
       <div className="music-back-link"><Link href="/">← Back to your dashboard</Link></div>
     </main>
