@@ -8,6 +8,42 @@ const ALLOWED_CATEGORIES = new Set([
   "bollywood", "punjabi", "romantic", "lofi", "devotional",
   "party", "sad", "focus", "english", "trending",
 ]);
+const SEARCH_CATEGORIES: Record<string, string> = {
+  bhojpuri: "Bhojpuri songs",
+  haryanvi: "Haryanvi songs",
+  "south-indian": "Tamil Telugu South Indian songs",
+  "india-trending": "Indian trending Hindi songs",
+  international: "international English pop hits",
+};
+
+type Track = {
+  id: string; name: string; artist: string; album?: string; albumArt?: string;
+  previewUrl: string; spotifyUrl?: string; duration?: number; rank?: number;
+};
+type WorkerData = {
+  query?: string; category?: string; page?: number; limit?: number;
+  total?: number; hasMore?: boolean; tracks?: Track[];
+};
+const validTracks = (data: WorkerData): Track[] => Array.isArray(data?.tracks)
+  ? data.tracks.filter((track) => track && typeof track.id === "string" &&
+      typeof track.name === "string" && typeof track.artist === "string" &&
+      typeof track.previewUrl === "string")
+  : [];
+
+async function fetchWorker(params: { q?: string; category?: string; page: number; limit: number }) {
+  const upstream = new URL("/", MUSIC_WORKER_URL);
+  if (params.q) upstream.searchParams.set("q", params.q);
+  if (params.category) upstream.searchParams.set("category", params.category);
+  upstream.searchParams.set("page", String(params.page));
+  upstream.searchParams.set("limit", String(params.limit));
+  const response = await fetch(upstream.toString(), {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!response.ok) throw new Error("Music service unavailable");
+  return await response.json() as WorkerData;
+}
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
@@ -16,31 +52,47 @@ export async function GET(request: NextRequest) {
   const category = ALLOWED_CATEGORIES.has(requestedCategory) ? requestedCategory : "";
   const page = Math.max(1, Math.min(100, Number.parseInt(params.get("page") || "1", 10) || 1));
   const limit = Math.max(1, Math.min(30, Number.parseInt(params.get("limit") || "24", 10) || 24));
-  const upstream = new URL("/", MUSIC_WORKER_URL);
-  if (query) upstream.searchParams.set("q", query);
-  if (category) upstream.searchParams.set("category", category);
-  upstream.searchParams.set("page", String(page));
-  upstream.searchParams.set("limit", String(limit));
 
   try {
-    const response = await fetch(upstream.toString(), {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!response.ok) {
-      return NextResponse.json({ error: "Music service is temporarily unavailable. Please try again." }, { status: 502 });
+    // "For You" is intentionally India-first: mix Bollywood, Punjabi, Indian trending,
+    // Bhojpuri and Haryanvi instead of exposing the worker's global default feed.
+    if (!query && !requestedCategory) {
+      const requests = [
+        fetchWorker({ category: "trending", page, limit: 8 }),
+        fetchWorker({ category: "bollywood", page, limit: 8 }),
+        fetchWorker({ category: "punjabi", page, limit: 8 }),
+        fetchWorker({ q: "Bhojpuri songs", page, limit: 8 }),
+        fetchWorker({ q: "Haryanvi songs", page, limit: 8 }),
+      ];
+      const results = await Promise.allSettled(requests);
+      const successful = results.filter((item): item is PromiseFulfilledResult<WorkerData> => item.status === "fulfilled");
+      if (!successful.length) throw new Error("No music sources available");
+      const merged: Track[] = [];
+      const seen = new Set<string>();
+      for (const result of successful) {
+        for (const track of validTracks(result.value)) {
+          if (!seen.has(track.id)) { seen.add(track.id); merged.push(track); }
+        }
+      }
+      const start = (page - 1) * limit;
+      const tracks = merged.slice(start, start + limit);
+      return NextResponse.json({
+        query: "", category: null, page, limit,
+        total: merged.length, hasMore: successful.some((item) => item.value.hasMore) || merged.length > start + limit,
+        tracks,
+      }, { headers: { "Cache-Control": "no-store, max-age=0" } });
     }
-    const data = await response.json();
-    const tracks = Array.isArray(data?.tracks) ? data.tracks.filter((track: unknown) => {
-      if (!track || typeof track !== "object") return false;
-      const item = track as Record<string, unknown>;
-      return typeof item.id === "string" && typeof item.name === "string" &&
-        typeof item.artist === "string" && typeof item.previewUrl === "string";
-    }) : [];
+
+    const customSearch = SEARCH_CATEGORIES[requestedCategory];
+    const data = await fetchWorker({
+      q: customSearch || query,
+      category: customSearch ? undefined : category || undefined,
+      page, limit,
+    });
+    const tracks = validTracks(data);
     return NextResponse.json({
-      query: typeof data.query === "string" ? data.query : query,
-      category: typeof data.category === "string" ? data.category : category || null,
+      query: typeof data.query === "string" ? data.query : query || customSearch || "",
+      category: typeof data.category === "string" ? data.category : category || (requestedCategory || null),
       page: Number(data.page) || page,
       limit: Number(data.limit) || limit,
       total: Number(data.total) || tracks.length,
