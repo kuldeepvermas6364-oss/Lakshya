@@ -171,7 +171,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
           </button>
           {phoneConfirmation && <>
             <label><span>6-digit SMS code</span>
-              <input value={smsCode} onChange={event => setSmsCode(event.target.value.replace(/\\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="123456" maxLength={6} />
+              <input value={smsCode} onChange={event => setSmsCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="123456" maxLength={6} />
             </label>
             <button type="button" className="auth-provider-button auth-provider-primary" onClick={handleVerifyPhoneCode} disabled={busy || smsCode.length !== 6}>
               {busy ? "Verifying…" : "Verify code and sign in"}
