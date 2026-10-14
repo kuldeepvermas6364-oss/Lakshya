@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 
 type Track = { title: string; artist: string; url: string };
 
@@ -120,6 +121,7 @@ export default function MusicPlayer({ compact = false }: { compact?: boolean }) 
           {tracks.length > 1 && <span>{index + 1} / {tracks.length} tracks</span>}
         </div>
         {!track && <p className="music-config-note">Vercel Environment Variables: <code>NEXT_PUBLIC_LAKSHYA_MUSIC_TRACKS</code> (JSON playlist) ya <code>NEXT_PUBLIC_LAKSHYA_MUSIC_URL</code> set karein. URL aapke public Cloudflare R2/custom domain ka direct audio link hona chahiye.</p>}
+        {compact && <Link className="music-open-link" href="/music">Open music space →</Link>}
         {error && <p className="music-error" role="status">{error}</p>}
       </div>
     </section>
