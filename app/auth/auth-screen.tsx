@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { loginUser, logoutUser, registerUser, resetPassword } from "../../lib/auth";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { RecaptchaVerifier, type ConfirmationResult } from "firebase/auth";
+import { createPhoneVerifier, loginUser, loginWithGoogle, logoutUser, registerUser, requestPhoneCode, resetPassword, verifyPhoneCode } from "../../lib/auth";
 import { friendlyAuthError } from "../../lib/auth-errors";
 import { useAuth } from "../../lib/auth-context";
 import { LakshyaIcon } from "../components/lakshya-icon";
@@ -21,6 +22,16 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [phoneMode, setPhoneMode] = useState(false);
+  const [phone, setPhone] = useState("+91");
+  const [smsCode, setSmsCode] = useState("");
+  const [phoneConfirmation, setPhoneConfirmation] = useState<ConfirmationResult | null>(null);
+  const phoneVerifier = useRef<RecaptchaVerifier | null>(null);
+
+  useEffect(() => () => {
+    phoneVerifier.current?.clear();
+    phoneVerifier.current = null;
+  }, []);
 
   function continueAsGuest() {
     if (typeof window !== "undefined") window.localStorage.setItem("lakshya_guest_mode", "true");
@@ -60,6 +71,55 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setError("");
+    setNotice("");
+    setBusy(true);
+    try {
+      await loginWithGoogle();
+      router.replace(nextPath);
+    } catch (err) {
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSendPhoneCode() {
+    setError("");
+    setNotice("");
+    setBusy(true);
+    try {
+      if (!phoneVerifier.current) {
+        phoneVerifier.current = createPhoneVerifier("lakshya-phone-recaptcha");
+      }
+      const confirmation = await requestPhoneCode(phone, phoneVerifier.current);
+      setPhoneConfirmation(confirmation);
+      setNotice("Verification code sent. Check your SMS messages.");
+    } catch (err) {
+      phoneVerifier.current?.clear();
+      phoneVerifier.current = null;
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerifyPhoneCode() {
+    if (!phoneConfirmation) return;
+    setError("");
+    setNotice("");
+    setBusy(true);
+    try {
+      await verifyPhoneCode(phoneConfirmation, smsCode);
+      router.replace(nextPath);
+    } catch (err) {
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const title = mode === "login" ? "Sign in to Lakshya" : mode === "register" ? "Create your account" : "Reset your password";
   const subtitle = mode === "login" ? "Pick up exactly where you left off." : mode === "register" ? "Your personalized study space starts here." : "We’ll send a secure reset link to your email.";
 
@@ -84,6 +144,41 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
         {notice && <p className="auth-success-premium" role="status">{notice}</p>}
         <button className="auth-submit-premium" disabled={busy} type="submit"><span>{busy ? "Working…" : mode === "login" ? "Enter Lakshya" : mode === "register" ? "Create my Lakshya" : "Send reset link"}</span><b><LakshyaIcon name="arrow-right" size={15}/></b></button>
       </form>
+
+      {mode !== "reset" && <div className="auth-provider-stack">
+        <div className="auth-divider"><span>OR CONTINUE WITH</span></div>
+        <button type="button" className="auth-provider-button" onClick={handleGoogleSignIn} disabled={busy}>
+          <span className="auth-google-mark" aria-hidden="true">G</span>
+          <span>{busy ? "Please wait…" : "Continue with Google"}</span>
+        </button>
+      </div>}
+
+      {mode === "login" && <div className="auth-phone-entry">
+        <button type="button" className="auth-switch-premium" aria-expanded={phoneMode} onClick={() => {
+          setPhoneMode(value => !value);
+          setPhoneConfirmation(null);
+          setSmsCode("");
+          setError("");
+          setNotice("");
+        }}>{phoneMode ? "Use email and password instead" : "Sign in with phone number"}</button>
+        {phoneMode && <div className="auth-phone-panel">
+          <label><span>Phone number with country code</span>
+            <input type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={event => setPhone(event.target.value)} placeholder="+919876543210" maxLength={16} />
+          </label>
+          <div id="lakshya-phone-recaptcha" />
+          <button type="button" className="auth-provider-button auth-provider-primary" onClick={handleSendPhoneCode} disabled={busy}>
+            {busy ? "Sending…" : phoneConfirmation ? "Resend SMS code" : "Send SMS verification code"}
+          </button>
+          {phoneConfirmation && <>
+            <label><span>6-digit SMS code</span>
+              <input value={smsCode} onChange={event => setSmsCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="123456" maxLength={6} />
+            </label>
+            <button type="button" className="auth-provider-button auth-provider-primary" onClick={handleVerifyPhoneCode} disabled={busy || smsCode.length !== 6}>
+              {busy ? "Verifying…" : "Verify code and sign in"}
+            </button>
+          </>}
+        </div>}
+      </div>}
 
       {mode === "login" && <Link className="auth-switch-premium" href="/auth/forgot-password">Forgot password?</Link>}
       {mode === "reset" && <Link className="auth-switch-premium" href="/auth/sign-in">Back to sign in</Link>}
