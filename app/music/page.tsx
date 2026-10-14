@@ -12,11 +12,13 @@ type MusicResponse = {
   total: number; hasMore: boolean; tracks: Track[]; error?: string;
 };
 const categories = [
-  { label: "For you", value: "" }, { label: "Bollywood", value: "bollywood" },
-  { label: "Punjabi", value: "punjabi" }, { label: "Romantic", value: "romantic" },
+  { label: "For You 🇮🇳", value: "" }, { label: "India Trending", value: "india-trending" },
+  { label: "Bollywood", value: "bollywood" }, { label: "Punjabi", value: "punjabi" },
+  { label: "Bhojpuri", value: "bhojpuri" }, { label: "Haryanvi", value: "haryanvi" },
+  { label: "South Indian", value: "south-indian" }, { label: "Romantic", value: "romantic" },
   { label: "Lo-fi", value: "lofi" }, { label: "Devotional", value: "devotional" },
   { label: "Party", value: "party" }, { label: "Sad", value: "sad" },
-  { label: "Focus", value: "focus" }, { label: "English", value: "english" },
+  { label: "Focus / Study", value: "focus" }, { label: "International", value: "international" },
 ];
 function formatDuration(seconds?: number) {
   if (!seconds || !Number.isFinite(seconds)) return "Preview";
@@ -124,7 +126,7 @@ export default function MusicPage() {
         <div className="music-heading-copy">
           <span className="music-eyebrow"><span className="music-live-dot" /> LAKSHYA MUSIC</span>
           <h1>Your study soundtrack.</h1>
-          <p>Find a vibe, press play, and get into your flow. Songs and previews come from your Lakshya Cloudflare music service.</p>
+          <p>India-first music discovery, made for your mood. Explore Bollywood, Punjabi, Bhojpuri, Haryanvi and regional sounds, with international music kept in its own lane.</p>
         </div>
         <div className="music-heading-note" aria-label="Music preview service"><span>♫</span><b>Made for your moments</b><small>Search • Discover • Focus</small></div>
       </header>
@@ -147,7 +149,7 @@ export default function MusicPage() {
       </nav>
       <section className="music-results">
         <div className="music-results-head">
-          <div><span className="music-eyebrow">{showFavorites?"YOUR COLLECTION":category?category.toUpperCase():submittedSearch?"SEARCH RESULTS":"PICKED FOR YOU"}</span><h2>{showFavorites?"Saved favorites":submittedSearch?`Results for “${submittedSearch}”`:category?`${categories.find((item)=>item.value===category)?.label||category} mix`:"Popular right now"}</h2></div>
+          <div><span className="music-eyebrow">{showFavorites?"YOUR COLLECTION":category?category.toUpperCase():submittedSearch?"SEARCH RESULTS":"INDIA-FIRST DISCOVERY"}</span><h2>{showFavorites?"Saved favorites":submittedSearch?`Results for “${submittedSearch}”`:category?`${categories.find((item)=>item.value===category)?.label||category} mix`:"Made for you, made for India"}</h2></div>
           {!showFavorites&&!loading&&<span className="music-count">{total.toLocaleString()} tracks found</span>}
         </div>
         {error&&<div className="music-error" role="status"><span>!</span><div><b>Music service notice</b><p>{error}</p><button type="button" onClick={()=>void loadTracks(1,false)}>Try again</button></div></div>}
