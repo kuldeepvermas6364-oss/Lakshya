@@ -5,14 +5,14 @@ export const dynamic = "force-dynamic";
 
 const MUSIC_WORKER_URL = "https://lakshya-spotif.kuldeepvermas6364.workers.dev";
 const ALLOWED_CATEGORIES = new Set([
-  "bollywood", "punjabi", "romantic", "lofi", "devotional",
-  "party", "sad", "focus", "english", "trending",
+  "bollywood", "punjabi", "romantic", "lofi", "devotional", "party", "sad",
+  "focus", "english", "trending", "bhojpuri", "haryanvi", "south-indian",
+  "india-trending", "international",
 ]);
 const SEARCH_CATEGORIES: Record<string, string> = {
   bhojpuri: "Bhojpuri songs",
   haryanvi: "Haryanvi songs",
   "south-indian": "Tamil Telugu South Indian songs",
-  "india-trending": "Indian trending Hindi songs",
   international: "international English pop hits",
 };
 
@@ -22,7 +22,7 @@ type Track = {
 };
 type WorkerData = {
   query?: string; category?: string; page?: number; limit?: number;
-  total?: number; hasMore?: boolean; tracks?: Track[];
+  total?: number; hasMore?: boolean; tracks?: Track[]; source?: string;
 };
 const validTracks = (data: WorkerData): Track[] => Array.isArray(data?.tracks)
   ? data.tracks.filter((track) => track && typeof track.id === "string" &&
@@ -54,11 +54,10 @@ export async function GET(request: NextRequest) {
   const limit = Math.max(1, Math.min(30, Number.parseInt(params.get("limit") || "24", 10) || 24));
 
   try {
-    // "For You" is intentionally India-first: mix Bollywood, Punjabi, Indian trending,
-    // Bhojpuri and Haryanvi instead of exposing the worker's global default feed.
+    // Search terms must be passed unchanged; never replace them with a category default.
     if (!query && !requestedCategory) {
       const requests = [
-        fetchWorker({ category: "trending", page: 1, limit: 30 }),
+        fetchWorker({ category: "india-trending", page: 1, limit: 30 }),
         fetchWorker({ category: "bollywood", page: 1, limit: 30 }),
         fetchWorker({ category: "punjabi", page: 1, limit: 30 }),
         fetchWorker({ q: "Bhojpuri songs", page: 1, limit: 30 }),
@@ -78,14 +77,16 @@ export async function GET(request: NextRequest) {
       const tracks = merged.slice(start, start + limit);
       return NextResponse.json({
         query: "", category: null, page, limit,
-        total: merged.length, hasMore: successful.some((item) => item.value.hasMore) || merged.length > start + limit,
+        total: merged.length,
+        hasMore: successful.some((item) => item.value.hasMore) || merged.length > start + limit,
+        source: "India chart + regional discovery",
         tracks,
       }, { headers: { "Cache-Control": "no-store, max-age=0" } });
     }
 
     const customSearch = SEARCH_CATEGORIES[requestedCategory];
     const data = await fetchWorker({
-      q: customSearch || query,
+      q: customSearch || query || undefined,
       category: customSearch ? undefined : category || undefined,
       page, limit,
     });
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       limit: Number(data.limit) || limit,
       total: Number(data.total) || tracks.length,
       hasMore: Boolean(data.hasMore),
+      source: data.source || "Music service",
       tracks,
     }, { headers: { "Cache-Control": "no-store, max-age=0" } });
   } catch {
