@@ -9,12 +9,7 @@ const ALLOWED_CATEGORIES = new Set([
   "focus", "english", "trending", "bhojpuri", "haryanvi", "south-indian",
   "india-trending", "international",
 ]);
-const SEARCH_CATEGORIES: Record<string, string> = {
-  bhojpuri: "Bhojpuri songs",
-  haryanvi: "Haryanvi songs",
-  "south-indian": "Tamil Telugu South Indian songs",
-  international: "international English pop hits",
-};
+const SEARCH_CATEGORIES: Record<string, string> = {};
 
 type Track = {
   id: string; name: string; artist: string; album?: string; albumArt?: string;
