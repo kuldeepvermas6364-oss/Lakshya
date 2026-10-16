@@ -101,6 +101,8 @@ export default function Home() {
               .then(({ getStudyTotals }) => getStudyTotals(uid, new Date(new Date().setHours(0, 0, 0, 0))))
               .then(setStudySeconds)
               .catch((error) => setMessage(error.message));
+          } else {
+            setMessage("Focus session completed. Sign in to save this session to your study history.");
           }
           return 1500;
         }
@@ -195,8 +197,8 @@ export default function Home() {
       </section>
 
       <section className="home-focus-strip">
-        <div><span className="home-eyebrow">FOCUS TIMER</span><h2>{running ? "You&apos;re in a focus session." : "Ready for a focused 25 minutes?"}</h2><p>Stay distraction-free and your completed session will be saved to your study history.</p></div>
-        <div className="home-timer-actions"><span>{m}:{s}</span><button className="home-primary-button" onClick={() => setRunning(!running)} disabled={!uid}>{running ? "Pause" : "Start focus"}</button></div>
+        <div><span className="home-eyebrow">FOCUS TIMER</span><h2>{running ? "You&apos;re in a focus session." : "Ready for a focused 25 minutes?"}</h2><p>{uid ? "Stay distraction-free and your completed session will be saved to your study history." : "Try a focus session without an account. Sign in later to save it to your study history."}</p></div>
+        <div className="home-timer-actions"><span>{m}:{s}</span><button className="home-primary-button" onClick={() => { setMessage(""); setRunning(!running); }} aria-label={running ? "Pause focus timer" : "Start 25-minute focus timer"}>{running ? "Pause" : "Start focus"}</button></div>
       </section>
 
       {message && <p className="muted center">{message}</p>}
