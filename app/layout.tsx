@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import "./lakshya-polish.css";
+import "./premium-motion.css";
+import "./auth-premium.css";
+import "./premium-brand.css";
+import "./premium-dashboard.css";
+import "./project-lab-ai.css";
+import "./ai-fullframe.css";
+import "./premium-colorful.css";
+import "./premium-light-theme.css";
+import "./responsive-premium-fix.css";
+import "./music.css";
+import AppFrame from "./app-frame";
+import { AuthProvider } from "../lib/auth-context";
+
+export const metadata: Metadata = {
+  title: "Lakshya — Study Smarter",
+  description: "Lakshya is a premium India-first study platform for focused learning, practice, AI assistance, planning and progress.",
+  applicationName: "Lakshya",
+  keywords: ["Lakshya", "study app", "JEE", "NEET", "students", "AI study assistant"],
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="en"><body><AuthProvider><AppFrame>{children}</AppFrame></AuthProvider></body></html>;
+}

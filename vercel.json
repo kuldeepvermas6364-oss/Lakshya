@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/career/vacancies",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

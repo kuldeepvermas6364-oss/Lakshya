@@ -1,0 +1,72 @@
+name: Format Project Lab JSX
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/study/projects/page.tsx'
+      - '.github/workflows/format-project-lab.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace compact project JSX with readable JSX
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('app/study/projects/page.tsx')
+          s=p.read_text()
+          replacement=r'''  {tab==="project" && <section className="project">
+            {!selected ? (
+              <div className="empty"><h2>No project selected</h2><button className="primary" onClick={()=>setTab("home")}>Start a project</button></div>
+            ) : (
+              <>
+                <div className="projectTop">
+                  <div><span className="eyebrow">MY PROJECT</span><input value={selected.name} onChange={e=>setSelected({...selected,name:e.target.value})}/><p>{selected.subject} · Class {selected.classLevel}</p></div>
+                  <div className="actions"><button onClick={()=>setTab("research")}>＋ Research</button><button className="primary" disabled={saving} onClick={()=>void save()}>{saving?"Saving…":"Save Project"}</button></div>
+                </div>
+                <div className="projectGrid">
+                  <aside className="outline"><b>Project outline</b>{selected.blocks.map((b,i)=><button key={b.id} onClick={()=>document.getElementById(b.id)?.scrollIntoView({behavior:"smooth"})}><i>{i+1}</i>{b.title}</button>)}<button className="preview" onClick={()=>setTab("preview")}>Preview →</button></aside>
+                  <section className="blocks">
+                    {selected.blocks.map(b=>(
+                      <article id={b.id} key={b.id}>
+                        <div><b>{b.title}</b><button onClick={()=>{setQuestion(`Help me write the ${b.title} section for ${selected.topic}.`);setTab("research")}}>✦ Ask AI</button></div>
+                        <textarea value={b.content} onChange={e=>updateBlock(b.id,e.target.value)} placeholder={`Write or edit your ${b.title.toLowerCase()} here…`}/>
+                        {b.imageUrl ? (
+                          <div className="imageBox">
+                            <img src={b.imageUrl} alt={b.imageCaption||b.title}/>
+                            <input value={b.imageCaption||""} onChange={e=>setSelected(p=>p?{...p,blocks:p.blocks.map(x=>x.id===b.id?{...x,imageCaption:e.target.value}:x)}:p)} placeholder="Image caption (optional)"/>
+                            <button onClick={()=>removeImage(b.id)}>Remove image</button>
+                          </div>
+                        ) : (
+                          <label className="imageAdd">🖼️ Add image to this section<input type="file" accept="image/*" onChange={e=>{const f=e.target.files?.[0];if(f)addImage(b.id,f);e.currentTarget.value=""}}/></label>
+                        )}
+                      </article>
+                    ))}
+                  </section>
+                </div>
+              </>
+            )}
+          </section>}
+'''
+          pattern=r'  \{tab===["\x22]project["\x22].*?(?=\n  \{tab===["\x22]preview["\x22])'
+          ns,n=re.subn(pattern,replacement.rstrip(),s,flags=re.S)
+          print('replacements:',n)
+          if n!=1:
+              raise SystemExit('Project JSX block not found')
+          p.write_text(ns)
+          PY
+      - name: Commit format
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/study/projects/page.tsx
+          if git diff --cached --quiet; then echo 'No formatting change needed.'; exit 0; fi
+          git commit -m 'fix(project-lab): format project JSX'
+          git push

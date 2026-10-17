@@ -1,0 +1,39 @@
+name: Repair Project Lab syntax
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/study/projects/page.tsx'
+      - '.github/workflows/fix-project-syntax.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repair missing callback parenthesis
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app/study/projects/page.tsx')
+          s = p.read_text()
+          old = 'onChange={e=>setSelected(p=>p?{...p,blocks:p.blocks.map(x=>x.id===b.id?{...x,imageCaption:e.target.value}:x)}):p}'
+          new = 'onChange={e=>setSelected(p=>p?{...p,blocks:p.blocks.map(x=>x.id===b.id?{...x,imageCaption:e.target.value}:x)}):p)}'
+          if old in s:
+              p.write_text(s.replace(old, new, 1))
+          PY
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/study/projects/page.tsx
+          if git diff --cached --quiet; then
+            echo 'No repair needed.'
+            exit 0
+          fi
+          git commit -m 'fix(project-lab): repair image caption JSX syntax'
+          git push
