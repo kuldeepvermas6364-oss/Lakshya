@@ -81,7 +81,6 @@ export default function CommunityPage(){
 .space-modal{background:linear-gradient(145deg,#fff,#f1f1ff 52%,#fff0fa);border:1px solid #fff}
 .search-wrap:focus-within{border-color:#b7baff;box-shadow:0 0 0 3px #7777ed13}
 @media(max-width:760px){.community-header{background:linear-gradient(145deg,#fff,#eef0ff 48%,#f9eaff)}.community-quick .quick-card{box-shadow:0 9px 24px #5362a012}.post{border-radius:18px}.side-card{border-radius:18px}}
-`}
 /* Instagram-inspired Community feed: content-first, touch-friendly, mobile-first */
 .story-rail{display:flex;align-items:flex-start;gap:15px;overflow-x:auto;padding:15px 14px;margin:0 0 15px;border:1px solid #e8e4fb;border-radius:20px;background:linear-gradient(115deg,#fff,#f7f3ff 58%,#effbff);box-shadow:0 12px 30px #52617d0b;scrollbar-width:none}
 .story-rail::-webkit-scrollbar{display:none}
@@ -120,5 +119,5 @@ export default function CommunityPage(){
  .icon-action{width:32px;height:32px}
  .post-social-proof b{font-size:11px}
 }
-</style></main>
+`}</style></main>
 }
