@@ -81,5 +81,5 @@ export default function CommunityPage(){
 .space-modal{background:linear-gradient(145deg,#fff,#f1f1ff 52%,#fff0fa);border:1px solid #fff}
 .search-wrap:focus-within{border-color:#b7baff;box-shadow:0 0 0 3px #7777ed13}
 @media(max-width:760px){.community-header{background:linear-gradient(145deg,#fff,#eef0ff 48%,#f9eaff)}.community-quick .quick-card{box-shadow:0 9px 24px #5362a012}.post{border-radius:18px}.side-card{border-radius:18px}}
-</style></main>
+`}</style></main>
 }
