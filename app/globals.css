@@ -127,3 +127,38 @@ body:has(.lakshya-dashboard) .lakshya-ai-fab{box-shadow:0 12px 30px rgba(67,86,2
 .home-signin{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-5px 0 20px;padding:12px 15px;border:1px solid #e0e6f0;border-radius:15px;background:#fff}.home-signin strong{display:block;font-size:11px;color:#24314d}.home-signin span{display:block;font-size:9px;color:#7b8698;margin-top:2px}.home-small-button{background:#edf2ff;color:#4562c7}
 @media(max-width:760px){.lakshya-dashboard{padding:18px 15px 88px}.home-welcome h1{font-size:27px}.home-welcome p{font-size:18px}.ai-study-card{align-items:flex-start;padding:18px;flex-wrap:wrap}.ai-study-orb{width:43px;height:43px;min-width:43px}.ai-study-copy{flex:1}.ai-study-button{margin-left:60px}.home-progress-grid{grid-template-columns:1fr}.home-focus-strip{align-items:flex-start;flex-direction:column}.home-timer-actions{width:100%;justify-content:space-between}}
 @media(max-width:520px){.quick-study-grid,.home-subject-grid{grid-template-columns:1fr}.quick-study-card{min-height:98px}.home-section{margin-top:24px}.home-section-head h2{font-size:16px}.ai-study-button{margin-left:0;width:100%;text-align:center}.home-welcome{padding-bottom:18px}.home-avatar{width:42px;height:42px;min-width:42px;border-radius:13px}.home-progress-card,.home-streak-card{padding:16px}.home-signin{align-items:flex-start}.home-signin span{max-width:230px}}
+
+
+/* Lakshya home refresh — brighter, more expressive cards; existing navigation untouched */
+body:has(.lakshya-dashboard){background:#f4f6ff;color:#17213d}
+body:has(.lakshya-dashboard):before{background:radial-gradient(ellipse at 0% 0%,rgba(255,117,170,.17),transparent 30%),radial-gradient(ellipse at 100% 8%,rgba(80,155,255,.20),transparent 30%),radial-gradient(ellipse at 45% 100%,rgba(139,92,246,.09),transparent 35%),linear-gradient(180deg,#fbfaff 0%,#f0f5ff 100%)}
+.lakshya-dashboard .home-welcome{padding:12px 4px 26px}
+.lakshya-dashboard .home-eyebrow{color:#7a70b5;letter-spacing:1.7px}
+.lakshya-dashboard .home-welcome h1 span{background:linear-gradient(100deg,#5265e8,#a34de0 55%,#ef6e9b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lakshya-dashboard .home-avatar{border-radius:17px;background:linear-gradient(145deg,#ff7ca8,#9259e8 58%,#4778f5);box-shadow:0 12px 25px #8758d53b}
+.lakshya-dashboard .ai-study-card{background:linear-gradient(112deg,#514be8 0%,#7953e9 48%,#d45ab2 100%);box-shadow:0 18px 36px #6d55d83b}
+.lakshya-dashboard .ai-study-card:before{content:"";position:absolute;inset:auto 12% -110px auto;width:210px;height:210px;border-radius:50%;background:#ffb6e8;opacity:.17;filter:blur(2px)}
+.lakshya-dashboard .ai-study-orb{background:linear-gradient(145deg,#ffffff45,#ffffff16);border-radius:18px;box-shadow:0 8px 24px #3926a62b,inset 0 1px #ffffff70}
+.lakshya-dashboard .ai-study-button{border-radius:13px;color:#5d4bd4;box-shadow:0 8px 18px #3325a52e}
+.lakshya-dashboard .quick-study-card{border-color:#e5e3fa;background:linear-gradient(145deg,#fff 0%,#faf9ff 100%);box-shadow:0 10px 25px #5d55a012}
+.lakshya-dashboard .quick-study-card:nth-child(1){background:linear-gradient(145deg,#fff,#edf5ff)}
+.lakshya-dashboard .quick-study-card:nth-child(2){background:linear-gradient(145deg,#fff,#f6efff)}
+.lakshya-dashboard .quick-study-card:nth-child(3){background:linear-gradient(145deg,#fff,#eafbf5)}
+.lakshya-dashboard .quick-icon.blue{background:linear-gradient(135deg,#dceaff,#c7d6ff);color:#4161dc}
+.lakshya-dashboard .quick-icon.violet{background:linear-gradient(135deg,#f0ddff,#dfd0ff);color:#8852d5}
+.lakshya-dashboard .quick-icon.green{background:linear-gradient(135deg,#d8f8e9,#bdf0dc);color:#15966e}
+.lakshya-dashboard .home-progress-card,.lakshya-dashboard .home-streak-card{border-color:#e6e3f7;background:linear-gradient(145deg,#fff,#faf9ff);box-shadow:0 10px 26px #5d55a012}
+.lakshya-dashboard .home-progress-track i{background:linear-gradient(90deg,#5275f2,#9258e8,#e66cb4)}
+.lakshya-dashboard .progress-percent{color:#7958df}
+.lakshya-dashboard .home-streak-card{background:linear-gradient(145deg,#fff8e9,#fff1f7 75%,#f8f1ff)}
+.lakshya-dashboard .streak-value{color:#bd5a8c}
+.lakshya-dashboard .revision-card{border-color:#e8e0fb;background:linear-gradient(105deg,#fff,#f7f1ff 58%,#f0f5ff)}
+.lakshya-dashboard .revision-icon{color:#8155d9;background:linear-gradient(135deg,#f0dfff,#e2e6ff)}
+.lakshya-dashboard .home-subject-card{border-color:#e5e4f4;background:linear-gradient(145deg,#fff,#f9f8ff);box-shadow:0 10px 25px #5d55a012}
+.lakshya-dashboard .home-subject-card:nth-child(1) .subject-badge{background:linear-gradient(135deg,#dceaff,#c5d4ff);color:#3f5ed4}
+.lakshya-dashboard .home-subject-card:nth-child(2) .subject-badge{background:linear-gradient(135deg,#f3ddff,#e2d0ff);color:#8c4fd2}
+.lakshya-dashboard .home-subject-card:nth-child(3) .subject-badge{background:linear-gradient(135deg,#d7f8e9,#baf0dd);color:#188c69}
+.lakshya-dashboard .home-focus-strip{background:linear-gradient(112deg,#202e65,#5145a9 58%,#8b4ca9);box-shadow:0 16px 34px #44358b30}
+.lakshya-dashboard .home-primary-button{background:linear-gradient(100deg,#fff,#f4eaff);color:#5b4bc8}
+.lakshya-dashboard .home-signin{border-color:#e5e3f5;background:linear-gradient(100deg,#fff,#f7f3ff)}
+@media(max-width:520px){.lakshya-dashboard{padding-top:15px}.lakshya-dashboard .home-welcome h1{letter-spacing:-.8px}.lakshya-dashboard .quick-study-grid,.lakshya-dashboard .home-subject-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lakshya-dashboard .quick-study-card{min-height:120px;padding:13px}.lakshya-dashboard .home-subject-card{padding:13px}.lakshya-dashboard .home-section{margin-top:22px}.lakshya-dashboard .ai-study-card{border-radius:22px}}
