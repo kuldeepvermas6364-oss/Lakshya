@@ -119,5 +119,99 @@ export default function CommunityPage(){
  .icon-action{width:32px;height:32px}
  .post-social-proof b{font-size:11px}
 }
+
+/* Feed-first layout pass: clear hierarchy, less dashboard clutter, better Android sizing */
+.community-page{padding:22px clamp(12px,3vw,32px) 120px;background:radial-gradient(ellipse at 5% 0%,#e8edff 0,transparent 35%),radial-gradient(ellipse at 95% 4%,#f8e9ff 0,transparent 31%),linear-gradient(180deg,#f8f9ff,#fbfaff 45%,#f7fffc)}
+.community-header{max-width:1120px;margin:0 auto 16px;min-height:150px;padding:22px 24px;border-radius:24px;display:flex;align-items:center;gap:18px}
+.community-header>div:nth-child(2){flex:1;min-width:0}
+.community-header h1{font-size:clamp(27px,3.2vw,40px);letter-spacing:-.045em;line-height:1.04;margin:0 0 9px}
+.community-header>div:nth-child(2)>p{margin-bottom:7px}
+.community-header span{font-size:12px;color:#66728a}
+.story-rail{max-width:1120px;margin:0 auto 14px;border-radius:18px;background:#fff;border-color:#ebe9f8;box-shadow:0 5px 20px #333a6108}
+.community-quick{max-width:1120px;margin:0 auto 14px;gap:8px}
+.quick-card{padding:10px 11px;border-radius:14px;box-shadow:none}
+.quick-card:hover{transform:translateY(-1px);box-shadow:0 8px 18px #52617d0d}
+.quick-icon{width:30px;height:30px;border-radius:10px}
+.quick-card b{font-size:11px}
+.quick-card small{font-size:9px}
+.layout{max-width:1120px;margin:0 auto;grid-template-columns:minmax(0,650px) minmax(230px,280px);justify-content:center;gap:20px;align-items:start}
+.layout>section{min-width:0}
+.composer{border-radius:18px;background:#fff;border:1px solid #e8e8f2;box-shadow:0 5px 20px #303c6008;backdrop-filter:none;padding:14px}
+.composer textarea{min-height:65px;border:0;background:#f7f8fc;box-shadow:none;resize:vertical}
+.composer textarea:focus{background:#fff;box-shadow:0 0 0 3px #8174e91a}
+.media-upload .storage-drop{min-height:54px;padding:9px 12px;border-radius:12px}
+.media-upload .storage-icon{width:28px;height:28px}
+.composer-foot{padding-top:4px}
+.community-tools{margin-top:14px}
+.search-wrap{background:#fff;border-radius:13px;box-shadow:none;backdrop-filter:none}
+.topics{padding:10px 0}
+.topic{padding:8px 12px;font-size:10px}
+.feed-tabs{height:46px;margin-bottom:10px}
+.feed-tab{font-size:11px;padding:10px 11px}
+.post{background:#fff;border:1px solid #ececf4;border-radius:17px;padding:15px 16px;margin-bottom:12px;box-shadow:0 5px 20px #303c6008;backdrop-filter:none}
+.post:hover{transform:none;box-shadow:0 8px 25px #303c600e;border-color:#deddf0}
+.post-head{gap:10px}
+.post .avatar{flex:0 0 auto}
+.post .author b{font-size:12px;color:#263149}
+.post .author small{font-size:10px;color:#8b94a7}
+.post .follow{border:1px solid #dedbfb;background:#f6f3ff;color:#7050d4;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:800}
+.post .follow.following{background:#f4f5f8;border-color:#e6e8ee;color:#727b8d}
+.post .tag{display:inline-flex;margin:8px 0 2px;padding:5px 9px;border-radius:7px;font-size:9px;font-weight:800}
+.post .post-text{font-size:13px;line-height:1.65;color:#3c465b;margin-top:5px}
+.post .media-grid{margin:8px -16px 0;width:calc(100% + 32px);max-width:calc(100% + 32px);overflow:hidden}
+.post .media-grid:has(.media-tile:only-child) .media-tile{aspect-ratio:4/4.2}
+.post .insta-actions{margin-top:8px}
+.post-social-proof{margin-top:0}
+.post-social-proof b{font-size:12px}
+.post-social-proof span{font-size:11px}
+.comments{margin-top:6px}
+.comment-box input{font-size:12px}
+.side-card{background:#fff;border:1px solid #e9e9f2;border-radius:17px;padding:16px;box-shadow:0 5px 20px #303c6008;backdrop-filter:none}
+.side-card p{font-size:9px;letter-spacing:.13em;color:#8c76d7}
+.side-card h2{font-size:17px}
+.notify-panel,.quick-panel{border-radius:16px;box-shadow:0 18px 50px #303c6020}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr) 235px;gap:12px}.community-header{padding:18px}.community-quick{gap:7px}.quick-card{gap:7px;padding:9px}.quick-card small{display:none}}
+@media(max-width:760px){
+ .community-page{padding:8px 9px 100px}
+ .community-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:16px;margin-bottom:10px;border-radius:19px;min-height:0}
+ .community-header .back{grid-column:1 / -1;width:max-content}
+ .community-header>div:nth-child(2){grid-column:1 / -1;grid-row:2}
+ .header-actions{grid-column:2;grid-row:3;align-self:center}
+ .community-header h1{font-size:30px}
+ .community-header span{font-size:12px;line-height:1.5}
+ .story-rail{padding:12px 10px;gap:12px;margin-bottom:10px;border-radius:16px}
+ .story-item{flex-basis:58px}
+ .story-ring{width:53px;height:53px}
+ .story-item small{max-width:58px;font-size:9px}
+ .community-quick{display:flex;overflow-x:auto;gap:7px;margin-bottom:10px;padding-bottom:3px}
+ .quick-card{flex:0 0 auto;min-width:0;width:auto;gap:7px;padding:8px 10px;border-radius:12px}
+ .quick-card b{font-size:10px}
+ .quick-card small{display:none}
+ .quick-icon{width:27px;height:27px}
+ .layout{grid-template-columns:minmax(0,1fr);gap:10px}
+ .layout aside{display:none}
+ .composer{padding:11px;border-radius:16px;gap:8px}
+ .composer textarea{min-height:58px;padding:11px;font-size:12px}
+ .media-upload .storage-drop{min-height:46px;padding:7px 9px}
+ .media-upload .storage-drop strong{font-size:11px}
+ .media-upload .storage-drop small{font-size:9px}
+ .composer-foot{padding-left:0;grid-column:1 / -1}
+ .composer-foot span{font-size:9px;max-width:70%}
+ .composer-foot button{padding:9px 15px}
+ .community-tools{margin-top:10px}
+ .topics{gap:6px;padding:8px 0}
+ .topic{padding:7px 10px;font-size:9px}
+ .feed-tabs{height:43px;gap:4px;margin-bottom:9px}
+ .feed-tab{font-size:10px;padding:9px 8px;white-space:nowrap}
+ .post{padding:12px 12px 10px;border-radius:15px;margin-bottom:9px}
+ .post .media-grid{margin:7px -12px 0;width:calc(100% + 24px);max-width:calc(100% + 24px)}
+ .post .post-text{font-size:12px;line-height:1.65}
+ .post .tag{margin-top:7px}
+ .action-cluster{gap:8px}
+ .icon-action{width:32px;height:32px}
+ .post-social-proof b{font-size:11px}
+ .post-social-proof span{font-size:10px}
+}
+@media(min-width:761px) and (max-width:1050px){.community-page{padding-left:16px;padding-right:16px}.layout{grid-template-columns:minmax(0,1fr) 240px}}
 `}</style></main>
 }
