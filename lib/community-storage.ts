@@ -22,8 +22,16 @@ export async function createCommunity(ownerId: string, input: Omit<CommunityReco
   const id = community.key!;
   const now = Date.now();
   await update(ref(realtimeDb), {
-    [`communities/${id}`]: { ...input, name: input.name.trim(), ownerId, memberCount: 1, createdAt: now },
-    [`communities/${id}/members/${ownerId}`]: { role: "owner", joinedAt: now },
+    ["communities/" + id]: {
+      ...input,
+      name: input.name.trim(),
+      ownerId,
+      memberCount: 1,
+      createdAt: now,
+      members: {
+        [ownerId]: { role: "owner", joinedAt: now },
+      },
+    },
   });
   return id;
 }
@@ -41,32 +49,32 @@ export async function listCommunities(category = "All", maxResults = 30) {
 
 export async function joinCommunity(communityId: string, userId: string) {
   if (!communityId || !userId) throw new Error("Invalid community membership");
-  const member = ref(realtimeDb, `communities/${communityId}/members/${userId}`);
+  const member = ref(realtimeDb, "communities/" + communityId + "/members/" + userId);
   if ((await get(member)).exists()) return;
-  const community = await get(ref(realtimeDb, `communities/${communityId}`));
+  const community = await get(ref(realtimeDb, "communities/" + communityId));
   if (!community.exists()) throw new Error("Community not found");
   const current = Number(community.val()?.memberCount ?? 0);
   const now = Date.now();
   await update(ref(realtimeDb), {
-    [`communities/${communityId}/members/${userId}`]: { role: "member", joinedAt: now },
-    [`communities/${communityId}/memberCount`]: current + 1,
+    ["communities/" + communityId + "/members/" + userId]: { role: "member", joinedAt: now },
+    ["communities/" + communityId + "/memberCount"]: current + 1,
   });
 }
 
 export async function leaveCommunity(communityId: string, userId: string) {
-  const member = ref(realtimeDb, `communities/${communityId}/members/${userId}`);
+  const member = ref(realtimeDb, "communities/" + communityId + "/members/" + userId);
   if (!(await get(member)).exists()) return;
-  const community = await get(ref(realtimeDb, `communities/${communityId}`));
+  const community = await get(ref(realtimeDb, "communities/" + communityId));
   if (!community.exists()) return;
   const current = Number(community.val()?.memberCount ?? 0);
   await update(ref(realtimeDb), {
-    [`communities/${communityId}/members/${userId}`]: null,
-    [`communities/${communityId}/memberCount`]: Math.max(0, current - 1),
+    ["communities/" + communityId + "/members/" + userId]: null,
+    ["communities/" + communityId + "/memberCount"]: Math.max(0, current - 1),
   });
 }
 
 export function subscribeToCommunity(communityId: string, callback: (value: CommunityRecord | null) => void) {
-  return onValue(ref(realtimeDb, `communities/${communityId}`), (snap) => {
+  return onValue(ref(realtimeDb, "communities/" + communityId), (snap) => {
     callback(snap.exists() ? ({ id: communityId, ...snap.val() } as CommunityRecord) : null);
   });
 }
