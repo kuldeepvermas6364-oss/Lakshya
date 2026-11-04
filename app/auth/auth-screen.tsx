@@ -135,7 +135,7 @@ export default function AuthScreen({ mode }: { mode: AuthMode }) {
 
     <section className="auth-card-premium" aria-labelledby="auth-title">
       <div className="auth-card-top"><span>{mode === "login" ? "WELCOME BACK" : mode === "register" ? "GET STARTED" : "ACCOUNT RECOVERY"}</span><div className="secure-badge"><LakshyaIcon name="lock" size={13}/> Secure</div></div>
-      <h2 id="auth-title">{title}</h2><p className="auth-subtitle">{subtitle}</p>
+      <h2 id="auth-title">{title}</h2><p className="auth-subtitle">{subtitle}</p>{mode === "login" && nextPath === "/community" && <p className="auth-subtitle" role="status">Community discussions and study spaces are available after sign-in. You’ll return to Community when you’re done.</p>}
       <form onSubmit={handleSubmit} className="auth-form-premium">
         {mode === "register" && <label><span>Name</span><input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" autoComplete="name" required minLength={3} maxLength={30} /></label>}
         <label><span>Email</span><input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="you@example.com" autoComplete="email" required maxLength={254} /></label>
