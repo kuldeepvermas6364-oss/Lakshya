@@ -13,6 +13,7 @@ export type CommunityRecord = {
   bannerUrl?: string;
   ownerId: string;
   memberCount: number;
+  isMember?: boolean;
   createdAt?: number;
 };
 
@@ -36,7 +37,7 @@ export async function createCommunity(ownerId: string, input: Omit<CommunityReco
   return id;
 }
 
-export async function listCommunities(category = "All", maxResults = 30) {
+export async function listCommunities(category = "All", maxResults = 30, userId?: string) {
   const snap = await get(ref(realtimeDb, "communities"));
   if (!snap.exists()) return [] as CommunityRecord[];
   const data = snap.val() as Record<string, Record<string, unknown>>;
@@ -48,7 +49,12 @@ export async function listCommunities(category = "All", maxResults = 30) {
       const memberCount = hasMemberMap
         ? Object.keys(members as Record<string, unknown>).length
         : Number.isFinite(storedCount) ? storedCount : 0;
-      return { id, ...item, memberCount } as CommunityRecord;
+      const isMember = Boolean(
+        userId &&
+        hasMemberMap &&
+        Object.prototype.hasOwnProperty.call(members, userId)
+      );
+      return { id, ...item, memberCount, isMember } as CommunityRecord;
     })
     .filter((item) => category === "All" || item.category === category)
     .sort((a, b) => Number(b.createdAt ?? 0) - Number(a.createdAt ?? 0))
