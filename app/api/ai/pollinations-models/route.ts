@@ -5,6 +5,9 @@ export const dynamic = "force-dynamic";
 
 const POLLINATIONS_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
 const MODEL_CACHE_TTL_MS = 60_000;
+const MODEL_CACHE_HEADERS = {
+  "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=300",
+};
 const KEY =
   process.env.POLLINATIONS_SECRET_KEY?.trim() ||
   process.env.POLLINATIONS_API_KEY?.trim();
@@ -75,7 +78,10 @@ export async function GET() {
 
   const now = Date.now();
   if (cachedModels && cachedModels.expiresAt > now) {
-    return NextResponse.json({ models: cachedModels.models });
+    return NextResponse.json(
+      { models: cachedModels.models },
+      { headers: MODEL_CACHE_HEADERS },
+    );
   }
 
   const request = pendingModelsRequest ?? loadModels();
@@ -87,7 +93,10 @@ export async function GET() {
       models,
       expiresAt: Date.now() + MODEL_CACHE_TTL_MS,
     };
-    return NextResponse.json({ models });
+    return NextResponse.json(
+      { models },
+      { headers: MODEL_CACHE_HEADERS },
+    );
   } catch (error) {
     if (error instanceof UpstreamModelListError) {
       return NextResponse.json(
