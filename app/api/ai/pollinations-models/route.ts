@@ -5,8 +5,13 @@ export const dynamic = "force-dynamic";
 
 const POLLINATIONS_MODELS_ENDPOINT = "https://gen.pollinations.ai/v1/models";
 const MODEL_CACHE_TTL_MS = 60_000;
+const MODEL_CACHE_STALE_TTL_MS = 10 * 60_000;
 const MODEL_CACHE_HEADERS = {
   "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=300",
+};
+const STALE_MODEL_CACHE_HEADERS = {
+  "Cache-Control": "public, max-age=0, s-maxage=15, stale-while-revalidate=60",
+  "X-Model-Cache": "stale",
 };
 const KEY =
   process.env.POLLINATIONS_SECRET_KEY?.trim() ||
@@ -20,7 +25,7 @@ type PollinationsModel = {
 
 class UpstreamModelListError extends Error {}
 
-let cachedModels: { models: PollinationsModel[]; expiresAt: number } | null = null;
+let cachedModels: { models: PollinationsModel[]; expiresAt: number; staleUntil: number } | null = null;
 let pendingModelsRequest: Promise<PollinationsModel[]> | null = null;
 
 function inferType(id: string, rawType?: unknown): "text" | "image" {
@@ -89,15 +94,25 @@ export async function GET() {
 
   try {
     const models = await request;
+    const cachedAt = Date.now();
     cachedModels = {
       models,
-      expiresAt: Date.now() + MODEL_CACHE_TTL_MS,
+      expiresAt: cachedAt + MODEL_CACHE_TTL_MS,
+      staleUntil: cachedAt + MODEL_CACHE_STALE_TTL_MS,
     };
     return NextResponse.json(
       { models },
       { headers: MODEL_CACHE_HEADERS },
     );
   } catch (error) {
+    if (cachedModels && cachedModels.staleUntil > Date.now()) {
+      console.warn("Pollinations model list refresh failed; serving stale catalogue.");
+      return NextResponse.json(
+        { models: cachedModels.models },
+        { headers: STALE_MODEL_CACHE_HEADERS },
+      );
+    }
+
     if (error instanceof UpstreamModelListError) {
       return NextResponse.json(
         { error: error.message },
