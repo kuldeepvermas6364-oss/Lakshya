@@ -51,26 +51,41 @@ async function loadModels(): Promise<PollinationsModel[]> {
   }
 
   const payload = JSON.parse(raw) as {
-    data?: Array<Record<string, unknown>>;
+    data?: unknown;
   };
 
-  return (Array.isArray(payload.data) ? payload.data : [])
+  if (!Array.isArray(payload.data)) {
+    throw new UpstreamModelListError(
+      "Pollinations model list returned an invalid payload.",
+    );
+  }
+
+  const models = payload.data
     .map((item) => {
-      const id = typeof item.id === "string" ? item.id : "";
+      const model = item as Record<string, unknown>;
+      const id = typeof model.id === "string" ? model.id : "";
       const name =
-        typeof item.name === "string"
-          ? item.name
-          : typeof item.title === "string"
-            ? item.title
+        typeof model.name === "string"
+          ? model.name
+          : typeof model.title === "string"
+            ? model.title
             : id;
       return {
         id,
         name: name || id,
-        type: inferType(id, item.type),
+        type: inferType(id, model.type),
       };
     })
     .filter((item) => item.id)
     .filter((item, index, array) => array.findIndex((x) => x.id === item.id) === index);
+
+  if (models.length === 0) {
+    throw new UpstreamModelListError(
+      "Pollinations model list returned no usable models.",
+    );
+  }
+
+  return models;
 }
 
 export async function GET() {
