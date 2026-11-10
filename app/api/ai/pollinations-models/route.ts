@@ -30,6 +30,8 @@ let pendingModelsRequest: Promise<PollinationsModel[]> | null = null;
 
 function inferType(id: string, rawType?: unknown): "text" | "image" {
   if (rawType === "image") return "image";
+  if (rawType === "text") return "text";
+
   const value = id.toLowerCase();
   return /image|flux|ideogram|grok-imagine|nano-banana|seedream|sdxl|leonardo|kling|lucid|photon|pruna|recraft|dreamshaper|lightning-image|qwen-image|sana|bonsai/.test(value)
     ? "image"
@@ -50,34 +52,46 @@ async function loadModels(): Promise<PollinationsModel[]> {
     );
   }
 
-  const payload = JSON.parse(raw) as {
-    data?: unknown;
-  };
-
-  if (!Array.isArray(payload.data)) {
+  const payload: unknown = JSON.parse(raw);
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("data" in payload) ||
+    !Array.isArray(payload.data)
+  ) {
     throw new UpstreamModelListError(
       "Pollinations model list returned an invalid payload.",
     );
   }
 
-  const models = payload.data
-    .map((item) => {
-      const model = item as Record<string, unknown>;
-      const id = typeof model.id === "string" ? model.id : "";
-      const name =
-        typeof model.name === "string"
-          ? model.name
-          : typeof model.title === "string"
-            ? model.title
-            : id;
-      return {
-        id,
-        name: name || id,
-        type: inferType(id, model.type),
-      };
-    })
-    .filter((item) => item.id)
-    .filter((item, index, array) => array.findIndex((x) => x.id === item.id) === index);
+  const seenIds = new Set<string>();
+  const models: PollinationsModel[] = [];
+
+  for (const item of payload.data) {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) {
+      continue;
+    }
+
+    const model = item as Record<string, unknown>;
+    const id = typeof model.id === "string" ? model.id.trim() : "";
+    if (!id || seenIds.has(id)) continue;
+
+    seenIds.add(id);
+
+    const rawName =
+      typeof model.name === "string"
+        ? model.name
+        : typeof model.title === "string"
+          ? model.title
+          : "";
+    const name = rawName.trim() || id;
+
+    models.push({
+      id,
+      name,
+      type: inferType(id, model.type),
+    });
+  }
 
   if (models.length === 0) {
     throw new UpstreamModelListError(
