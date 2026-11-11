@@ -4,6 +4,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+const VACANCY_CACHE_HEADERS = {
+  "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=900",
+};
+
 const PROMPT = [
   "You are Lakshya daily vacancy researcher for India.",
   "Use the supplied fresh web sources to identify CURRENT, ACTIVE government and public-sector recruitment opportunities.",
@@ -94,12 +98,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    return Response.json({
-      ok: true,
-      mode: "live",
-      ...(await refresh()),
-      note: "Fresh web research. Verify every application on the official notification.",
-    });
+    const refreshed = await refresh();
+    return Response.json(
+      {
+        ok: true,
+        mode: "live",
+        ...refreshed,
+        note: "Fresh web research. Verify every application on the official notification.",
+      },
+      { headers: VACANCY_CACHE_HEADERS },
+    );
   } catch (error) {
     console.error("Career vacancy refresh failed", error);
     return Response.json(
