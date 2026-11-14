@@ -162,3 +162,7 @@ body:has(.lakshya-dashboard):before{background:radial-gradient(ellipse at 0% 0%,
 .lakshya-dashboard .home-primary-button{background:linear-gradient(100deg,#fff,#f4eaff);color:#5b4bc8}
 .lakshya-dashboard .home-signin{border-color:#e5e3f5;background:linear-gradient(100deg,#fff,#f7f3ff)}
 @media(max-width:520px){.lakshya-dashboard{padding-top:15px}.lakshya-dashboard .home-welcome h1{letter-spacing:-.8px}.lakshya-dashboard .quick-study-grid,.lakshya-dashboard .home-subject-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lakshya-dashboard .quick-study-card{min-height:120px;padding:13px}.lakshya-dashboard .home-subject-card{padding:13px}.lakshya-dashboard .home-section{margin-top:22px}.lakshya-dashboard .ai-study-card{border-radius:22px}}
+
+/* Global keyboard focus visibility */
+:where(a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])):focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+@media(forced-colors:active){:where(a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])):focus-visible{outline-color:Highlight}}
