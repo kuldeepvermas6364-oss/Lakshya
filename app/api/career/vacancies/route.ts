@@ -51,9 +51,9 @@ function parseExplicitDeadline(value: unknown): string | null {
   let month = 0;
   let day = 0;
 
-  const iso = text.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
-  const numeric = text.match(/^(\\d{1,2})[/. -](\\d{1,2})[/. -](\\d{4})$/);
-  const named = text.match(/^(\\d{1,2})\\s+([A-Za-z]{3,9})\\s+(\\d{4})$/);
+  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const numeric = text.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{4})$/);
+  const named = text.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/);
   const monthNumbers: Record<string, number> = {
     jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
     jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
