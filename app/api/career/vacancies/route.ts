@@ -41,6 +41,54 @@ function safeUrl(value: unknown): string {
   return typeof value === "string" && /^https?:\/\//i.test(value) ? value : "";
 }
 
+
+// Parse only unambiguous, complete date formats. Unknown phrases and date ranges
+// remain visible for manual verification instead of being guessed.
+function parseExplicitDeadline(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  let year = 0;
+  let month = 0;
+  let day = 0;
+
+  const iso = text.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  const numeric = text.match(/^(\\d{1,2})[/. -](\\d{1,2})[/. -](\\d{4})$/);
+  const named = text.match(/^(\\d{1,2})\\s+([A-Za-z]{3,9})\\s+(\\d{4})$/);
+  const monthNumbers: Record<string, number> = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  };
+
+  if (iso) {
+    year = Number(iso[1]);
+    month = Number(iso[2]);
+    day = Number(iso[3]);
+  } else if (numeric) {
+    day = Number(numeric[1]);
+    month = Number(numeric[2]);
+    year = Number(numeric[3]);
+  } else if (named) {
+    day = Number(named[1]);
+    month = monthNumbers[named[2].slice(0, 3).toLowerCase()] || 0;
+    year = Number(named[3]);
+  } else {
+    return null;
+  }
+
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    !year ||
+    !month ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
 async function refresh() {
   const sources = await searchWeb("India current government recruitment vacancies 10th 12th diploma graduate official notification 2026");
   const sourceContext = sources.map((source, index) =>
@@ -53,8 +101,16 @@ async function refresh() {
   );
 
   const verifiedAt = new Date().toISOString();
+  const todayInIndia = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
   const seen = new Set<string>();
   const vacancies = parseJson(response).map((item: any, index: number) => {
+    const deadlineDate = parseExplicitDeadline(item && item.deadline);
+    if (deadlineDate && deadlineDate < todayInIndia) return null;
     const official = safeUrl(item && item.official);
     const notification = safeUrl(item && item.notification) || official;
     if (!item || !item.title || !official) return null;
