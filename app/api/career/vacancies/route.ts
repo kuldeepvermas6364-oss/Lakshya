@@ -17,7 +17,6 @@ const PROMPT = [
   "Exclude passed deadlines. Never invent dates, salary, eligibility, vacancy counts or URLs.",
   "Use exact official URLs from the supplied sources. If unknown, say See official notice.",
   "Prefer 10th, 12th, diploma and graduate opportunities.",
-  "Today is " + new Date().toISOString().slice(0, 10),
 ].join("\n");
 
 function parseJson(value: string): any[] {
@@ -89,24 +88,29 @@ function parseExplicitDeadline(value: unknown): string | null {
   return parsed.toISOString().slice(0, 10);
 }
 
+function getIndiaDate(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 async function refresh() {
+  const todayInIndia = getIndiaDate();
+  const prompt = PROMPT + "\nToday in India is " + todayInIndia + ". Use this as the current date when evaluating recruitment deadlines.";
   const sources = await searchWeb("India current government recruitment vacancies 10th 12th diploma graduate official notification 2026");
   const sourceContext = sources.map((source, index) =>
     "SOURCE " + (index + 1) + "\nTitle: " + source.title + "\nURL: " + source.url + "\nExcerpt: " + (source.content || "")
   ).join("\n\n");
 
   const response = await generateGeminiContent(
-    PROMPT + "\n\nFRESH WEB SOURCES:\n" +
+    prompt + "\n\nFRESH WEB SOURCES:\n" +
     (sourceContext || "No external search source was available. Return an empty array rather than inventing vacancies.")
   );
 
   const verifiedAt = new Date().toISOString();
-  const todayInIndia = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
   const seen = new Set<string>();
   const vacancies = parseJson(response).map((item: any, index: number) => {
     const deadlineDate = parseExplicitDeadline(item && item.deadline);
