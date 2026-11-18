@@ -18,3 +18,7 @@
   .auth-form-premium input{min-height:48px}
   .auth-password-toggle{top:2px;height:calc(100% - 4px);min-height:44px}
 }
+
+
+/* Keep the primary sign-in alternatives in view on small phones. */
+@media(max-width:520px){.auth-pills{display:none}}
