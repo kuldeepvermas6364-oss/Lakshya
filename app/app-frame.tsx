@@ -107,7 +107,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
 
         <nav aria-label="Main navigation">
           {nav.map(([icon, label, href]) => (
-            <Link key={href} href={href} className={active(href) ? "frame-nav active" : "frame-nav"}>
+            <Link key={href} href={href} className={active(href) ? "frame-nav active" : "frame-nav"} aria-current={active(href) ? "page" : undefined}>
               <b><LakshyaIcon name={icon} size={19} /></b>
               <span>{label}</span>
             </Link>
@@ -178,7 +178,7 @@ export default function AppFrame({ children }: { children: ReactNode }) {
           ["community", "Community", "/community"],
           ["music", "Music", "/music"],
         ] as const).map(([type, label, href]) => (
-          <Link key={href} href={href} className={active(href) ? "active" : ""}>
+          <Link key={href} href={href} className={active(href) ? "active" : ""} aria-current={active(href) ? "page" : undefined}>
             <b><PremiumNavIcon type={type} /></b>
             <small>{label}</small>
           </Link>
