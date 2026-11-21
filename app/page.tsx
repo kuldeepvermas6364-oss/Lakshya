@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DashboardStats = {
   dailyGoalMinutes?: number;
@@ -38,6 +38,8 @@ export default function Home() {
   const [questions, setQuestions] = useState(0);
   const [seconds, setSeconds] = useState(1500);
   const [running, setRunning] = useState(false);
+  const [deadlineAt, setDeadlineAt] = useState<number | null>(null);
+  const completionHandled = useRef(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -89,28 +91,41 @@ export default function Home() {
   }, [uid]);
 
   useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => {
-      setSeconds((value) => {
-        if (value <= 1) {
-          setRunning(false);
-          if (uid) {
-            import("@/lib/study-storage")
-              .then(({ saveStudySession }) => saveStudySession(uid, "focus", 25))
-              .then(() => import("@/lib/dashboard-data"))
-              .then(({ getStudyTotals }) => getStudyTotals(uid, new Date(new Date().setHours(0, 0, 0, 0))))
-              .then(setStudySeconds)
-              .catch((error) => setMessage(error.message));
-          } else {
-            setMessage("Focus session completed. Sign in to save this session to your study history.");
-          }
-          return 1500;
-        }
-        return value - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [running, uid]);
+    if (!running || deadlineAt === null) return;
+
+    // Derive the countdown from an absolute deadline so background-tab timer
+    // throttling does not make a focus session run longer than intended.
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+      setSeconds(remaining);
+    };
+
+    updateRemaining();
+    const id = window.setInterval(updateRemaining, 250);
+    return () => window.clearInterval(id);
+  }, [running, deadlineAt]);
+
+  useEffect(() => {
+    if (!running || seconds !== 0 || completionHandled.current) return;
+
+    // Keep state updates pure: session persistence belongs in an effect,
+    // not inside the functional state updater used by the countdown.
+    completionHandled.current = true;
+    setRunning(false);
+    setDeadlineAt(null);
+    setSeconds(1500);
+
+    if (uid) {
+      import("@/lib/study-storage")
+        .then(({ saveStudySession }) => saveStudySession(uid, "focus", 25))
+        .then(() => import("@/lib/dashboard-data"))
+        .then(({ getStudyTotals }) => getStudyTotals(uid, new Date(new Date().setHours(0, 0, 0, 0))))
+        .then(setStudySeconds)
+        .catch((error) => setMessage(error.message));
+    } else {
+      setMessage("Focus session completed. Sign in to save this session to your study history.");
+    }
+  }, [running, seconds, uid]);
 
   const goalMinutes = Number(stats.dailyGoalMinutes) || 0;
   const goalProgress = goalMinutes ? Math.min(100, Math.round((studySeconds / 60 / goalMinutes) * 100)) : 0;
@@ -198,7 +213,19 @@ export default function Home() {
 
       <section className="home-focus-strip">
         <div><span className="home-eyebrow">FOCUS TIMER</span><h2>{running ? "You're in a focus session." : "Ready for a focused 25 minutes?"}</h2><p>{uid ? "Stay distraction-free and your completed session will be saved to your study history." : "Try a focus session without an account. Sign in later to save it to your study history."}</p></div>
-        <div className="home-timer-actions"><span role="timer" aria-label={`Time remaining ${m} minutes ${s} seconds`} aria-live="off">{m}:{s}</span><button className="home-primary-button" onClick={() => { setMessage(""); setRunning(!running); }} aria-label={running ? "Pause focus timer" : "Start 25-minute focus timer"} aria-pressed={running}>{running ? "Pause" : "Start focus"}</button></div>
+        <div className="home-timer-actions"><span role="timer" aria-label={`Time remaining ${m} minutes ${s} seconds`} aria-live="off">{m}:{s}</span><button className="home-primary-button" onClick={() => {
+            setMessage("");
+            if (running) {
+              const remaining = deadlineAt === null ? seconds : Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
+              setSeconds(remaining);
+              setDeadlineAt(null);
+              setRunning(false);
+            } else {
+              completionHandled.current = false;
+              setDeadlineAt(Date.now() + seconds * 1000);
+              setRunning(true);
+            }
+          }} aria-label={running ? "Pause focus timer" : "Start 25-minute focus timer"} aria-pressed={running}>{running ? "Pause" : "Start focus"}</button></div>
       </section>
 
       {message && <p className="muted center" role="status" aria-live="polite">{message}</p>}
