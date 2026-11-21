@@ -101,7 +101,7 @@ export default function Home() {
     };
 
     updateRemaining();
-    const id = window.setInterval(updateRemaining, 250);
+    const id = window.setInterval(updateRemaining, 1000);
     return () => window.clearInterval(id);
   }, [running, deadlineAt]);
 
@@ -218,8 +218,10 @@ export default function Home() {
             if (running) {
               const remaining = deadlineAt === null ? seconds : Math.max(0, Math.ceil((deadlineAt - Date.now()) / 1000));
               setSeconds(remaining);
-              setDeadlineAt(null);
-              setRunning(false);
+              if (remaining > 0) {
+                setDeadlineAt(null);
+                setRunning(false);
+              }
             } else {
               completionHandled.current = false;
               setDeadlineAt(Date.now() + seconds * 1000);
