@@ -4,8 +4,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const POLLINATIONS_IMAGE_ENDPOINT = "https://image.pollinations.ai/prompt";
-const POLLINATIONS_SECRET_KEY = process.env.POLLINATIONS_SECRET_KEY?.trim() || process.env.POLLINATIONS_API_KEY?.trim();
+const POLLINATIONS_IMAGE_ENDPOINT = "https://gen.pollinations.ai/image";
+const POLLINATIONS_SECRET_KEY =
+  process.env.POLLINATIONS_SECRET_KEY?.trim() ||
+  process.env.POLLINATIONS_API_KEY?.trim();
 
 export async function POST(request: Request) {
   try {
@@ -24,17 +26,25 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!POLLINATIONS_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Pollinations secret key is not configured." },
+        { status: 503 },
+      );
+    }
+
     const encodedPrompt = encodeURIComponent(prompt);
     const imageUrl =
       `${POLLINATIONS_IMAGE_ENDPOINT}/${encodedPrompt}?width=1024&height=1024&nologo=true${model ? `&model=${encodeURIComponent(model)}` : ""}`;
 
-    // Proxy the generated image through Lakshya so the browser does not depend
-    // on Pollinations' external image response/headers after generation.
+    // Keep the provider credential server-side; the browser only receives the
+    // generated image data returned by this Lakshya route.
     const imageResponse = await fetch(imageUrl, {
       method: "GET",
       cache: "no-store",
       headers: {
         Accept: "image/*",
+        Authorization: `Bearer ${POLLINATIONS_SECRET_KEY}`,
         "User-Agent": "Lakshya-AI/1.0",
       },
       signal: AbortSignal.timeout(55000),
@@ -42,10 +52,15 @@ export async function POST(request: Request) {
 
     if (!imageResponse.ok) {
       console.error("Pollinations image request failed:", imageResponse.status, imageResponse.statusText);
-      return NextResponse.json(
-        { error: `Pollinations AI could not generate the image right now (HTTP ${imageResponse.status}). Please try again.` },
-        { status: 502 },
-      );
+
+      const errorMessage =
+        imageResponse.status === 401
+          ? "Pollinations image service could not authenticate. Please contact the app administrator."
+          : imageResponse.status === 402
+            ? "Pollinations image service has no remaining generation budget. Please contact the app administrator."
+            : `Pollinations AI could not generate the image right now (HTTP ${imageResponse.status}). Please try again.`;
+
+      return NextResponse.json({ error: errorMessage }, { status: 502 });
     }
 
     const contentType = imageResponse.headers.get("content-type") || "image/png";
