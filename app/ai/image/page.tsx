@@ -7,6 +7,19 @@ import { LakshyaIcon } from "../../components/lakshya-icon";
 type SavedImage = { id: string; image: string; prompt: string; savedAt: string };
 type PollinationsImageModel = { id: string; name: string; type: "image" };
 
+function isSavedImage(value: unknown): value is SavedImage {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.id === "string" &&
+    item.id.length > 0 &&
+    typeof item.image === "string" &&
+    item.image.length > 0 &&
+    typeof item.prompt === "string" &&
+    typeof item.savedAt === "string"
+  );
+}
+
 const presets = [
   ["⚡ Physics Diagram", "Create a clean, accurate educational diagram for a Class 12 Physics concept. Use clear labels, simple shapes, textbook-style presentation."],
   ["🧠 Concept Map", "Create a student-friendly concept map for this topic. Organize the main idea, key formulas, relationships and examples clearly."],
@@ -30,7 +43,12 @@ export default function ImageAIPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SAVED_KEY);
-      if (raw) setSavedImages(JSON.parse(raw));
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSavedImages(parsed.filter(isSavedImage).slice(0, 12));
+        }
+      }
     } catch { /* ignore unavailable/corrupt local storage */ }
 
     const provider = new URLSearchParams(window.location.search).get("provider");
@@ -58,16 +76,23 @@ export default function ImageAIPage() {
     })();
   }, []);
 
-  function persistSaved(next: SavedImage[]) {
-    setSavedImages(next);
-    try { localStorage.setItem(SAVED_KEY, JSON.stringify(next)); } catch { setError("Could not save this image on this device. Try Download instead."); }
+  function persistSaved(next: SavedImage[]): boolean {
+    try {
+      localStorage.setItem(SAVED_KEY, JSON.stringify(next));
+      setSavedImages(next);
+      setError("");
+      return true;
+    } catch {
+      setError("This device could not store the image. Download it to keep a copy, then free browser storage and try again.");
+      return false;
+    }
   }
 
   function saveImage() {
     if (!image) return;
     const item: SavedImage = { id: `${Date.now()}`, image, prompt: prompt.trim() || "Lakshya study image", savedAt: new Date().toISOString() };
     const next = [item, ...savedImages.filter((x) => x.image !== image)].slice(0, 12);
-    persistSaved(next);
+    if (!persistSaved(next)) return;
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   }
