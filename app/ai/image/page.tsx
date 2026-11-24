@@ -125,9 +125,20 @@ export default function ImageAIPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: value, model: imageProvider === "pollinations" ? pollinationsModel : undefined }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Image generation failed.");
-      setImage(data.image || "");
+      const data = await response.json().catch(() => null) as { image?: unknown; error?: unknown } | null;
+      if (!response.ok) {
+        const message =
+          typeof data?.error === "string" && data.error.trim()
+            ? data.error
+            : `Image generation failed (HTTP ${response.status}). Please try again.`;
+        throw new Error(message);
+      }
+
+      const imageSource = typeof data?.image === "string" ? data.image.trim() : "";
+      if (!imageSource) {
+        throw new Error("The image service responded without an image. Please try again or choose another provider.");
+      }
+      setImage(imageSource);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Image generation is temporarily unavailable.");
     } finally {
@@ -231,7 +242,14 @@ export default function ImageAIPage() {
         ) : image ? (
           <div className="result-content">
             <div className="result-top"><div><span className="section-eyebrow">GENERATED IMAGE</span><h2>Your study visual is ready</h2></div><span className="ready-pill">● Ready</span></div>
-            <div className="image-frame"><img src={image} alt="AI generated study visual" /></div>
+            <div className="image-frame"><img
+              src={image}
+              alt="AI generated study visual"
+              onError={() => {
+                setImage("");
+                setError("The image service returned an image that could not be loaded. Please regenerate or choose another provider.");
+              }}
+            /></div>
             <div className="result-actions">
               <a className="result-btn result-primary" href={image} download="lakshya-study-image.png"><LakshyaIcon name="download" size={14}/> Download</a>
               <button className={`result-btn ${saved ? "saved-btn" : ""}`} type="button" onClick={saveImage}>{saved ? "✓ Saved to Lakshya" : <><LakshyaIcon name="save" size={14}/> Save to Lakshya</>}</button>
