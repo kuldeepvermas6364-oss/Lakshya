@@ -48,14 +48,7 @@ export default function CareerPage(){
  const [refreshing,setRefreshing]=useState(true);
  const [feedStatus,setFeedStatus]=useState<FeedStatus>("loading");
  const [refreshedAt,setRefreshedAt]=useState<string|null>(null);
- useEffect(() => {
-  if (!selected) return;
-  const previousFocus = openerRef.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-  return () => {
-   if (previousFocus?.isConnected) previousFocus.focus();
-   if (openerRef.current === previousFocus) openerRef.current = null;
-  };
- }, [selected]);
+
  useEffect(() => {
   let active = true;
   (async () => {
@@ -89,6 +82,12 @@ export default function CareerPage(){
  const visible=useMemo(()=>{const q=query.toLowerCase().trim();return allVacancies.filter(v=>(filter==="All"||v.level.includes(filter)||v.sector===filter)&&(!q||Object.values(v).join(" ").toLowerCase().includes(q)))},[allVacancies,filter,query]);
  const refreshTimeLabel=refreshedAt?new Date(refreshedAt).toLocaleString():"";
  const toggle=(id:string)=>{setSaved(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])};
+ const closeModal = () => {
+  const opener = openerRef.current;
+  if (opener?.isConnected) opener.focus();
+  openerRef.current = null;
+  setSelected(null);
+ };
  return <main className="page career-page">
   <style>{`
    .career-hero{display:flex;justify-content:space-between;gap:25px;padding:30px;border:1px solid rgba(255,255,255,.09);border-radius:26px;background:radial-gradient(circle at 85% 15%,rgba(34,211,238,.15),transparent 30%),linear-gradient(145deg,rgba(29,23,58,.96),rgba(10,10,27,.97));box-shadow:0 18px 55px rgba(0,0,0,.28)}
@@ -109,14 +108,14 @@ export default function CareerPage(){
   {!refreshing&&feedStatus==="fallback"&&<div className="career-feed-fallback" role="status" aria-live="polite"><strong>Live vacancy refresh is temporarily unavailable.</strong><p>The official recruitment source directory is still shown below. Confirm current openings and deadlines on each official notice.</p></div>}
   <section className="career-grid">{visible.map(v=><article className="career-card" key={v.id}><div className="career-card-top"><span className="career-status">{v.status}</span><button className={saved.includes(v.id)?"career-save saved":"career-save"} onClick={()=>toggle(v.id)} aria-label="Save vacancy"><LakshyaIcon name="save" size={16}/></button></div><h3>{v.title}</h3><p className="career-org">{v.organization}</p><p>{v.description}</p><div className="career-meta"><span><LakshyaIcon name="graduation" size={13}/> {v.level}</span><span><LakshyaIcon name="location" size={13}/> {v.location}</span><span><LakshyaIcon name="clock" size={13}/> {v.deadline}</span></div><div className="career-actions"><button onClick={(event)=>{openerRef.current=event.currentTarget;setSelected(v)}}>Full update</button><a href={v.notification} target="_blank" rel="noreferrer">Official notice <LakshyaIcon name="external" size={13}/></a></div></article>)}</section>
   <section className="career-next"><span className="section-eyebrow">NEXT LAYER</span><h2>Personal vacancy alerts</h2><p>Save qualification and preferred areas so future updates can be filtered for you.</p><div className="career-next-list"><span>01<b>Qualification</b><small>10th · 12th · Diploma · Graduate</small></span><span>02<b>Preferred area</b><small>Central · State · Internship</small></span><span>03<b>Deadline alerts</b><small>New · Updated · Closing soon</small></span></div></section>
-  {selected&&<div className="career-modal-bg" onMouseDown={()=>setSelected(null)}><div tabIndex={-1} className="career-modal" role="dialog" aria-modal="true" aria-labelledby="career-modal-title" onMouseDown={e=>e.stopPropagation()} onKeyDown={event=>{
-   if(event.key==="Escape"){event.preventDefault();event.stopPropagation();setSelected(null);return;}
+  {selected&&<div className="career-modal-bg" onMouseDown={closeModal}><div tabIndex={-1} className="career-modal" role="dialog" aria-modal="true" aria-labelledby="career-modal-title" onMouseDown={e=>e.stopPropagation()} onKeyDown={event=>{
+   if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeModal();return;}
    if(event.key!=="Tab")return;
    const items=Array.from(event.currentTarget.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
    if(items.length===0){event.preventDefault();return;}
    const first=items[0],last=items[items.length-1];
    if(event.shiftKey&&(document.activeElement===first||document.activeElement===event.currentTarget)){event.preventDefault();last.focus();}
    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
-  }}><button autoFocus className="career-close" onClick={()=>setSelected(null)} aria-label="Close"><LakshyaIcon name="close" size={18}/></button><span className="career-status">{selected.status}</span><h2 id="career-modal-title">{selected.title}</h2><p className="career-org">{selected.organization} · {selected.location}</p><div className="career-detail"><span><small>Qualification</small><b>{selected.level}</b></span><span><small>Deadline</small><b>{selected.deadline}</b></span><span><small>Pay</small><b>{selected.pay}</b></span><span><small>Sector</small><b>{selected.sector}</b></span></div><p>{selected.description}</p><div className="career-modal-actions"><a href={selected.notification} target="_blank" rel="noreferrer">View official notice <LakshyaIcon name="external" size={13}/></a><a href={selected.official} target="_blank" rel="noreferrer">Official website <LakshyaIcon name="external" size={13}/></a></div></div></div>}
+  }}><button autoFocus className="career-close" onClick={closeModal} aria-label="Close"><LakshyaIcon name="close" size={18}/></button><span className="career-status">{selected.status}</span><h2 id="career-modal-title">{selected.title}</h2><p className="career-org">{selected.organization} · {selected.location}</p><div className="career-detail"><span><small>Qualification</small><b>{selected.level}</b></span><span><small>Deadline</small><b>{selected.deadline}</b></span><span><small>Pay</small><b>{selected.pay}</b></span><span><small>Sector</small><b>{selected.sector}</b></span></div><p>{selected.description}</p><div className="career-modal-actions"><a href={selected.notification} target="_blank" rel="noreferrer">View official notice <LakshyaIcon name="external" size={13}/></a><a href={selected.official} target="_blank" rel="noreferrer">Official website <LakshyaIcon name="external" size={13}/></a></div></div></div>}
  </main>;
 }
