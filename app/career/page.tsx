@@ -42,7 +42,6 @@ const filters=["All","10th","12th","Graduate","Diploma","Central","State","Natio
 
 export default function CareerPage(){
  const [filter,setFilter]=useState("All"),[query,setQuery]=useState(""),[selected,setSelected]=useState<Vacancy|null>(null);
- const modalRef = useRef<HTMLDivElement|null>(null);
  const openerRef = useRef<HTMLElement|null>(null);
  const [saved,setSaved]=useState<string[]>([]);
  const [liveVacancies,setLiveVacancies]=useState<Vacancy[]>([]);
@@ -52,40 +51,7 @@ export default function CareerPage(){
  useEffect(() => {
   if (!selected) return;
   const previousFocus = openerRef.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-  const dialog = modalRef.current;
-  const getFocusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>(
-   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-  ) ?? []);
-  (getFocusable()[0] ?? dialog)?.focus();
-  const handleKeyDown = (event: KeyboardEvent) => {
-   if (event.key === "Escape") {
-    event.preventDefault();
-    setSelected(null);
-    return;
-   }
-   if (event.key !== "Tab") return;
-   const items = getFocusable();
-   if (items.length === 0) {
-    event.preventDefault();
-    dialog?.focus();
-    return;
-   }
-   const first = items[0];
-   const last = items[items.length - 1];
-   if (!dialog?.contains(document.activeElement)) {
-    event.preventDefault();
-    (event.shiftKey ? last : first).focus();
-   } else if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-   } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-   }
-  };
-  window.addEventListener("keydown", handleKeyDown);
   return () => {
-   window.removeEventListener("keydown", handleKeyDown);
    if (previousFocus?.isConnected) previousFocus.focus();
    if (openerRef.current === previousFocus) openerRef.current = null;
   };
@@ -143,6 +109,14 @@ export default function CareerPage(){
   {!refreshing&&feedStatus==="fallback"&&<div className="career-feed-fallback" role="status" aria-live="polite"><strong>Live vacancy refresh is temporarily unavailable.</strong><p>The official recruitment source directory is still shown below. Confirm current openings and deadlines on each official notice.</p></div>}
   <section className="career-grid">{visible.map(v=><article className="career-card" key={v.id}><div className="career-card-top"><span className="career-status">{v.status}</span><button className={saved.includes(v.id)?"career-save saved":"career-save"} onClick={()=>toggle(v.id)} aria-label="Save vacancy"><LakshyaIcon name="save" size={16}/></button></div><h3>{v.title}</h3><p className="career-org">{v.organization}</p><p>{v.description}</p><div className="career-meta"><span><LakshyaIcon name="graduation" size={13}/> {v.level}</span><span><LakshyaIcon name="location" size={13}/> {v.location}</span><span><LakshyaIcon name="clock" size={13}/> {v.deadline}</span></div><div className="career-actions"><button onClick={(event)=>{openerRef.current=event.currentTarget;setSelected(v)}}>Full update</button><a href={v.notification} target="_blank" rel="noreferrer">Official notice <LakshyaIcon name="external" size={13}/></a></div></article>)}</section>
   <section className="career-next"><span className="section-eyebrow">NEXT LAYER</span><h2>Personal vacancy alerts</h2><p>Save qualification and preferred areas so future updates can be filtered for you.</p><div className="career-next-list"><span>01<b>Qualification</b><small>10th · 12th · Diploma · Graduate</small></span><span>02<b>Preferred area</b><small>Central · State · Internship</small></span><span>03<b>Deadline alerts</b><small>New · Updated · Closing soon</small></span></div></section>
-  {selected&&<div className="career-modal-bg" onMouseDown={()=>setSelected(null)}><div ref={modalRef} tabIndex={-1} className="career-modal" role="dialog" aria-modal="true" aria-labelledby="career-modal-title" onMouseDown={e=>e.stopPropagation()}><button className="career-close" onClick={()=>setSelected(null)} aria-label="Close"><LakshyaIcon name="close" size={18}/></button><span className="career-status">{selected.status}</span><h2 id="career-modal-title">{selected.title}</h2><p className="career-org">{selected.organization} · {selected.location}</p><div className="career-detail"><span><small>Qualification</small><b>{selected.level}</b></span><span><small>Deadline</small><b>{selected.deadline}</b></span><span><small>Pay</small><b>{selected.pay}</b></span><span><small>Sector</small><b>{selected.sector}</b></span></div><p>{selected.description}</p><div className="career-modal-actions"><a href={selected.notification} target="_blank" rel="noreferrer">View official notice <LakshyaIcon name="external" size={13}/></a><a href={selected.official} target="_blank" rel="noreferrer">Official website <LakshyaIcon name="external" size={13}/></a></div></div></div>}
+  {selected&&<div className="career-modal-bg" onMouseDown={()=>setSelected(null)}><div tabIndex={-1} className="career-modal" role="dialog" aria-modal="true" aria-labelledby="career-modal-title" onMouseDown={e=>e.stopPropagation()} onKeyDown={event=>{
+   if(event.key==="Escape"){event.preventDefault();event.stopPropagation();setSelected(null);return;}
+   if(event.key!=="Tab")return;
+   const items=Array.from(event.currentTarget.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+   if(items.length===0){event.preventDefault();return;}
+   const first=items[0],last=items[items.length-1];
+   if(event.shiftKey&&(document.activeElement===first||document.activeElement===event.currentTarget)){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  }}><button autoFocus className="career-close" onClick={()=>setSelected(null)} aria-label="Close"><LakshyaIcon name="close" size={18}/></button><span className="career-status">{selected.status}</span><h2 id="career-modal-title">{selected.title}</h2><p className="career-org">{selected.organization} · {selected.location}</p><div className="career-detail"><span><small>Qualification</small><b>{selected.level}</b></span><span><small>Deadline</small><b>{selected.deadline}</b></span><span><small>Pay</small><b>{selected.pay}</b></span><span><small>Sector</small><b>{selected.sector}</b></span></div><p>{selected.description}</p><div className="career-modal-actions"><a href={selected.notification} target="_blank" rel="noreferrer">View official notice <LakshyaIcon name="external" size={13}/></a><a href={selected.official} target="_blank" rel="noreferrer">Official website <LakshyaIcon name="external" size={13}/></a></div></div></div>}
  </main>;
 }
