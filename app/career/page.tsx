@@ -51,7 +51,7 @@ export default function CareerPage(){
  const [refreshedAt,setRefreshedAt]=useState<string|null>(null);
  useEffect(() => {
   if (!selected) return;
-  const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const previousFocus = openerRef.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
   const dialog = modalRef.current;
   const getFocusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>(
    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -87,6 +87,7 @@ export default function CareerPage(){
   return () => {
    window.removeEventListener("keydown", handleKeyDown);
    if (previousFocus?.isConnected) previousFocus.focus();
+   if (openerRef.current === previousFocus) openerRef.current = null;
   };
  }, [selected]);
  useEffect(() => {
