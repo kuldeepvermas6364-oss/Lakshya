@@ -84,9 +84,13 @@ export default function CareerPage(){
  const toggle=(id:string)=>{setSaved(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])};
  const closeModal = () => {
   const opener = openerRef.current;
-  if (opener?.isConnected) opener.focus();
   openerRef.current = null;
   setSelected(null);
+  if (opener?.isConnected) {
+   window.requestAnimationFrame(() => {
+    if (opener.isConnected) opener.focus({ preventScroll: true });
+   });
+  }
  };
  return <main className="page career-page">
   <style>{`
