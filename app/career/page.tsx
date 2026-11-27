@@ -39,15 +39,42 @@ const vacancies: Vacancy[] = [
  {id:"state-west-bengal",title:"West Bengal Employment Bank",organization:"Government of West Bengal",level:"10th / 12th / Graduate",sector:"State",location:"West Bengal",status:"Live",deadline:"Job-wise",pay:"Job-wise",description:"Official West Bengal employment portal listed by the National Career Service directory.",official:"https://employmentbankwb.gov.in/index.php",notification:"https://employmentbankwb.gov.in/index.php"}
 ];
 const filters=["All","10th","12th","Graduate","Diploma","Central","State","National","Internship"];
+const SAVED_VACANCIES_STORAGE_KEY = "lakshya:career:saved-vacancies:v1";
 
 export default function CareerPage(){
  const [filter,setFilter]=useState("All"),[query,setQuery]=useState(""),[selected,setSelected]=useState<Vacancy|null>(null);
  const openerRef = useRef<HTMLElement|null>(null);
- const [saved,setSaved]=useState<string[]>([]);
+ const [saved,setSaved]=useState<string[]>([]),[savedStorageReady,setSavedStorageReady]=useState(false);
  const [liveVacancies,setLiveVacancies]=useState<Vacancy[]>([]);
  const [refreshing,setRefreshing]=useState(true);
  const [feedStatus,setFeedStatus]=useState<FeedStatus>("loading");
  const [refreshedAt,setRefreshedAt]=useState<string|null>(null);
+ useEffect(() => {
+  try {
+   const raw = window.localStorage.getItem(SAVED_VACANCIES_STORAGE_KEY);
+   if (raw) {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+     const validIds = parsed.filter((id): id is string =>
+      typeof id === "string" && /^[A-Za-z0-9_-]{1,160}$/.test(id)
+     );
+     setSaved(Array.from(new Set(validIds)).slice(0, 100));
+    }
+   }
+  } catch {
+   // Keep the in-memory save feature available when browser storage is unavailable.
+  } finally {
+   setSavedStorageReady(true);
+  }
+ }, []);
+ useEffect(() => {
+  if (!savedStorageReady) return;
+  try {
+   window.localStorage.setItem(SAVED_VACANCIES_STORAGE_KEY, JSON.stringify(saved));
+  } catch {
+   // Storage can be disabled or full; the current session remains usable.
+  }
+ }, [saved, savedStorageReady]);
 
  useEffect(() => {
   let active = true;
@@ -110,7 +137,7 @@ export default function CareerPage(){
   <div className="career-head"><div><span className="section-eyebrow">OPPORTUNITY HUB</span><h2>Official sources & AI-updated vacancies</h2></div><span aria-live="polite">{refreshing?"Checking live vacancies…":feedStatus==="live"?(liveVacancies.length+" live vacancies · Updated "+refreshTimeLabel):feedStatus==="empty"?"No verified live openings returned · Checked "+refreshTimeLabel:"Live refresh unavailable · official source directory shown"} · {visible.length} results</span></div>
   {!refreshing&&feedStatus==="empty"&&<div className="career-feed-fallback" role="status" aria-live="polite"><strong>No verified live openings were returned.</strong><p>The official recruitment source directory is still shown below. Check each official notice for current openings and deadlines.</p></div>}
   {!refreshing&&feedStatus==="fallback"&&<div className="career-feed-fallback" role="status" aria-live="polite"><strong>Live vacancy refresh is temporarily unavailable.</strong><p>The official recruitment source directory is still shown below. Confirm current openings and deadlines on each official notice.</p></div>}
-  <section className="career-grid">{visible.map(v=><article className="career-card" key={v.id}><div className="career-card-top"><span className="career-status">{v.status}</span><button className={saved.includes(v.id)?"career-save saved":"career-save"} onClick={()=>toggle(v.id)} aria-label="Save vacancy"><LakshyaIcon name="save" size={16}/></button></div><h3>{v.title}</h3><p className="career-org">{v.organization}</p><p>{v.description}</p><div className="career-meta"><span><LakshyaIcon name="graduation" size={13}/> {v.level}</span><span><LakshyaIcon name="location" size={13}/> {v.location}</span><span><LakshyaIcon name="clock" size={13}/> {v.deadline}</span></div><div className="career-actions"><button onClick={(event)=>{openerRef.current=event.currentTarget;setSelected(v)}}>Full update</button><a href={v.notification} target="_blank" rel="noreferrer">Official notice <LakshyaIcon name="external" size={13}/></a></div></article>)}</section>
+  <section className="career-grid">{visible.map(v=><article className="career-card" key={v.id}><div className="career-card-top"><span className="career-status">{v.status}</span><button type="button" className={saved.includes(v.id)?"career-save saved":"career-save"} onClick={()=>toggle(v.id)} aria-label={`${saved.includes(v.id)?"Remove":"Save"} ${v.title}`} aria-pressed={saved.includes(v.id)}><LakshyaIcon name="save" size={16}/></button></div><h3>{v.title}</h3><p className="career-org">{v.organization}</p><p>{v.description}</p><div className="career-meta"><span><LakshyaIcon name="graduation" size={13}/> {v.level}</span><span><LakshyaIcon name="location" size={13}/> {v.location}</span><span><LakshyaIcon name="clock" size={13}/> {v.deadline}</span></div><div className="career-actions"><button onClick={(event)=>{openerRef.current=event.currentTarget;setSelected(v)}}>Full update</button><a href={v.notification} target="_blank" rel="noreferrer">Official notice <LakshyaIcon name="external" size={13}/></a></div></article>)}</section>
   <section className="career-next"><span className="section-eyebrow">NEXT LAYER</span><h2>Personal vacancy alerts</h2><p>Save qualification and preferred areas so future updates can be filtered for you.</p><div className="career-next-list"><span>01<b>Qualification</b><small>10th · 12th · Diploma · Graduate</small></span><span>02<b>Preferred area</b><small>Central · State · Internship</small></span><span>03<b>Deadline alerts</b><small>New · Updated · Closing soon</small></span></div></section>
   {selected&&<div className="career-modal-bg" onMouseDown={closeModal}><div tabIndex={-1} className="career-modal" role="dialog" aria-modal="true" aria-labelledby="career-modal-title" onMouseDown={e=>e.stopPropagation()} onKeyDown={event=>{
    if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeModal();return;}
